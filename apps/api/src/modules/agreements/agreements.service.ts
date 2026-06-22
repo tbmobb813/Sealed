@@ -89,7 +89,7 @@ export class AgreementsService {
 
       // 🔒 IMMUTABILITY GUARD
       // Agreements freeze the moment they are sent for signature.
-      // A signed is a legal artifact and must never change.
+      // A signed agreement is a legal artifact and must never change.
       assertMutable("agreement", existing.signatureStatus);
 
       await tx.agreement.updateMany({
