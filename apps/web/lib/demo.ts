@@ -10,5 +10,5 @@ export function isDemoMode(): boolean {
 }
 
 export function shouldUseClerk(): boolean {
-  return !isDemoMode() && Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  return !isDemoMode();
 }
