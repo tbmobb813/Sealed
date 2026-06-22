@@ -1,3 +1,5 @@
+"use client";
+
 import { DEMO_USER } from "@/lib/demo";
 
 export function DemoAuthControls() {
