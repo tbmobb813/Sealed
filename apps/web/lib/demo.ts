@@ -9,7 +9,14 @@ export function isDemoMode(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }
 
-export function shouldUseClerk(): boolean {
-  return !isDemoMode();
+export function hasClerkPublishableKey(): boolean {
+  return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
+}
 
+export function canInitializeClerk(): boolean {
+  return shouldUseClerk() && hasClerkPublishableKey();
+}
+
+export function shouldUseClerk(): boolean {
+  return !isDemoMode();
 }
