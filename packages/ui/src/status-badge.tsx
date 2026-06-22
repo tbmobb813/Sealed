@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 const statusColors: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-800",
   SENT: "bg-blue-100 text-blue-800",
