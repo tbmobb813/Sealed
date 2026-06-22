@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
@@ -20,7 +21,14 @@ import { ClerkModule } from "./integrations/clerk/clerk.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        join(process.cwd(), ".env"),
+        join(__dirname, "..", "..", ".env"),
+        join(process.cwd(), "apps/api/.env"),
+      ],
+    }),
     TenantsModule,
     UsersModule,
     ContactsModule,
