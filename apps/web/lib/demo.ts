@@ -10,7 +10,7 @@ export function isDemoMode(): boolean {
 }
 
 export function hasClerkPublishableKey(): boolean {
-  return (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim().length ?? 0) > 0;
+  return !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
 }
 
 export function canInitializeClerk(): boolean {
