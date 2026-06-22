@@ -74,7 +74,6 @@ export class ClerkAuthGuard implements CanActivate {
 
     let user = await this.prisma.user.findFirst({
       where: { clerkUserId },
-      include: { tenant: true },
     });
 
     if (!user) {
