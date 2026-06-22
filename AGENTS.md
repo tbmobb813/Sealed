@@ -13,9 +13,10 @@
 - State transitions are validated in services with `assertTransition()`; invalid transitions throw `ConflictException` with code `INVALID_STATE_TRANSITION`
 - Tenant isolation via `TenantGuard`; every query filters by `tenantId`; service methods accept `tenantId`
 - tsconfig extends must use `@sealed/config/typescript/nestjs` without the `.json` suffix for Nest decorators to work
-- Prisma schema at `apps/api/prisma/schema.prisma`; client outputs to `packages/database/generated/client`; run `pnpm db:generate` after install
+- Prisma schema at `apps/api/prisma/schema.prisma`; client outputs to `packages/database/generated/client`; run `pnpm db:generate` after install and `pnpm db:migrate` after Postgres is up
 - Next.js 14 requires `next.config.mjs`, not `next.config.ts`
-- Clerk env vars: web uses `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`; API uses `CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`
-- Postgres via docker-compose at `localhost:5432`
-- API auth uses `@clerk/backend` in guards, not `@clerk/express`
-- Web uses native `fetch` in `lib/api-client.ts`; shadcn/ui is initialized with only `button` and `card` so far
+- `pnpm dev` runs web on `:3000` and API on `:3001`; API routes use global prefix `/api/v1`
+- Clerk auth: web `NEXT_PUBLIC_DEMO_MODE=false` + `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`; API `DEMO_MODE=false` + `CLERK_SECRET_KEY` + `CLERK_WEBHOOK_SECRET`; guards use `@clerk/backend`
+- Clerk users provision via lazy `ClerkAuthGuard` on first valid JWT and `POST /api/v1/webhooks/clerk` (`user.created`); seeded data belongs to demo user `user_demo_001` only
+
+- Postgres via docker-compose at `localhost:5432`; web uses native `fetch` in `lib/api-client.ts`

@@ -4,6 +4,7 @@ module.exports = [
     ignores: ["dist/**", "node_modules/**", ".next/**", "generated/**"],
   },
   {
+    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
     languageOptions: {
       parser: require("@typescript-eslint/parser"),
       parserOptions: {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import {
   FileText,
   Handshake,
@@ -9,6 +8,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AuthControls } from "@/components/features/shared/auth-controls";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -52,7 +52,7 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
         })}
       </nav>
       <div className="border-t p-4">
-        <UserButton afterSignOutUrl="/sign-in" />
+        <AuthControls />
       </div>
     </aside>
   );
