@@ -15,9 +15,9 @@
 - Tenant isolation via `TenantGuard`; every query filters by `tenantId`; service methods accept `tenantId`
 - tsconfig extends must use `@sealed/config/typescript/nestjs` without the `.json` suffix for Nest decorators to work
 - Prisma schema at `apps/api/prisma/schema.prisma`; client outputs to `packages/database/generated/client`; run `pnpm db:generate` after install and `pnpm db:migrate` after Postgres is up; `pnpm db:seed` loads demo tenant data
-- Next.js 14 requires `next.config.mjs`, not `next.config.ts`; `shouldUseClerk()` enables Clerk only when not demo mode and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set
+- Next.js 14 requires `next.config.mjs`, not `next.config.ts`; `shouldUseClerk()` gates middleware when not in demo mode; `canInitializeClerk()` gates ClerkProvider and server auth (requires publishable key)
 - `pnpm dev` runs web on `:3000` and API on `:3001`; API routes use global prefix `/api/v1`; Postgres via docker-compose at `localhost:5432`
 - Demo mode: both `.env.example` files default `DEMO_MODE=true` / `NEXT_PUBLIC_DEMO_MODE=true`; web sends `Authorization: Bearer demo` to map `user_demo_001`
 - Clerk auth: web `NEXT_PUBLIC_DEMO_MODE=false` + keys; API `DEMO_MODE=false` + `CLERK_SECRET_KEY` + `CLERK_WEBHOOK_SECRET`; guards use `@clerk/backend`; users provision via lazy `ClerkAuthGuard` and `POST /api/v1/webhooks/clerk` (`user.created`/`updated`/`deleted`); seeded data belongs to demo user only
-- GitHub Actions: Node 24; `pnpm/action-setup@v4` reads pnpm version from root `packageManager` (do not set separate `version`); CI builds with `NEXT_PUBLIC_DEMO_MODE=true`, deploy with `false` + `secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- GitHub Actions: Node 24; `pnpm/action-setup@v4` reads pnpm from root `packageManager` (no separate `version`); workflows use `paths` filters on `apps/**`, `packages/**`, lockfile, and `turbo.json`; CI builds with `NEXT_PUBLIC_DEMO_MODE=true`; deploy with `false` + Clerk secret (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` or `CLERK_PUBLISHABLE_KEY`); `turbo.json` `globalEnv` passes `NEXT_PUBLIC_*` to web build
 - Web uses native `fetch` in `lib/api-client.ts`; `@sealed/ui` uses React 18 types aligned with `@sealed/web`
