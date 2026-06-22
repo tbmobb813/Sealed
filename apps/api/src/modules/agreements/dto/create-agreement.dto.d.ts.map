@@ -1,1 +1,0 @@
-{"version":3,"file":"create-agreement.dto.d.ts","sourceRoot":"","sources":["create-agreement.dto.ts"],"names":[],"mappings":"AAEA,qBAAa,kBAAkB;IAE7B,UAAU,EAAG,MAAM,CAAC;IAGpB,SAAS,EAAG,MAAM,CAAC;IAGnB,KAAK,EAAG,MAAM,CAAC;IAGf,IAAI,EAAG,MAAM,CAAC;CACf;AAED,qBAAa,kBAAkB;IAG7B,KAAK,CAAC,EAAE,MAAM,CAAC;IAIf,IAAI,CAAC,EAAE,MAAM,CAAC;CACf"}
