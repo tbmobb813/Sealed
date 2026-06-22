@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import { isDemoMode } from "@/lib/demo";
 import "./globals.css";
 
@@ -16,15 +17,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const body = (
+  return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {isDemoMode() ? (
+          children
+        ) : (
+          <ClerkProvider appearance={{ theme: shadcn }}>{children}</ClerkProvider>
+        )}
+      </body>
     </html>
   );
-
-  if (isDemoMode()) {
-    return body;
-  }
-
-  return <ClerkProvider>{body}</ClerkProvider>;
 }

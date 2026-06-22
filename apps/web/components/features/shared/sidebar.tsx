@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import {
   FileText,
   Handshake,
@@ -9,7 +8,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DEMO_USER, isDemoMode } from "@/lib/demo";
+import { AuthControls } from "@/components/features/shared/auth-controls";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -53,15 +52,7 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
         })}
       </nav>
       <div className="border-t p-4">
-        {isDemoMode() ? (
-          <div className="space-y-1 text-sm">
-            <p className="font-medium">{DEMO_USER.name}</p>
-            <p className="text-muted-foreground">{DEMO_USER.email}</p>
-            <p className="text-xs text-amber-600">Demo mode</p>
-          </div>
-        ) : (
-          <UserButton afterSignOutUrl="/sign-in" />
-        )}
+        <AuthControls />
       </div>
     </aside>
   );
