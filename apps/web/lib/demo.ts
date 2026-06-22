@@ -11,4 +11,5 @@ export function isDemoMode(): boolean {
 
 export function shouldUseClerk(): boolean {
   return !isDemoMode();
+
 }
