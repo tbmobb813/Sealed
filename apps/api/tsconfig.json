@@ -1,0 +1,12 @@
+{
+  "extends": "@sealed/config/typescript/nestjs",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src", "prisma"]
+}

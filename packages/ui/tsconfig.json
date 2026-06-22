@@ -1,0 +1,9 @@
+{
+  "extends": "@sealed/config/typescript/base",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

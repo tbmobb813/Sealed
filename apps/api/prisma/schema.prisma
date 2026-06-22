@@ -1,0 +1,382 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../packages/database/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// CORE ISOLATION
+// ============================================================
+
+model Tenant {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  
+  // Branding (used in Case File and emails)
+  brandColor   String?  @map("brand_color")  // e.g., "#1a1a2e"
+  logoUrl      String?  @map("logo_url")
+  
+  // Settings
+  defaultCurrency String @default("USD") @map("default_currency")
+  timezone        String @default("UTC")
+  
+  // Integration settings
+  stripeAccountId      String? @map("stripe_account_id")
+  signatureProvider    String? @default("dropbox_sign") @map("signature_provider")
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  contacts      Contact[]
+  proposals     Proposal[]
+  agreements    Agreement[]
+  invoices      Invoice[]
+  payments      Payment[]
+  activities    ActivityEvent[]
+  proposalTemplates ProposalTemplate[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  tenantId     String     @map("tenant_id")
+  clerkUserId  String     @unique @map("clerk_user_id")
+  email        String
+  name         String
+  role         UserRole   @default(OWNER)
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?  @map("last_login_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  activities ActivityEvent[]
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  COLLABORATOR
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+// ============================================================
+// CONTACTS (Simplified — no lifecycle)
+// ============================================================
+
+model Contact {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  email       String
+  phone       String?
+  companyName String?  @map("company_name")
+  
+  // Optional metadata (extensible for future verticals)
+  metadata    Json     @default("{}") @db.JsonB
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  proposals  Proposal[]
+  agreements Agreement[]
+  invoices   Invoice[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("contacts")
+}
+
+// ============================================================
+// PROPOSALS (The starting point of every deal)
+// ============================================================
+
+model Proposal {
+  id              String         @id @default(uuid())
+  tenantId        String         @map("tenant_id")
+  contactId       String         @map("contact_id")
+  
+  // Public access via signed token (no auth required)
+  publicToken     String         @unique @default(uuid()) @map("public_token")
+  
+  // Content
+  title           String
+  description     String?        @db.Text
+  lineItems       Json           @default("[]") @map("line_items") @db.JsonB
+  // Example lineItem: { description, quantity, unitPrice, total }
+  
+  subtotal        Decimal        @db.Decimal(12, 2)
+  taxAmount       Decimal        @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  totalAmount     Decimal        @map("total_amount") @db.Decimal(12, 2)
+  currency        String         @default("USD")
+  
+  // State machine
+  status          ProposalStatus @default(DRAFT)
+  
+  // Timestamps (the audit trail starts here)
+  sentAt          DateTime?      @map("sent_at")
+  viewedAt        DateTime?      @map("viewed_at")
+  respondedAt    DateTime?      @map("responded_at")
+  expiresAt       DateTime?      @map("expires_at")
+  
+  // Client interaction tracking
+  viewerIpAddress String?        @map("viewer_ip_address")
+  viewerUserAgent String?        @map("viewer_user_agent")
+  
+  createdByUserId String         @map("created_by_user_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact    Contact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  agreements Agreement[]
+
+  @@index([tenantId, status])
+  @@index([publicToken])
+  @@map("proposals")
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+// ============================================================
+// PROPOSAL TEMPLATES (Phase 6 polish)
+// ============================================================
+
+model ProposalTemplate {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  title       String
+  description String?  @db.Text
+  lineItems   Json     @default("[]") @map("line_items") @db.JsonB
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("proposal_templates")
+}
+
+// ============================================================
+// AGREEMENTS (The legal anchor)
+// ============================================================
+
+model Agreement {
+  id                  String          @id @default(uuid())
+  tenantId            String          @map("tenant_id")
+  proposalId          String          @map("proposal_id")
+  contactId           String          @map("contact_id")
+  
+  publicToken         String          @unique @default(uuid()) @map("public_token")
+  
+  title               String
+  body                String          @db.Text  // The contract content (rich text/markdown)
+  
+  // Signature provider integration
+  signatureProvider   String?         @map("signature_provider")
+  signatureRequestId  String?         @map("signature_request_id")  // External ID
+  signedDocumentUrl   String?         @map("signed_document_url")   // S3/CDN URL after signing
+  
+  // Signer info
+  signerName          String?         @map("signer_name")
+  signerEmail         String?         @map("signer_email")
+  signerIpAddress     String?         @map("signer_ip_address")
+  
+  // State machine
+  status              AgreementStatus @default(DRAFT)
+  
+  sentAt              DateTime?       @map("sent_at")
+  signedAt            DateTime?       @map("signed_at")
+  declinedAt          DateTime?       @map("declined_at")
+  
+  createdByUserId     String          @map("created_by_user_id")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  proposal Proposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  contact  Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([tenantId, status])
+  @@index([publicToken])
+  @@index([signatureRequestId])
+  @@map("agreements")
+}
+
+enum AgreementStatus {
+  DRAFT
+  SENT
+  SIGNED
+  DECLINED
+  CANCELED
+}
+
+// ============================================================
+// INVOICES
+// ============================================================
+
+model Invoice {
+  id              String        @id @default(uuid())
+  tenantId        String        @map("tenant_id")
+  agreementId     String        @map("agreement_id")
+  contactId       String        @map("contact_id")
+  
+  publicToken     String        @unique @default(uuid()) @map("public_token")
+  
+  // Auto-generated, unique per tenant (e.g., "INV-0001")
+  number          String
+  
+  // Content (mirrored from agreement at creation, then frozen)
+  lineItems       Json          @default("[]") @map("line_items") @db.JsonB
+  subtotal        Decimal       @db.Decimal(12, 2)
+  taxAmount       Decimal       @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  totalAmount     Decimal       @map("total_amount") @db.Decimal(12, 2)
+  amountPaid      Decimal       @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  currency        String        @default("USD")
+  
+  issueDate       DateTime      @default(now()) @map("issue_date")
+  dueDate         DateTime?     @map("due_date")
+  
+  // Stripe integration
+  stripePaymentLinkUrl String?  @map("stripe_payment_link_url")
+  stripePaymentLinkId  String?  @map("stripe_payment_link_id")
+  
+  // State machine
+  status          InvoiceStatus @default(DRAFT)
+  
+  sentAt          DateTime?     @map("sent_at")
+  paidAt          DateTime?     @map("paid_at")
+  voidedAt        DateTime?     @map("voided_at")
+  
+  createdByUserId String        @map("created_by_user_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  agreement Agreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  payments  Payment[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status])
+  @@index([publicToken])
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  VOID
+  OVERDUE
+}
+
+// ============================================================
+// PAYMENTS (Money truth)
+// ============================================================
+
+model Payment {
+  id                String          @id @default(uuid())
+  tenantId          String          @map("tenant_id")
+  invoiceId         String          @map("invoice_id")
+  
+  provider          PaymentProvider
+  providerPaymentId String?         @unique @map("provider_payment_id")
+  
+  amount            Decimal         @db.Decimal(12, 2)
+  currency          String          @default("USD")
+  
+  status            PaymentStatus   @default(PENDING)
+  
+  succeededAt       DateTime?       @map("succeeded_at")
+  failedAt          DateTime?       @map("failed_at")
+  refundedAt        DateTime?       @map("refunded_at")
+  
+  failureReason     String?         @map("failure_reason")
+  
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, invoiceId])
+  @@index([providerPaymentId])
+  @@map("payments")
+}
+
+enum PaymentProvider {
+  STRIPE
+  MANUAL
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+// ============================================================
+// ACTIVITY EVENTS (Append-only spine — THE differentiator)
+// ============================================================
+
+model ActivityEvent {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  
+  // Who did it (null for system events like webhooks)
+  actorId    String?  @map("actor_id")
+  actorType  String   @default("user") @map("actor_type")  // user | system | client
+  
+  // What was acted upon
+  objectType String   @map("object_type")
+  objectId   String   @map("object_id")
+  
+  // What happened
+  eventType  String   @map("event_type")
+  // Examples: proposal.created, proposal.sent, proposal.viewed,
+  //           agreement.signed, invoice.paid, payment.succeeded
+  
+  // Context (rich metadata, never deleted)
+  metadata   Json     @default("{}") @db.JsonB
+  // Examples: { ipAddress, userAgent, previousStatus, newStatus, amount }
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  actor  User?  @relation(fields: [actorId], references: [id])
+
+  @@index([tenantId, objectType, objectId, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([tenantId, eventType])
+  @@map("activity_events")
+}

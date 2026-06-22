@@ -1,0 +1,130 @@
+import { PrismaService } from "../../prisma/prisma.service";
+import { CreatePaymentDto } from "./dto/create-payment.dto";
+export declare class PaymentsService {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    findAll(tenantId: string): import("@sealed/database").Prisma.PrismaPromise<({
+        invoice: {
+            number: string;
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.InvoiceStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            contactId: string;
+            publicToken: string;
+            lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+            taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            currency: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            agreementId: string;
+            amountPaid: import("@sealed/database/generated/client/runtime/library").Decimal;
+            issueDate: Date;
+            dueDate: Date | null;
+            stripePaymentLinkUrl: string | null;
+            stripePaymentLinkId: string | null;
+            paidAt: Date | null;
+            voidedAt: Date | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        status: import("@sealed/database").$Enums.PaymentStatus;
+        createdAt: Date;
+        currency: string;
+        invoiceId: string;
+        provider: import("@sealed/database").$Enums.PaymentProvider;
+        providerPaymentId: string | null;
+        amount: import("@sealed/database/generated/client/runtime/library").Decimal;
+        succeededAt: Date | null;
+        failedAt: Date | null;
+        refundedAt: Date | null;
+        failureReason: string | null;
+    })[]>;
+    findOne(tenantId: string, id: string): Promise<{
+        invoice: {
+            number: string;
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.InvoiceStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            contactId: string;
+            publicToken: string;
+            lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+            taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            currency: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            agreementId: string;
+            amountPaid: import("@sealed/database/generated/client/runtime/library").Decimal;
+            issueDate: Date;
+            dueDate: Date | null;
+            stripePaymentLinkUrl: string | null;
+            stripePaymentLinkId: string | null;
+            paidAt: Date | null;
+            voidedAt: Date | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        status: import("@sealed/database").$Enums.PaymentStatus;
+        createdAt: Date;
+        currency: string;
+        invoiceId: string;
+        provider: import("@sealed/database").$Enums.PaymentProvider;
+        providerPaymentId: string | null;
+        amount: import("@sealed/database/generated/client/runtime/library").Decimal;
+        succeededAt: Date | null;
+        failedAt: Date | null;
+        refundedAt: Date | null;
+        failureReason: string | null;
+    }>;
+    create(tenantId: string, userId: string, dto: CreatePaymentDto): Promise<{
+        invoice: {
+            number: string;
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.InvoiceStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            contactId: string;
+            publicToken: string;
+            lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+            taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+            currency: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            agreementId: string;
+            amountPaid: import("@sealed/database/generated/client/runtime/library").Decimal;
+            issueDate: Date;
+            dueDate: Date | null;
+            stripePaymentLinkUrl: string | null;
+            stripePaymentLinkId: string | null;
+            paidAt: Date | null;
+            voidedAt: Date | null;
+        };
+    } & {
+        id: string;
+        tenantId: string;
+        status: import("@sealed/database").$Enums.PaymentStatus;
+        createdAt: Date;
+        currency: string;
+        invoiceId: string;
+        provider: import("@sealed/database").$Enums.PaymentProvider;
+        providerPaymentId: string | null;
+        amount: import("@sealed/database/generated/client/runtime/library").Decimal;
+        succeededAt: Date | null;
+        failedAt: Date | null;
+        refundedAt: Date | null;
+        failureReason: string | null;
+    }>;
+}
+//# sourceMappingURL=payments.service.d.ts.map

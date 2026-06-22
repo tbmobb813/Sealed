@@ -1,0 +1,26 @@
+{
+  "name": "@sealed/database",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./generated/client/index.js",
+  "types": "./generated/client/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./generated/client/index.d.ts",
+      "default": "./generated/client/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate --schema ../../apps/api/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "6.9.0"
+  },
+  "devDependencies": {
+    "@sealed/config": "workspace:*",
+    "prisma": "6.9.0",
+    "typescript": "^5.8.3"
+  }
+}

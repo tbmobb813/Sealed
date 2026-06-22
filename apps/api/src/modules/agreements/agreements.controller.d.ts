@@ -1,0 +1,268 @@
+import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { AgreementsService } from "./agreements.service";
+import { CreateAgreementDto, UpdateAgreementDto } from "./dto/create-agreement.dto";
+export declare class AgreementsController {
+    private readonly agreementsService;
+    constructor(agreementsService: AgreementsService);
+    list(user: AuthenticatedUser): Promise<{
+        data: ({
+            contact: {
+                id: string;
+                tenantId: string;
+                email: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                phone: string | null;
+                companyName: string | null;
+                metadata: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            };
+            proposal: {
+                id: string;
+                tenantId: string;
+                status: import("@sealed/database").$Enums.ProposalStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                contactId: string;
+                publicToken: string;
+                title: string;
+                description: string | null;
+                lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+                subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+                taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                currency: string;
+                sentAt: Date | null;
+                viewedAt: Date | null;
+                respondedAt: Date | null;
+                expiresAt: Date | null;
+                viewerIpAddress: string | null;
+                viewerUserAgent: string | null;
+                createdByUserId: string;
+            };
+        } & {
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.AgreementStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            signatureProvider: string | null;
+            contactId: string;
+            publicToken: string;
+            title: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            proposalId: string;
+            body: string;
+            signatureRequestId: string | null;
+            signedDocumentUrl: string | null;
+            signerName: string | null;
+            signerEmail: string | null;
+            signerIpAddress: string | null;
+            signedAt: Date | null;
+            declinedAt: Date | null;
+        })[];
+    }>;
+    getOne(user: AuthenticatedUser, id: string): Promise<{
+        data: {
+            contact: {
+                id: string;
+                tenantId: string;
+                email: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                phone: string | null;
+                companyName: string | null;
+                metadata: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            };
+            proposal: {
+                id: string;
+                tenantId: string;
+                status: import("@sealed/database").$Enums.ProposalStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                contactId: string;
+                publicToken: string;
+                title: string;
+                description: string | null;
+                lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+                subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+                taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                currency: string;
+                sentAt: Date | null;
+                viewedAt: Date | null;
+                respondedAt: Date | null;
+                expiresAt: Date | null;
+                viewerIpAddress: string | null;
+                viewerUserAgent: string | null;
+                createdByUserId: string;
+            };
+        } & {
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.AgreementStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            signatureProvider: string | null;
+            contactId: string;
+            publicToken: string;
+            title: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            proposalId: string;
+            body: string;
+            signatureRequestId: string | null;
+            signedDocumentUrl: string | null;
+            signerName: string | null;
+            signerEmail: string | null;
+            signerIpAddress: string | null;
+            signedAt: Date | null;
+            declinedAt: Date | null;
+        };
+    }>;
+    create(user: AuthenticatedUser, dto: CreateAgreementDto): Promise<{
+        data: {
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.AgreementStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            signatureProvider: string | null;
+            contactId: string;
+            publicToken: string;
+            title: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            proposalId: string;
+            body: string;
+            signatureRequestId: string | null;
+            signedDocumentUrl: string | null;
+            signerName: string | null;
+            signerEmail: string | null;
+            signerIpAddress: string | null;
+            signedAt: Date | null;
+            declinedAt: Date | null;
+        };
+    }>;
+    update(user: AuthenticatedUser, id: string, dto: UpdateAgreementDto): Promise<{
+        data: {
+            contact: {
+                id: string;
+                tenantId: string;
+                email: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                phone: string | null;
+                companyName: string | null;
+                metadata: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            };
+            proposal: {
+                id: string;
+                tenantId: string;
+                status: import("@sealed/database").$Enums.ProposalStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                contactId: string;
+                publicToken: string;
+                title: string;
+                description: string | null;
+                lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+                subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+                taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                currency: string;
+                sentAt: Date | null;
+                viewedAt: Date | null;
+                respondedAt: Date | null;
+                expiresAt: Date | null;
+                viewerIpAddress: string | null;
+                viewerUserAgent: string | null;
+                createdByUserId: string;
+            };
+        } & {
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.AgreementStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            signatureProvider: string | null;
+            contactId: string;
+            publicToken: string;
+            title: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            proposalId: string;
+            body: string;
+            signatureRequestId: string | null;
+            signedDocumentUrl: string | null;
+            signerName: string | null;
+            signerEmail: string | null;
+            signerIpAddress: string | null;
+            signedAt: Date | null;
+            declinedAt: Date | null;
+        };
+    }>;
+    sendForSignature(user: AuthenticatedUser, id: string): Promise<{
+        data: {
+            contact: {
+                id: string;
+                tenantId: string;
+                email: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                phone: string | null;
+                companyName: string | null;
+                metadata: import("@sealed/database/generated/client/runtime/library").JsonValue;
+            };
+            proposal: {
+                id: string;
+                tenantId: string;
+                status: import("@sealed/database").$Enums.ProposalStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                contactId: string;
+                publicToken: string;
+                title: string;
+                description: string | null;
+                lineItems: import("@sealed/database/generated/client/runtime/library").JsonValue;
+                subtotal: import("@sealed/database/generated/client/runtime/library").Decimal;
+                taxAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                totalAmount: import("@sealed/database/generated/client/runtime/library").Decimal;
+                currency: string;
+                sentAt: Date | null;
+                viewedAt: Date | null;
+                respondedAt: Date | null;
+                expiresAt: Date | null;
+                viewerIpAddress: string | null;
+                viewerUserAgent: string | null;
+                createdByUserId: string;
+            };
+        } & {
+            id: string;
+            tenantId: string;
+            status: import("@sealed/database").$Enums.AgreementStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            signatureProvider: string | null;
+            contactId: string;
+            publicToken: string;
+            title: string;
+            sentAt: Date | null;
+            createdByUserId: string;
+            proposalId: string;
+            body: string;
+            signatureRequestId: string | null;
+            signedDocumentUrl: string | null;
+            signerName: string | null;
+            signerEmail: string | null;
+            signerIpAddress: string | null;
+            signedAt: Date | null;
+            declinedAt: Date | null;
+        };
+    }>;
+}
+//# sourceMappingURL=agreements.controller.d.ts.map
