@@ -89,6 +89,40 @@ export class UsersService {
     });
   }
 
+  async syncFromClerk(input: ProvisionClerkUserInput) {
+    const existing = await this.prisma.user.findUnique({
+      where: { clerkUserId: input.clerkUserId },
+    });
+
+    if (!existing) {
+      return this.provisionFromClerk(input);
+    }
+
+    return this.prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        email: input.email,
+        name: input.name,
+        status: "ACTIVE",
+      },
+    });
+  }
+
+  async deactivateByClerkId(clerkUserId: string) {
+    const existing = await this.prisma.user.findUnique({
+      where: { clerkUserId },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    return this.prisma.user.update({
+      where: { id: existing.id },
+      data: { status: "DISABLED" },
+    });
+  }
+
   async provisionFromClerkId(clerkUserId: string, secretKey: string) {
     const client = createClerkClient({ secretKey });
     const clerkUser = await client.users.getUser(clerkUserId);

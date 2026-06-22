@@ -43,14 +43,24 @@ export class ClerkService {
   }
 
   async handleEvent(event: ClerkWebhookEvent) {
-    if (event.type === "user.created") {
-      await this.handleUserCreated(event.data);
+    switch (event.type) {
+      case "user.created":
+        await this.handleUserUpsert(event.data);
+        break;
+      case "user.updated":
+        await this.handleUserUpsert(event.data);
+        break;
+      case "user.deleted":
+        await this.usersService.deactivateByClerkId(event.data.id);
+        break;
+      default:
+        break;
     }
 
     return { received: true, type: event.type };
   }
 
-  private async handleUserCreated(data: ClerkUserPayload) {
+  private async handleUserUpsert(data: ClerkUserPayload) {
     const email = data.email_addresses?.[0]?.email_address;
 
     if (!email) {
@@ -60,7 +70,7 @@ export class ClerkService {
     const name =
       [data.first_name, data.last_name].filter(Boolean).join(" ") || email;
 
-    await this.usersService.provisionFromClerk({
+    await this.usersService.syncFromClerk({
       clerkUserId: data.id,
       email,
       name,

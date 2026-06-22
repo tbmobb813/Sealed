@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
-import { isDemoMode } from "@/lib/demo";
+import { shouldUseClerk } from "@/lib/demo";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -17,7 +17,7 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
 });
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
-  if (isDemoMode()) {
+  if (!shouldUseClerk()) {
     const { pathname } = request.nextUrl;
     if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
       return NextResponse.redirect(new URL("/", request.url));
@@ -25,6 +25,7 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
     return NextResponse.next();
   }
 
+  // clerkMiddleware returns NextMiddleware: (request, event) => Response
   return clerkHandler(request, event);
 }
 

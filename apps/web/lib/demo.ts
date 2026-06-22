@@ -8,3 +8,7 @@ export const DEMO_USER = {
 export function isDemoMode(): boolean {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 }
+
+export function shouldUseClerk(): boolean {
+  return !isDemoMode() && Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+}

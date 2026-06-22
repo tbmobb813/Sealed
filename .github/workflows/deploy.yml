@@ -18,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm version is read from package.json packageManager (pnpm@9.15.4)
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -30,5 +31,9 @@ jobs:
       - run: pnpm db:generate
 
       - run: pnpm build
+        env:
+          NEXT_PUBLIC_DEMO_MODE: "false"
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3001' }}
 
       # Add Vercel / API deployment steps here

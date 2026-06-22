@@ -1,7 +1,11 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
+  HttpException,
   Injectable,
+  Logger,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -18,6 +22,8 @@ import { UsersService } from "../../modules/users/users.service";
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
+  private readonly logger = new Logger(ClerkAuthGuard.name);
+
   constructor(
     private readonly reflector: Reflector,
     private readonly config: ConfigService,
@@ -77,8 +83,20 @@ export class ClerkAuthGuard implements CanActivate {
           clerkUserId,
           secretKey,
         );
-      } catch {
-        throw new UnauthorizedException("User not found");
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          throw new UnauthorizedException(error.message);
+        }
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        this.logger.error(
+          `Failed to provision Clerk user ${clerkUserId}`,
+          error instanceof Error ? error.stack : error,
+        );
+        throw new ServiceUnavailableException(
+          "Failed to provision user from Clerk",
+        );
       }
     }
 
