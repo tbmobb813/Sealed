@@ -17,5 +17,5 @@
 - Next.js 14 requires `next.config.mjs`, not `next.config.ts`
 - `pnpm dev` runs web on `:3000` and API on `:3001`; API routes use global prefix `/api/v1`
 - Clerk auth: web `NEXT_PUBLIC_DEMO_MODE=false` + `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`; API `DEMO_MODE=false` + `CLERK_SECRET_KEY` + `CLERK_WEBHOOK_SECRET`; guards use `@clerk/backend`
-- Clerk users provision via lazy `ClerkAuthGuard` on first valid JWT and `POST /webhooks/clerk` (`user.created`); seeded data belongs to demo user `user_demo_001` only
+- Clerk users provision via lazy `ClerkAuthGuard` on first valid JWT and `POST /api/v1/webhooks/clerk` (`user.created`); seeded data belongs to demo user `user_demo_001` only
 - Postgres via docker-compose at `localhost:5432`; web uses native `fetch` in `lib/api-client.ts`
