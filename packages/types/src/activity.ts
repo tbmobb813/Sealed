@@ -1,3 +1,9 @@
+export interface ActivityEventActor {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface ActivityEvent {
   id: string;
   tenantId: string;
@@ -8,4 +14,5 @@ export interface ActivityEvent {
   eventType: string;
   metadata: Record<string, unknown>;
   createdAt: string;
+  actor?: ActivityEventActor | null;
 }

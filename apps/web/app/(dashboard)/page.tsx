@@ -1,7 +1,19 @@
 import { PageHeader } from "@/components/features/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ActivityFeed } from "@/components/features/shared/activity-feed";
+import { apiClient } from "@/lib/api-client";
+import type { ActivityEvent } from "@sealed/types";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  let events: ActivityEvent[] = [];
+
+  try {
+    const response = await apiClient<{ data: ActivityEvent[] }>("/activity");
+    events = response.data;
+  } catch {
+    // API may not be running
+  }
+
   return (
     <div>
       <PageHeader
@@ -27,6 +39,15 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ActivityFeed events={events} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,1 +1,1 @@
-export {};
+export { ProposalForm } from "./proposal-form";

@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { DEMO_MODE_TOKEN, canInitializeClerk } from "./demo";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -12,6 +11,7 @@ async function getToken(): Promise<string | null> {
     return DEMO_MODE_TOKEN;
   }
 
+  const { auth } = await import("@clerk/nextjs/server");
   const session = await auth();
   return session.getToken();
 }
