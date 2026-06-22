@@ -14,6 +14,7 @@ import {
 } from "../constants/demo";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
+import { UsersService } from "../../modules/users/users.service";
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
@@ -21,6 +22,7 @@ export class ClerkAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -64,13 +66,20 @@ export class ClerkAuthGuard implements CanActivate {
       throw new UnauthorizedException("Invalid token");
     }
 
-    const user = await this.prisma.user.findFirst({
+    let user = await this.prisma.user.findFirst({
       where: { clerkUserId },
       include: { tenant: true },
     });
 
     if (!user) {
-      throw new UnauthorizedException("User not found");
+      try {
+        user = await this.usersService.provisionFromClerkId(
+          clerkUserId,
+          secretKey,
+        );
+      } catch {
+        throw new UnauthorizedException("User not found");
+      }
     }
 
     request.user = {

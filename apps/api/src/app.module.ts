@@ -16,6 +16,7 @@ import { ActivityModule } from "./modules/activity/activity.module";
 import { StripeModule } from "./integrations/stripe/stripe.module";
 import { DropboxSignModule } from "./integrations/dropbox-sign/dropbox-sign.module";
 import { ResendModule } from "./integrations/resend/resend.module";
+import { ClerkModule } from "./integrations/clerk/clerk.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ResendModule } from "./integrations/resend/resend.module";
     StripeModule,
     DropboxSignModule,
     ResendModule,
+    ClerkModule,
   ],
   providers: [
     PrismaService,
