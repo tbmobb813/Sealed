@@ -7,10 +7,10 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
-import { DEMO_USER, shouldUseClerk } from "@/lib/demo";
+import { DEMO_USER, shouldInitializeClerk } from "@/lib/demo";
 
 export function AuthControls() {
-  if (!shouldUseClerk()) {
+  if (!shouldInitializeClerk()) {
     return (
       <div className="space-y-1 text-sm">
         <p className="font-medium">{DEMO_USER.name}</p>

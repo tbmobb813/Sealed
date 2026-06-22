@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { DEMO_MODE_TOKEN, isDemoMode } from "./demo";
+import { DEMO_MODE_TOKEN, shouldInitializeClerk } from "./demo";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -8,7 +8,7 @@ interface FetchOptions extends RequestInit {
 }
 
 async function getToken(): Promise<string | null> {
-  if (isDemoMode()) {
+  if (!shouldInitializeClerk()) {
     return DEMO_MODE_TOKEN;
   }
 
