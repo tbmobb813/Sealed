@@ -100,6 +100,10 @@ export class ClerkAuthGuard implements CanActivate {
       }
     }
 
+    if (user.status !== "ACTIVE") {
+      throw new UnauthorizedException("User is disabled");
+    }
+
     request.user = {
       id: user.id,
       clerkUserId: user.clerkUserId,
