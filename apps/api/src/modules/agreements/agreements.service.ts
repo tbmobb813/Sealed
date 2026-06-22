@@ -1,3 +1,4 @@
+import { assertMutable } from "../../common/constants/mutability";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
@@ -86,6 +87,11 @@ export class AgreementsService {
         throw new NotFoundException("Agreement not found");
       }
 
+      // 🔒 IMMUTABILITY GUARD
+      // Agreements freeze the moment they are sent for signature.
+      // A signed is a legal artifact and must never change.
+      assertMutable("agreement", existing.signatureStatus);
+
       await tx.agreement.updateMany({
         where: { id, tenantId },
         data: dto,
@@ -126,14 +132,14 @@ export class AgreementsService {
 
       assertTransition(
         AGREEMENT_TRANSITIONS,
-        agreement.status,
+        agreement.signatureStatus,
         "SENT",
         "agreement",
       );
 
       await tx.agreement.updateMany({
         where: { id, tenantId },
-        data: { status: "SENT", sentAt: new Date() },
+        data: { signatureStatus: "SENT", sentAt: new Date() },
       });
 
       const updated = await tx.agreement.findFirst({

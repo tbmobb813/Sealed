@@ -47,7 +47,7 @@ export default async function AgreementsPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={agreement.status} />
+                    <StatusBadge status={agreement.signatureStatus} />
                   </td>
                 </tr>
               ))
