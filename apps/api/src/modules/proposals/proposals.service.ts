@@ -148,14 +148,6 @@ export class ProposalsService {
         throw new NotFoundException("Proposal not found");
       }
 
-      if (existing.status !== "DRAFT") {
-        throw new ConflictException({
-          code: "INVALID_STATE_TRANSITION",
-          message: `Cannot update proposal in ${existing.status} status. Only DRAFT proposals can be modified.`,
-          details: { current: existing.status },
-        });
-      }
-
       // 🔒 IMMUTABILITY GUARD
       // Only DRAFT proposals can be edited. Once sent, the proposal is locked.
       assertMutable("proposal", existing.status);
