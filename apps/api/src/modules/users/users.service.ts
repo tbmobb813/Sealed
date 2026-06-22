@@ -136,10 +136,7 @@ export class UsersService {
     });
   }
 
-    const primaryEmailId = clerkUser.primaryEmailAddressId;
-    const email =
-      clerkUser.emailAddresses.find((e) => e.id === primaryEmailId)
-        ?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
+  async deactivateByClerkId(clerkUserId: string) {
     const existing = await this.prisma.user.findUnique({
       where: { clerkUserId },
     });
