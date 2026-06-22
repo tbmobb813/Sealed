@@ -5,6 +5,13 @@ export type AgreementStatus =
   | "DECLINED"
   | "CANCELED";
 
+export type SignatureStatus =
+  | "DRAFT"
+  | "SENT"
+  | "SIGNED"
+  | "DECLINED"
+  | "CANCELED";
+
 export interface Agreement {
   id: string;
   tenantId: string;
@@ -14,6 +21,7 @@ export interface Agreement {
   title: string;
   body: string;
   status: AgreementStatus;
+  signatureStatus: SignatureStatus;
   signatureRequestId: string | null;
   signedAt: string | null;
   declinedAt: string | null;

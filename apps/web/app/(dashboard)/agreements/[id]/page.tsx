@@ -23,14 +23,14 @@ export default async function AgreementDetailPage({
     <div>
       <PageHeader
         title={agreement?.title ?? "Agreement"}
-        action={agreement && <StatusBadge status={agreement.status} />}
+        action={agreement && <StatusBadge status={agreement.signatureStatus} />}
       />
       {agreement ? (
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-sm text-muted-foreground">Status</dt>
+            <dt className="text-sm text-muted-foreground">Signature Status</dt>
             <dd className="font-medium capitalize">
-              {agreement.status.replace(/_/g, " ")}
+              {agreement.signatureStatus.replace(/_/g, " ")}
             </dd>
           </div>
           {agreement.signedAt && (

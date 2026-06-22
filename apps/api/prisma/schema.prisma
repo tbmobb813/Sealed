@@ -210,6 +210,7 @@ model Agreement {
   
   // State machine
   status              AgreementStatus @default(DRAFT)
+  signatureStatus     SignatureStatus @default(DRAFT) @map("signature_status")
   
   sentAt              DateTime?       @map("sent_at")
   signedAt            DateTime?       @map("signed_at")
@@ -225,12 +226,21 @@ model Agreement {
   invoices Invoice[]
 
   @@index([tenantId, status])
+  @@index([tenantId, signatureStatus])
   @@index([publicToken])
   @@index([signatureRequestId])
   @@map("agreements")
 }
 
 enum AgreementStatus {
+  DRAFT
+  SENT
+  SIGNED
+  DECLINED
+  CANCELED
+}
+
+enum SignatureStatus {
   DRAFT
   SENT
   SIGNED

@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@sealed/database";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
   assertTransition,
   PROPOSAL_TRANSITIONS,
 } from "../../common/constants/state-transitions";
+import { assertMutable } from "../../common/constants/mutability";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { CreateProposalDto, UpdateProposalDto } from "./dto/create-proposal.dto";
 import { ProposalQueryDto } from "./dto/proposal-query.dto";
@@ -146,6 +147,10 @@ export class ProposalsService {
       if (!existing) {
         throw new NotFoundException("Proposal not found");
       }
+
+      // 🔒 IMMUTABILITY GUARD
+      // Only DRAFT proposals can be edited. Once sent, the proposal is locked.
+      assertMutable("proposal", existing.status);
 
       let subtotal = existing.subtotal;
       let taxAmount = dto.taxAmount ?? existing.taxAmount;

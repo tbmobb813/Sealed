@@ -1,3 +1,4 @@
+import { assertMutable } from "../../common/constants/mutability";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@sealed/database";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -99,6 +100,11 @@ export class InvoicesService {
       if (!existing) {
         throw new NotFoundException("Invoice not found");
       }
+
+      // 🔒 IMMUTABILITY GUARD
+      // Invoices freeze on send. A sent invoice represents a real billable
+      // amount and the audit trail must remain intact.
+      assertMutable("invoice", existing.status);
 
       const subtotal = dto.subtotal ?? Number(existing.subtotal);
       const taxAmount = dto.taxAmount ?? Number(existing.taxAmount);

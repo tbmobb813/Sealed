@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { shadcn } from "@clerk/ui/themes";
 import { canInitializeClerk } from "@/lib/demo";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const ClerkRootLayout = dynamic(
+  () =>
+    import("./clerk-root-layout").then((module) => module.ClerkRootLayout),
+  { ssr: true },
+);
 
 export const metadata: Metadata = {
   title: "Sealed",
@@ -21,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {canInitializeClerk() ? (
-          <ClerkProvider appearance={{ theme: shadcn }}>{children}</ClerkProvider>
+          <ClerkRootLayout>{children}</ClerkRootLayout>
         ) : (
           children
         )}
