@@ -61,7 +61,11 @@ export class ClerkService {
   }
 
   private async handleUserUpsert(data: ClerkUserPayload) {
-    const email = data.email_addresses?.[0]?.email_address;
+    const primaryEmailId = data.primary_email_address_id;
+    const email =
+      (primaryEmailId
+        ? data.email_addresses?.find((e) => e.id === primaryEmailId)?.email_address
+        : undefined) ?? data.email_addresses?.[0]?.email_address;
 
     if (!email) {
       throw new BadRequestException("Clerk user has no email address");
