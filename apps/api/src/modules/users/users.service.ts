@@ -48,14 +48,24 @@ export class UsersService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const slug = await uniqueTenantSlug(tx, slugifyFromEmail(input.email));
-
-      const tenant = await tx.tenant.create({
-        data: {
-          name: input.name,
-          slug,
-        },
-      });
+      const tenant = await (async () => {
+        while (true) {
+          const slug = await uniqueTenantSlug(tx, slugifyFromEmail(input.email));
+          try {
+            return await tx.tenant.create({
+              data: {
+                name: input.name,
+                slug,
+              },
+            });
+          } catch (error: unknown) {
+            const prismaError = error as { code?: string };
+            // Tenant.slug is @unique; handle possible concurrent creates.
+            if (prismaError.code === "P2002") continue;
+            throw error;
+          }
+        }
+      })();
 
       const user = await tx.user.create({
         data: {
