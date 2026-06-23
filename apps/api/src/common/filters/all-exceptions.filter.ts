@@ -251,7 +251,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const context = {
       requestId: request.requestId,
       method: request.method,
-      path: request.url,
+      path: request.originalUrl,
       code: normalized.code,
       status: normalized.status,
     };
