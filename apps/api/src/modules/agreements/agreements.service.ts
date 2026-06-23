@@ -126,21 +126,19 @@ export class AgreementsService {
         where: { id, tenantId },
         include: { proposal: true, contact: true },
       });
-
-      if (!agreement) {
-        throw new NotFoundException("Agreement not found");
-      }
-
+      
+      if (!agreement) throw new NotFoundException("Agreement not found");
+      
       assertTransition(
         AGREEMENT_TRANSITIONS,
-        agreement.signatureStatus,
+        agreement.status,
         "SENT",
         "agreement",
       );
 
       await tx.agreement.updateMany({
         where: { id, tenantId },
-        data: { signatureStatus: "SENT", sentAt: new Date() },
+        data: { status: "SENT", sentAt: new Date() },
       });
 
       const updated = await tx.agreement.findFirst({
