@@ -13,8 +13,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "db:generate": "prisma generate --schema ../../apps/api/prisma/schema.prisma",
-    "postinstall": "prisma generate --schema ../../apps/api/prisma/schema.prisma"
+    "db:generate": "prisma generate --schema ../../apps/api/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "6.9.0"

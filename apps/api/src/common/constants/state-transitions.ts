@@ -44,8 +44,8 @@ export function assertTransition(
       message: `Cannot transition ${entityName} from ${current} to ${next}`,
       details: {
         entityName,
-        currentStatus: current, 
-        attemptedStatus: next, 
+        currentStatus: current,
+        attemptedStatus: next,
         allowedTransitions: allowed,
       },
     });
