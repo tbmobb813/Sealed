@@ -1,11 +1,11 @@
 import { join } from "node:path";
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { PrismaService } from "./prisma/prisma.service";
 import { ClerkAuthGuard } from "./common/guards/clerk-auth.guard";
 import { TenantGuard } from "./common/guards/tenant.guard";
-import { StateTransitionFilter } from "./common/filters/state-transition.filter";
+import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
 import { TenantsModule } from "./modules/tenants/tenants.module";
 import { UsersModule } from "./modules/users/users.module";
 import { ContactsModule } from "./modules/contacts/contacts.module";
@@ -24,7 +24,7 @@ import { ClerkModule } from "./integrations/clerk/clerk.module";
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
-        join(__dirname, "..", "..", "..", "..", ".env"),
+        join(__dirname, "..", "..", "..", "..", ".env"),
         join(process.cwd(), ".env"),
         join(__dirname, "..", "..", ".env"),
       ],
@@ -52,10 +52,10 @@ import { ClerkModule } from "./integrations/clerk/clerk.module";
       provide: APP_GUARD,
       useClass: TenantGuard,
     },
-    {
-      provide: APP_FILTER,
-      useClass: StateTransitionFilter,
-    },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes("*");
+  }
+}

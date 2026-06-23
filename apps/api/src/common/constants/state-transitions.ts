@@ -1,4 +1,6 @@
 import { ConflictException } from "@nestjs/common";
+import { ErrorCodes } from "./error-codes";
+
 
 type TransitionMap = Record<string, string[]>;
 
@@ -38,9 +40,14 @@ export function assertTransition(
 
   if (!allowed.includes(next)) {
     throw new ConflictException({
-      code: "INVALID_STATE_TRANSITION",
+      code: ErrorCodes.INVALID_STATE_TRANSITION,
       message: `Cannot transition ${entityName} from ${current} to ${next}`,
-      details: { current, attempted: next, allowed },
+      details: {
+        entityName,
+        currentStatus: current, 
+        attemptedStatus: next, 
+        allowedTransitions: allowed,
+      },
     });
   }
 }
