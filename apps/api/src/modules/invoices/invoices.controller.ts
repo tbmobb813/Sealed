@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   Get,
   Param,
   Patch,
@@ -59,6 +60,7 @@ export class InvoicesController {
   }
 
   @Post(":id/send")
+  @HttpCode(200)
   async send(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,

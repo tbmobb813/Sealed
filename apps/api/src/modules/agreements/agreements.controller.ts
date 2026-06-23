@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   Get,
   Param,
   Patch,
@@ -59,6 +60,7 @@ export class AgreementsController {
   }
 
   @Post(":id/send")
+  @HttpCode(200)
   async sendForSignature(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,

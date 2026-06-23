@@ -1,0 +1,161 @@
+### ============================================================
+### IMMUTABILITY GUARD SMOKE TEST
+###
+### Prerequisites:
+###   - DEMO_MODE=true in apps/api/.env
+###   - API running: pnpm dev (or pnpm --filter @sealed/api dev)
+###   - Database seeded: pnpm db:seed
+###
+### How to use:
+###   Click "Send Request" above each block, top to bottom.
+###   Each response opens in a side panel.
+### ============================================================
+
+@baseUrl = http://localhost:3001/api/v1
+@authToken = demo
+
+### ------------------------------------------------------------
+### Step 1: Verify auth works — get current user
+### Expected: 200 OK with the seeded demo user
+### ------------------------------------------------------------
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Step 2: List contacts
+### Expected: 200 OK with at least one seeded contact
+### ------------------------------------------------------------
+# @name listContacts
+GET {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+
+### Auto-extract the first contact's ID for use below:
+@contactId = {{listContacts.response.body.data.0.id}}
+
+### ------------------------------------------------------------
+### Step 3: Create a draft proposal
+### Expected: 201 Created, status = "DRAFT"
+### ------------------------------------------------------------
+# @name createProposal
+POST {{baseUrl}}/proposals
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "contactId": "{{contactId}}",
+  "title": "Immutability Test Proposal",
+  "description": "Testing that sent proposals cannot be edited",
+  "lineItems": [
+    {
+      "description": "Consulting services",
+      "quantity": 1,
+      "unitPrice": 1000
+    }
+  ]
+}
+
+### Auto-extract the new proposal's ID:
+@proposalId = {{createProposal.response.body.data.id}}
+
+### ------------------------------------------------------------
+### Step 4: Update the DRAFT proposal
+### Expected: 200 OK — DRAFT is mutable
+### ------------------------------------------------------------
+PATCH {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated While Draft — This Should Work"
+}
+
+### ------------------------------------------------------------
+### Step 5: Send the proposal (DRAFT → SENT)
+### Expected: 200 OK, status = "SENT"
+### ------------------------------------------------------------
+POST {{baseUrl}}/proposals/{{proposalId}}/send
+Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Step 6: ⚠️ THE CRITICAL TEST
+### Try to update the now-SENT proposal.
+###
+### Expected: 409 Conflict
+### Body should contain:
+### {
+###   "code": "RESOURCE_IMMUTABLE",
+###   "message": "Cannot modify proposal in status SENT. Only DRAFT is editable.",
+###   "details": { "entityName": "proposal", "currentStatus": "SENT", "mutableStatuses": ["DRAFT"] }
+### }
+### ------------------------------------------------------------
+PATCH {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Sneaky Edit — This SHOULD FAIL"
+}
+
+### ============================================================
+### BONUS: Verify agreement guard exists
+###
+### This creates a draft agreement, sends it, then tries to edit it.
+### Expected: PATCH after /send returns 409 RESOURCE_IMMUTABLE.
+### ============================================================
+
+### ============================================================
+### BONUS: Verify agreement immutability guard
+### ============================================================
+
+### ------------------------------------------------------------
+### Step 7: Create an agreement from our SENT proposal
+###
+### Note: There's no current status check on the proposal.
+### This is a known gap we'll address separately.
+### Expected: 201 Created (or 200 if HttpCode applied)
+### ------------------------------------------------------------
+# @name createAgreement
+POST {{baseUrl}}/agreements
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "proposalId": "{{proposalId}}",
+  "contactId": "{{contactId}}",
+  "title": "Test Agreement",
+  "body": "This is a test agreement body for immutability verification."
+}
+
+###
+@agreementId = {{createAgreement.response.body.data.id}}
+
+### ------------------------------------------------------------
+### Step 8: Update DRAFT agreement — should succeed
+### Expected: 200 OK
+### ------------------------------------------------------------
+PATCH {{baseUrl}}/agreements/{{agreementId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Title While Draft"
+}
+
+### ------------------------------------------------------------
+### Step 9: Send the agreement
+### Expected: 200 OK, status = SENT
+### ------------------------------------------------------------
+POST {{baseUrl}}/agreements/{{agreementId}}/send
+Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Step 10: Try to update SENT agreement — SHOULD FAIL
+### Expected: 409 RESOURCE_IMMUTABLE
+### ------------------------------------------------------------
+PATCH {{baseUrl}}/agreements/{{agreementId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "This Should Be Blocked"
+}

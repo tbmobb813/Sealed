@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",
-    "start": "node dist/main",
+    "dev": "dotenv -e ../../.env -e .env -- nest start --watch",
+    "start": "dotenv -e ../../.env -e .env -- node dist/src/main",
     "lint": "eslint \"{src,prisma}/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "db:generate": "dotenv -e ../../.env -e .env -- prisma generate",

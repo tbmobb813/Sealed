@@ -24,9 +24,11 @@ import { ClerkModule } from "./integrations/clerk/clerk.module";
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
+        join(process.cwd(), "../../.env"),
         join(process.cwd(), ".env"),
-        join(__dirname, "..", "..", ".env"),
         join(process.cwd(), "apps/api/.env"),
+        join(__dirname, "..", "..", ".env"),
+        join(__dirname, "..", "..", "..", "..", ".env"),
       ],
     }),
     TenantsModule,
