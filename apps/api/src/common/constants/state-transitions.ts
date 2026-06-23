@@ -1,7 +1,6 @@
 import { ConflictException } from "@nestjs/common";
 import { ErrorCodes } from "./error-codes";
 
-
 type TransitionMap = Record<string, string[]>;
 
 export const PROPOSAL_TRANSITIONS: TransitionMap = {
