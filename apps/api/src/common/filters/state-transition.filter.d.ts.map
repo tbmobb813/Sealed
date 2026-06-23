@@ -1,1 +1,0 @@
-{"version":3,"file":"state-transition.filter.d.ts","sourceRoot":"","sources":["state-transition.filter.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,aAAa,EAEb,iBAAiB,EACjB,eAAe,EAChB,MAAM,gBAAgB,CAAC;AAGxB,qBACa,qBAAsB,YAAW,eAAe;IAC3D,KAAK,CAAC,SAAS,EAAE,iBAAiB,EAAE,IAAI,EAAE,aAAa;CA4BxD"}

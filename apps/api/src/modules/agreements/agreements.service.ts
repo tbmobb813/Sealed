@@ -89,8 +89,9 @@ export class AgreementsService {
 
       // 🔒 IMMUTABILITY GUARD
       // Agreements freeze the moment they are sent for signature.
-      // A signed agreement is a legal artifact and must never change.
-      assertMutable("agreement", existing.signatureStatus);
+      // A signed agreement is a legal artifact and must never change.
+
+      assertMutable("agreement", existing.status);
 
       await tx.agreement.updateMany({
         where: { id, tenantId },
@@ -125,21 +126,19 @@ export class AgreementsService {
         where: { id, tenantId },
         include: { proposal: true, contact: true },
       });
-
-      if (!agreement) {
-        throw new NotFoundException("Agreement not found");
-      }
-
+      
+      if (!agreement) throw new NotFoundException("Agreement not found");
+      
       assertTransition(
         AGREEMENT_TRANSITIONS,
-        agreement.signatureStatus,
+        agreement.status,
         "SENT",
         "agreement",
       );
 
       await tx.agreement.updateMany({
         where: { id, tenantId },
-        data: { signatureStatus: "SENT", sentAt: new Date() },
+        data: { status: "SENT", sentAt: new Date() },
       });
 
       const updated = await tx.agreement.findFirst({

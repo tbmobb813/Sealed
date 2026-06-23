@@ -1,1 +1,0 @@
-{"version":3,"file":"proposal-sent.event.d.ts","sourceRoot":"","sources":["proposal-sent.event.ts"],"names":[],"mappings":"AAAA,qBAAa,iBAAiB;aAEV,UAAU,EAAE,MAAM;aAClB,QAAQ,EAAE,MAAM;aAChB,WAAW,EAAE,MAAM;gBAFnB,UAAU,EAAE,MAAM,EAClB,QAAQ,EAAE,MAAM,EAChB,WAAW,EAAE,MAAM;CAEtC"}

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -72,6 +73,7 @@ export class ProposalsController {
   }
 
   @Post(":id/send")
+  @HttpCode(200)
   async send(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
