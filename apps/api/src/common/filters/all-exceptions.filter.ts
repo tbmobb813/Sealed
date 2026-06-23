@@ -67,7 +67,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: normalized.message,
       ...(normalized.details ? { details: normalized.details } : {}),
       timestamp: new Date().toISOString(),
-      path: request.url,
+      path: request.originalUrl,
       requestId: request.requestId ?? "unknown",
     };
 
