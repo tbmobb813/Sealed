@@ -186,3 +186,161 @@ Content-Type: application/json
 ### Expected: 200 { status: "ok", timestamp, version, checks: { database: "ok" } }
 ### ------------------------------------------------------------
 GET {{rootUrl}}/health
+
+### ============================================================
+### DAY 4 — PIECE 1: Contacts smoke test
+### ============================================================
+
+### C1: List contacts — expect 200, array in data
+GET {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+
+### C2: Create a contact
+# @name createContact
+POST {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane2@example.com",
+  "phone": "+12125550100",
+  "companyName": "Acme Corp"
+}
+
+###
+@newContactId = {{createContact.response.body.data.id}}
+
+### C3: Get the contact by ID — expect 200
+GET {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### C4: Update the contact — expect 200
+PATCH {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "companyName": "Acme Corp (Updated)"
+}
+
+### C5: Delete the contact — expect 200 with { data: { id } }
+DELETE {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### C6: Confirm deletion — expect 404 RESOURCE_NOT_FOUND
+GET {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### DAY 4 — Full domain chain
+### ============================================================
+
+### D1: List contacts — capture first seeded contact
+# @name listContacts
+GET {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+
+###
+@contactId = {{listContacts.response.body.data.0.id}}
+
+### D2: Create draft proposal
+# @name createProposal
+POST {{baseUrl}}/proposals
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "contactId": "{{contactId}}",
+  "title": "Day 4 Smoke Test",
+  "lineItems": [
+    { "description": "Service A", "quantity": 2, "unitPrice": 500 }
+  ],
+  "taxAmount": 100
+}
+
+###
+@proposalId = {{createProposal.response.body.data.id}}
+
+### D3: Confirm totals — subtotal=1000, taxAmount=100, totalAmount=1100
+GET {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+
+### D4: Send proposal (DRAFT → SENT)
+POST {{baseUrl}}/proposals/{{proposalId}}/send
+Authorization: Bearer {{authToken}}
+
+### D5: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Should be blocked"
+}
+
+### D6: Create draft agreement
+# @name createAgreement
+POST {{baseUrl}}/agreements
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "proposalId": "{{proposalId}}",
+  "contactId": "{{contactId}}",
+  "title": "Day 4 Smoke Test Agreement",
+  "body": "Terms and conditions."
+}
+
+###
+@agreementId = {{createAgreement.response.body.data.id}}
+
+### D7: Send agreement (DRAFT → SENT)
+POST {{baseUrl}}/agreements/{{agreementId}}/send
+Authorization: Bearer {{authToken}}
+
+### D8: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/agreements/{{agreementId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Should be blocked"
+}
+
+### D9: Create invoice
+# @name createInvoice
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 1100,
+  "taxAmount": 0
+}
+
+###
+@invoiceId = {{createInvoice.response.body.data.id}}
+
+### D10: Confirm invoice number generated
+GET {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+
+### D11: Send invoice (DRAFT → SENT)
+POST {{baseUrl}}/invoices/{{invoiceId}}/send
+Authorization: Bearer {{authToken}}
+
+### D12: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "subtotal": 9999
+}
+
+### D13: Activity log
+GET {{baseUrl}}/activity
+Authorization: Bearer {{authToken}}
