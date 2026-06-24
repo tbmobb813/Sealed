@@ -60,18 +60,10 @@ export class ContactsService {
         throw new NotFoundException("Contact not found");
       }
 
-      await tx.contact.updateMany({
-        where: { id, tenantId },
+      const contact = await tx.contact.update({
+        where: { id },
         data: dto,
       });
-
-      const contact = await tx.contact.findFirst({
-        where: { id, tenantId },
-      });
-
-      if (!contact) {
-        throw new NotFoundException("Contact not found");
-      }
 
       await emitActivityEvent(tx, {
         tenantId,

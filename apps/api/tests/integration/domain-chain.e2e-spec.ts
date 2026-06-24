@@ -65,6 +65,18 @@ describe("Domain chain (integration)", () => {
 
     expect(proposalImmutable.body.code).toBe(ErrorCodes.RESOURCE_IMMUTABLE);
 
+    const publicToken = proposalDetails.body.data.publicToken;
+
+    const publicView = await request(app.getHttpServer())
+      .get(`/api/v1/proposals/public/${publicToken}`)
+      .expect(200);
+
+    expect(publicView.body.data.status).toBe("VIEWED");
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/proposals/public/${publicToken}/accept`)
+      .expect(200);
+
     const agreementResponse = await request(app.getHttpServer())
       .post("/api/v1/agreements")
       .set(AUTH_HEADER)
@@ -78,10 +90,26 @@ describe("Domain chain (integration)", () => {
 
     const agreementId = agreementResponse.body.data.id;
 
-    await request(app.getHttpServer())
+    const agreementSendResponse = await request(app.getHttpServer())
       .post(`/api/v1/agreements/${agreementId}/send`)
       .set(AUTH_HEADER)
       .expect(200);
+
+    const signatureRequestId =
+      agreementSendResponse.body.data.signatureRequestId;
+    expect(signatureRequestId).toBeTruthy();
+
+    await request(app.getHttpServer())
+      .post("/api/v1/webhooks/dropbox-sign")
+      .send({
+        event: {
+          event_type: "signature_request_signed",
+          event_metadata: {
+            related_signature_request_id: signatureRequestId,
+          },
+        },
+      })
+      .expect(201);
 
     const agreementImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/agreements/${agreementId}`)
@@ -111,10 +139,12 @@ describe("Domain chain (integration)", () => {
 
     expect(invoiceDetails.body.data.number).toMatch(/^INV-\d{4}$/);
 
-    await request(app.getHttpServer())
+    const invoiceSendResponse = await request(app.getHttpServer())
       .post(`/api/v1/invoices/${invoiceId}/send`)
       .set(AUTH_HEADER)
       .expect(200);
+
+    expect(invoiceSendResponse.body.data.stripePaymentLinkUrl).toBeTruthy();
 
     const invoiceImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/invoices/${invoiceId}`)
@@ -137,6 +167,16 @@ describe("Domain chain (integration)", () => {
         eventType: "proposal.sent",
       },
       {
+        objectType: "proposal",
+        objectId: proposalId,
+        eventType: "proposal.viewed",
+      },
+      {
+        objectType: "proposal",
+        objectId: proposalId,
+        eventType: "proposal.accepted",
+      },
+      {
         objectType: "agreement",
         objectId: agreementId,
         eventType: "agreement.created",
@@ -145,6 +185,11 @@ describe("Domain chain (integration)", () => {
         objectType: "agreement",
         objectId: agreementId,
         eventType: "agreement.sent",
+      },
+      {
+        objectType: "agreement",
+        objectId: agreementId,
+        eventType: "agreement.signed",
       },
       {
         objectType: "invoice",
@@ -157,6 +202,97 @@ describe("Domain chain (integration)", () => {
         eventType: "invoice.sent",
       },
     ]);
+  });
+
+  it("rejects agreement creation from a non-ACCEPTED proposal", async () => {
+    const proposalResponse = await request(app.getHttpServer())
+      .post("/api/v1/proposals")
+      .set(AUTH_HEADER)
+      .send({
+        contactId,
+        title: "Guard test proposal",
+        lineItems: [{ description: "Service", quantity: 1, unitPrice: 100 }],
+      })
+      .expect(201);
+
+    const proposalId = proposalResponse.body.data.id;
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/proposals/${proposalId}/send`)
+      .set(AUTH_HEADER)
+      .expect(200);
+
+    const response = await request(app.getHttpServer())
+      .post("/api/v1/agreements")
+      .set(AUTH_HEADER)
+      .send({
+        proposalId,
+        contactId,
+        title: "Should fail",
+        body: "Terms.",
+      })
+      .expect(409);
+
+    expect(response.body.code).toBe(ErrorCodes.PRECONDITION_NOT_MET);
+  });
+
+  it("rejects invoice creation from a non-SIGNED agreement", async () => {
+    const proposalResponse = await request(app.getHttpServer())
+      .post("/api/v1/proposals")
+      .set(AUTH_HEADER)
+      .send({
+        contactId,
+        title: "Invoice guard proposal",
+        lineItems: [{ description: "Service", quantity: 1, unitPrice: 100 }],
+      })
+      .expect(201);
+
+    const proposalId = proposalResponse.body.data.id;
+    const publicToken = proposalResponse.body.data.publicToken;
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/proposals/${proposalId}/send`)
+      .set(AUTH_HEADER)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/proposals/public/${publicToken}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/proposals/public/${publicToken}/accept`)
+      .expect(200);
+
+    const agreementResponse = await request(app.getHttpServer())
+      .post("/api/v1/agreements")
+      .set(AUTH_HEADER)
+      .send({
+        proposalId,
+        contactId,
+        title: "Unsigned agreement",
+        body: "Terms.",
+      })
+      .expect(201);
+
+    const agreementId = agreementResponse.body.data.id;
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/agreements/${agreementId}/send`)
+      .set(AUTH_HEADER)
+      .expect(200);
+
+    const response = await request(app.getHttpServer())
+      .post("/api/v1/invoices")
+      .set(AUTH_HEADER)
+      .send({
+        agreementId,
+        contactId,
+        subtotal: 100,
+        taxAmount: 0,
+      })
+      .expect(409);
+
+    expect(response.body.code).toBe(ErrorCodes.PRECONDITION_NOT_MET);
   });
 
   it("returns 404 for a missing proposal", async () => {

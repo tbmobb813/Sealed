@@ -25,6 +25,7 @@ import { HealthModule } from "./health/health.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      // First match wins: monorepo root, then cwd (apps/api when running locally), then package dir.
       envFilePath: [
         join(__dirname, "..", "..", "..", "..", ".env"),
         join(process.cwd(), ".env"),

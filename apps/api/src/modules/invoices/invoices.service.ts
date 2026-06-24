@@ -6,12 +6,18 @@ import {
   assertTransition,
   INVOICE_TRANSITIONS,
 } from "../../common/constants/state-transitions";
+import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
+import { StripeService } from "../../integrations/stripe/stripe.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "./dto/create-invoice.dto";
 
 @Injectable()
 export class InvoicesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly stripeService: StripeService,
+  ) {}
 
   findAll(tenantId: string) {
     return this.prisma.invoice.findMany({
@@ -44,6 +50,13 @@ export class InvoicesService {
         throw new NotFoundException("Agreement not found");
       }
 
+      assertPrecondition(agreement.status === "SIGNED", {
+        entityName: "agreement",
+        sourceId: agreement.id,
+        currentStatus: agreement.status,
+        requiredStatus: "SIGNED",
+      });
+
       const contact = await tx.contact.findFirst({
         where: { id: dto.contactId, tenantId },
       });
@@ -51,6 +64,8 @@ export class InvoicesService {
       if (!contact) {
         throw new NotFoundException("Contact not found");
       }
+
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tenantId}))`;
 
       const count = await tx.invoice.count({ where: { tenantId } });
       const taxAmount = dto.taxAmount ?? 0;
@@ -106,15 +121,22 @@ export class InvoicesService {
       // amount and the audit trail must remain intact.
       assertMutable("invoice", existing.status);
 
-      const subtotal = dto.subtotal ?? Number(existing.subtotal);
-      const taxAmount = dto.taxAmount ?? Number(existing.taxAmount);
+      const subtotal =
+        dto.subtotal !== undefined
+          ? new Prisma.Decimal(dto.subtotal)
+          : existing.subtotal;
+      const taxAmount =
+        dto.taxAmount !== undefined
+          ? new Prisma.Decimal(dto.taxAmount)
+          : existing.taxAmount;
+      const totalAmount = subtotal.add(taxAmount);
 
       await tx.invoice.updateMany({
         where: { id, tenantId },
         data: {
-          subtotal: new Prisma.Decimal(subtotal),
-          taxAmount: new Prisma.Decimal(taxAmount),
-          totalAmount: new Prisma.Decimal(subtotal + taxAmount),
+          subtotal,
+          taxAmount,
+          totalAmount,
           dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
         },
       });
@@ -157,9 +179,35 @@ export class InvoicesService {
 
       assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
 
+      const amountCents = invoice.totalAmount
+        .mul(100)
+        .toDecimalPlaces(0)
+        .toNumber();
+
+      let stripePaymentLinkId: string;
+      let stripePaymentLinkUrl: string;
+      try {
+        const paymentLink = await this.stripeService.createPaymentLink({
+          amountCents,
+          currency: invoice.currency,
+          invoiceId: invoice.id,
+        });
+        stripePaymentLinkId = paymentLink.id;
+        stripePaymentLinkUrl = paymentLink.url ?? "";
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Payment link creation failed";
+        throwIntegrationError("Stripe", message);
+      }
+
       await tx.invoice.updateMany({
         where: { id, tenantId },
-        data: { status: "SENT", sentAt: new Date() },
+        data: {
+          status: "SENT",
+          sentAt: new Date(),
+          stripePaymentLinkId,
+          stripePaymentLinkUrl,
+        },
       });
 
       const updated = await tx.invoice.findFirst({

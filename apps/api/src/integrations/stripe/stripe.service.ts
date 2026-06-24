@@ -15,6 +15,42 @@ export class StripeService {
     return this.stripe;
   }
 
+  async createPaymentLink(params: {
+    amountCents: number;
+    currency: string;
+    invoiceId: string;
+  }) {
+    if (!this.stripe) {
+      return {
+        id: `plink_${Date.now()}`,
+        url: `https://pay.stripe.test/invoices/${params.invoiceId}`,
+      };
+    }
+
+    const paymentLink = await this.stripe.paymentLinks.create({
+      line_items: [
+        {
+          price_data: {
+            currency: params.currency.toLowerCase(),
+            unit_amount: params.amountCents,
+            product_data: {
+              name: `Invoice ${params.invoiceId}`,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        invoiceId: params.invoiceId,
+      },
+    });
+
+    return {
+      id: paymentLink.id,
+      url: paymentLink.url,
+    };
+  }
+
   async createPaymentIntent(amount: number, currency = "usd") {
     if (!this.stripe) {
       throw new Error("Stripe is not configured");

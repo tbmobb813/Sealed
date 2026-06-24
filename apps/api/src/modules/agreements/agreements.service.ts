@@ -5,12 +5,18 @@ import {
   assertTransition,
   AGREEMENT_TRANSITIONS,
 } from "../../common/constants/state-transitions";
+import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
+import { DropboxSignService } from "../../integrations/dropbox-sign/dropbox-sign.service";
 import { CreateAgreementDto, UpdateAgreementDto } from "./dto/create-agreement.dto";
 
 @Injectable()
 export class AgreementsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly dropboxSignService: DropboxSignService,
+  ) {}
 
   findAll(tenantId: string) {
     return this.prisma.agreement.findMany({
@@ -42,6 +48,13 @@ export class AgreementsService {
       if (!proposal) {
         throw new NotFoundException("Proposal not found");
       }
+
+      assertPrecondition(proposal.status === "ACCEPTED", {
+        entityName: "proposal",
+        sourceId: proposal.id,
+        currentStatus: proposal.status,
+        requiredStatus: "ACCEPTED",
+      });
 
       const contact = await tx.contact.findFirst({
         where: { id: dto.contactId, tenantId },
@@ -136,9 +149,28 @@ export class AgreementsService {
         "agreement",
       );
 
+      let signatureRequestId: string;
+      try {
+        const result = await this.dropboxSignService.createSignatureRequest(
+          agreement.id,
+          agreement.contact.email,
+        );
+        signatureRequestId = result.signatureRequestId;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Signature request failed";
+        throwIntegrationError("Dropbox Sign", message);
+      }
+
       await tx.agreement.updateMany({
         where: { id, tenantId },
-        data: { status: "SENT", sentAt: new Date() },
+        data: {
+          status: "SENT",
+          sentAt: new Date(),
+          signatureRequestId,
+          signatureProvider: "dropbox_sign",
+          signerEmail: agreement.contact.email,
+        },
       });
 
       const updated = await tx.agreement.findFirst({
