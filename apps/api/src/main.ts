@@ -1,6 +1,7 @@
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
+import { RequestMethod, ValidationPipe } from "@nestjs/common";
 import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -10,7 +11,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix("api/v1");
+  app.setGlobalPrefix("api/v1", {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,7 +23,9 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT ?? 3001;
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  const port = process.env.API_PORT ?? process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`API running on http://localhost:${port}`);
 }

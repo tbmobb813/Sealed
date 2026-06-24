@@ -1,4 +1,5 @@
 import { ConflictException } from "@nestjs/common";
+import { ErrorCodes } from "./error-codes";
 
 /**
  * Defines which statuses allow mutation for each entity type.
@@ -50,7 +51,7 @@ export function assertMutable(
 
   if (!allowed.includes(currentStatus)) {
     throw new ConflictException({
-      code: "RESOURCE_IMMUTABLE",
+      code: ErrorCodes.RESOURCE_IMMUTABLE,
       message: `Cannot modify ${entityName} in status ${currentStatus}. Only ${allowed.join(", ")} ${
         allowed.length === 1 ? "is" : "are"
       } editable.`,

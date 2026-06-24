@@ -12,6 +12,7 @@
 ### ============================================================
 
 @baseUrl = http://localhost:3001/api/v1
+@rootUrl = http://localhost:3001
 @authToken = demo
 
 ### ------------------------------------------------------------
@@ -159,3 +160,29 @@ Content-Type: application/json
 {
   "title": "This Should Be Blocked"
 }
+
+### ------------------------------------------------------------
+### Verify normalized 404 shape
+### Expected: { code: "RESOURCE_NOT_FOUND", message, timestamp, path, requestId }
+### ------------------------------------------------------------
+GET {{baseUrl}}/proposals/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Verify normalized validation error shape
+### Expected: { code: "VALIDATION_ERROR", details: { errors: [...] }, ... }
+### ------------------------------------------------------------
+POST {{baseUrl}}/proposals
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "lineItems": []
+}
+
+### ------------------------------------------------------------
+### Piece 3 — Health endpoint (no /api/v1 prefix — excluded in main.ts)
+### Expected: 200 { status: "ok", timestamp, version, checks: { database: "ok" } }
+### ------------------------------------------------------------
+GET {{rootUrl}}/health

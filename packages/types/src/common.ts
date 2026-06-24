@@ -26,9 +26,12 @@ export interface ApiResponse<T> {
 }
 
 export interface ApiError {
-  statusCode: number;
+  code: string;
   message: string;
-  error?: string;
+  details?: Record<string, unknown>;
+  timestamp: string;
+  path: string;
+  requestId: string;
 }
 
 export interface TenantContext {
