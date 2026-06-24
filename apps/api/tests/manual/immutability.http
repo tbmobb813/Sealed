@@ -109,11 +109,19 @@ Content-Type: application/json
 ### ============================================================
 
 ### ------------------------------------------------------------
-### Step 7: Create an agreement from our SENT proposal
+### Step 7: View proposal publicly (SENT → VIEWED) and accept (VIEWED → ACCEPTED)
+### Expected: 200 OK for both; proposal status becomes ACCEPTED
+### ------------------------------------------------------------
+@publicToken = {{createProposal.response.body.data.publicToken}}
+
+GET {{baseUrl}}/proposals/public/{{publicToken}}
+
 ###
-### Note: There's no current status check on the proposal.
-### This is a known gap we'll address separately.
-### Expected: 201 Created (or 200 if HttpCode applied)
+POST {{baseUrl}}/proposals/public/{{publicToken}}/accept
+
+### ------------------------------------------------------------
+### Step 8: Create an agreement from our ACCEPTED proposal
+### Expected: 201 Created
 ### ------------------------------------------------------------
 # @name createAgreement
 POST {{baseUrl}}/agreements
@@ -131,7 +139,7 @@ Content-Type: application/json
 @agreementId = {{createAgreement.response.body.data.id}}
 
 ### ------------------------------------------------------------
-### Step 8: Update DRAFT agreement — should succeed
+### Step 9: Update DRAFT agreement — should succeed
 ### Expected: 200 OK
 ### ------------------------------------------------------------
 PATCH {{baseUrl}}/agreements/{{agreementId}}
@@ -143,14 +151,34 @@ Content-Type: application/json
 }
 
 ### ------------------------------------------------------------
-### Step 9: Send the agreement
-### Expected: 200 OK, status = SENT
+### Step 10: Send the agreement
+### Expected: 200 OK, status = SENT, signatureRequestId populated
 ### ------------------------------------------------------------
+# @name sendAgreement
 POST {{baseUrl}}/agreements/{{agreementId}}/send
 Authorization: Bearer {{authToken}}
 
+###
+@signatureRequestId = {{sendAgreement.response.body.data.signatureRequestId}}
+
 ### ------------------------------------------------------------
-### Step 10: Try to update SENT agreement — SHOULD FAIL
+### Step 11: Simulate Dropbox Sign webhook (SENT → SIGNED)
+### Expected: 201 Created
+### ------------------------------------------------------------
+POST {{baseUrl}}/webhooks/dropbox-sign
+Content-Type: application/json
+
+{
+  "event": {
+    "event_type": "signature_request_signed",
+    "event_metadata": {
+      "related_signature_request_id": "{{signatureRequestId}}"
+    }
+  }
+}
+
+### ------------------------------------------------------------
+### Step 12: Try to update SENT agreement — SHOULD FAIL
 ### Expected: 409 RESOURCE_IMMUTABLE
 ### ------------------------------------------------------------
 PATCH {{baseUrl}}/agreements/{{agreementId}}
@@ -261,6 +289,7 @@ Content-Type: application/json
 
 ###
 @proposalId = {{d4_createProposal.response.body.data.id}}
+@publicToken = {{d4_createProposal.response.body.data.publicToken}}
 
 ### D3: Confirm totals — subtotal=1000, taxAmount=100, totalAmount=1100
 GET {{baseUrl}}/proposals/{{proposalId}}
@@ -279,7 +308,13 @@ Content-Type: application/json
   "title": "Should be blocked"
 }
 
-### D6: Create draft agreement
+### D5b: Public view (SENT → VIEWED) and accept (VIEWED → ACCEPTED)
+GET {{baseUrl}}/proposals/public/{{publicToken}}
+
+###
+POST {{baseUrl}}/proposals/public/{{publicToken}}/accept
+
+### D6: Create draft agreement (requires ACCEPTED proposal)
 # @name d4_createAgreement
 POST {{baseUrl}}/agreements
 Authorization: Bearer {{authToken}}
@@ -296,8 +331,25 @@ Content-Type: application/json
 @agreementId = {{d4_createAgreement.response.body.data.id}}
 
 ### D7: Send agreement (DRAFT → SENT)
+# @name d4_sendAgreement
 POST {{baseUrl}}/agreements/{{agreementId}}/send
 Authorization: Bearer {{authToken}}
+
+###
+@signatureRequestId = {{d4_sendAgreement.response.body.data.signatureRequestId}}
+
+### D7b: Simulate Dropbox Sign webhook (SENT → SIGNED)
+POST {{baseUrl}}/webhooks/dropbox-sign
+Content-Type: application/json
+
+{
+  "event": {
+    "event_type": "signature_request_signed",
+    "event_metadata": {
+      "related_signature_request_id": "{{signatureRequestId}}"
+    }
+  }
+}
 
 ### D8: Immutability check — expect 409 RESOURCE_IMMUTABLE
 PATCH {{baseUrl}}/agreements/{{agreementId}}
@@ -308,7 +360,7 @@ Content-Type: application/json
   "title": "Should be blocked"
 }
 
-### D9: Create invoice
+### D9: Create invoice (requires SIGNED agreement)
 # @name d4_createInvoice
 POST {{baseUrl}}/invoices
 Authorization: Bearer {{authToken}}

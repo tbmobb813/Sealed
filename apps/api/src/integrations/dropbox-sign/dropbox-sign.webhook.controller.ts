@@ -1,10 +1,12 @@
 import { Body, Controller, Headers, Post } from "@nestjs/common";
 import { Public } from "../../common/decorators/public.decorator";
-import { DropboxSignService } from "./dropbox-sign.service";
+import { DropboxSignWebhookService } from "./dropbox-sign.webhook.service";
 
 @Controller("webhooks/dropbox-sign")
 export class DropboxSignWebhookController {
-  constructor(private readonly dropboxSignService: DropboxSignService) {}
+  constructor(
+    private readonly dropboxSignWebhookService: DropboxSignWebhookService,
+  ) {}
 
   @Public()
   @Post()
@@ -12,7 +14,6 @@ export class DropboxSignWebhookController {
     @Body() body: unknown,
     @Headers("x-hellosign-signature") signature: string,
   ) {
-    const valid = this.dropboxSignService.verifyWebhook(body, signature);
-    return { received: valid };
+    return this.dropboxSignWebhookService.handleWebhook(body, signature);
   }
 }

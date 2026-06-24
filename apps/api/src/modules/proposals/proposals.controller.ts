@@ -28,10 +28,19 @@ export class ProposalsController {
     return { data };
   }
 
+  // Static routes before :id — GET public/:token also advances SENT → VIEWED.
   @Public()
   @Get("public/:token")
   async getPublic(@Param("token") token: string) {
     const data = await this.proposalsService.findByPublicToken(token);
+    return { data };
+  }
+
+  @Public()
+  @Post("public/:token/accept")
+  @HttpCode(200)
+  async acceptPublic(@Param("token") token: string) {
+    const data = await this.proposalsService.acceptByPublicToken(token);
     return { data };
   }
 

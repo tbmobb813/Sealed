@@ -57,31 +57,120 @@ export class ProposalsService {
   }
 
   async findByPublicToken(token: string) {
-    const proposal = await this.prisma.proposal.findUnique({
-      where: { publicToken: token },
-      include: {
-        contact: true,
-        tenant: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const proposal = await tx.proposal.findUnique({
+        where: { publicToken: token },
+        include: {
+          contact: true,
+          tenant: true,
+        },
+      });
+
+      if (!proposal) {
+        throw new NotFoundException("Proposal not found");
+      }
+
+      let current = proposal;
+
+      if (current.status === "SENT") {
+        assertTransition(
+          PROPOSAL_TRANSITIONS,
+          current.status,
+          "VIEWED",
+          "proposal",
+        );
+
+        await tx.proposal.update({
+          where: { id: current.id },
+          data: {
+            status: "VIEWED",
+            viewedAt: new Date(),
+          },
+        });
+
+        await emitActivityEvent(tx, {
+          tenantId: current.tenantId,
+          actorId: current.createdByUserId,
+          objectType: "proposal",
+          objectId: current.id,
+          eventType: "proposal.viewed",
+          metadata: { title: current.title },
+        });
+
+        const refreshed = await tx.proposal.findUnique({
+          where: { id: current.id },
+          include: { contact: true, tenant: true },
+        });
+
+        if (!refreshed) {
+          throw new NotFoundException("Proposal not found");
+        }
+
+        current = refreshed;
+      }
+
+      return {
+        title: current.title,
+        description: current.description,
+        status: current.status,
+        lineItems: current.lineItems,
+        subtotal: current.subtotal,
+        taxAmount: current.taxAmount,
+        totalAmount: current.totalAmount,
+        currency: current.currency,
+        contactName: current.contact.name,
+        tenantName: current.tenant.name,
+        expiresAt: current.expiresAt,
+      };
     });
+  }
 
-    if (!proposal) {
-      throw new NotFoundException("Proposal not found");
-    }
+  async acceptByPublicToken(token: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const proposal = await tx.proposal.findUnique({
+        where: { publicToken: token },
+        include: { contact: true },
+      });
 
-    return {
-      title: proposal.title,
-      description: proposal.description,
-      status: proposal.status,
-      lineItems: proposal.lineItems,
-      subtotal: proposal.subtotal,
-      taxAmount: proposal.taxAmount,
-      totalAmount: proposal.totalAmount,
-      currency: proposal.currency,
-      contactName: proposal.contact.name,
-      tenantName: proposal.tenant.name,
-      expiresAt: proposal.expiresAt,
-    };
+      if (!proposal) {
+        throw new NotFoundException("Proposal not found");
+      }
+
+      assertTransition(
+        PROPOSAL_TRANSITIONS,
+        proposal.status,
+        "ACCEPTED",
+        "proposal",
+      );
+
+      await tx.proposal.update({
+        where: { id: proposal.id },
+        data: {
+          status: "ACCEPTED",
+          respondedAt: new Date(),
+        },
+      });
+
+      await emitActivityEvent(tx, {
+        tenantId: proposal.tenantId,
+        actorId: proposal.createdByUserId,
+        objectType: "proposal",
+        objectId: proposal.id,
+        eventType: "proposal.accepted",
+        metadata: { title: proposal.title },
+      });
+
+      const updated = await tx.proposal.findUnique({
+        where: { id: proposal.id },
+        include: { contact: true },
+      });
+
+      if (!updated) {
+        throw new NotFoundException("Proposal not found");
+      }
+
+      return updated;
+    });
   }
 
   create(tenantId: string, userId: string, dto: CreateProposalDto) {

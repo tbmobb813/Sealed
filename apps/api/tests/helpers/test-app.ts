@@ -11,6 +11,10 @@ export const AUTH_HEADER = { Authorization: "Bearer demo" };
 
 export async function createTestApp(): Promise<INestApplication> {
   process.env.DEMO_MODE ??= "true";
+  process.env.DROPBOX_SIGN_API_KEY ??= "test_dropbox_sign_key";
+  process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";
+  // Use Stripe stub in tests — placeholder keys in .env would hit the real API and fail.
+  delete process.env.STRIPE_SECRET_KEY;
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
