@@ -1,5 +1,6 @@
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { publicApiClient } from "@/lib/api-client";
+import { AcceptProposalButton } from "@/components/features/proposals/accept-proposal-button";
 import type { PublicProposalView } from "@sealed/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -51,9 +52,7 @@ export default async function PublicProposalPage({
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="pb-3 text-left text-sm font-medium">
-                  Description
-                </th>
+                <th className="pb-3 text-left text-sm font-medium">Description</th>
                 <th className="pb-3 text-right text-sm font-medium">Qty</th>
                 <th className="pb-3 text-right text-sm font-medium">Price</th>
                 <th className="pb-3 text-right text-sm font-medium">Total</th>
@@ -79,7 +78,7 @@ export default async function PublicProposalPage({
               <p className="text-sm text-muted-foreground">
                 Subtotal: <MoneyDisplay amount={Number(proposal.subtotal)} />
               </p>
-          { proposal.taxAmount > 0 && (
+              {proposal.taxAmount > 0 && (
                 <p className="text-sm text-muted-foreground">
                   Tax: <MoneyDisplay amount={Number(proposal.taxAmount)} />
                 </p>
@@ -98,6 +97,18 @@ export default async function PublicProposalPage({
           {new Date(proposal.expiresAt).toLocaleDateString()}
         </p>
       )}
+
+      {proposal.status === "SENT" || proposal.status === "VIEWED" ? (
+        <div className="mt-8 flex justify-center">
+          <AcceptProposalButton token={params.token} />
+        </div>
+      ) : proposal.status === "ACCEPTED" ? (
+        <div className="rounded-lg bg-green-50 border border-green-200 px-6 py-4 text-center mt-8">
+          <p className="text-green-800 font-medium">
+            You have accepted this proposal.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

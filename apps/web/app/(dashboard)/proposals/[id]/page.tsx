@@ -3,6 +3,8 @@ import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { ProposalActions } from "@/components/features/proposals/proposal-actions";
 import { apiClient } from "@/lib/api-client";
 import type { Proposal } from "@sealed/types";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function ProposalDetailPage({
   params,
@@ -73,6 +75,13 @@ export default async function ProposalDetailPage({
             </div>
             {proposal.status === "DRAFT" && (
               <ProposalActions proposalId={proposal.id} />
+            )}
+            {proposal.status === "ACCEPTED" && (
+              <Button asChild>
+                <Link href={`/agreements/new?proposalId=${proposal.id}`}>
+                  Create Agreement
+                </Link>
+              </Button>
             )}
           </div>
         </div>
