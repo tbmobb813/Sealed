@@ -7,6 +7,8 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:e2e": "pnpm --filter @sealed/api db:migrate:deploy && pnpm --filter @sealed/web build && playwright test",
+    "test:e2e:install": "playwright install chromium",
     "db:generate": "turbo db:generate",
     "db:migrate": "pnpm --filter @sealed/api db:migrate",
     "db:seed": "pnpm --filter @sealed/api db:seed",
@@ -14,6 +16,8 @@
     "postinstall": "pnpm db:generate"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@sealed/database": "workspace:*",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   },

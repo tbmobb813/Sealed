@@ -69,3 +69,12 @@ jobs:
           NEXT_PUBLIC_API_URL: "http://localhost:3001"
 
       - run: pnpm test
+
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - run: pnpm test:e2e
+        env:
+          CI: "true"
+          DATABASE_URL: postgresql://sealed:sealed_dev@localhost:5432/sealed
+          NEXT_PUBLIC_DEMO_MODE: "true"
+          NEXT_PUBLIC_API_URL: "http://localhost:3001"
