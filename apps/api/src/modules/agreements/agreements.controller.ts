@@ -72,4 +72,18 @@ export class AgreementsController {
     );
     return { data };
   }
+
+  @Post(":id/sign")
+  @HttpCode(200)
+  async sign(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id") id: string,
+  ) {
+    const data = await this.agreementsService.markAsSigned(
+      user.tenantId,
+      user.id,
+      id,
+    );
+    return { data };
+  }
 }
