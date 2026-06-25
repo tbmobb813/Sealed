@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/features/shared/page-header";
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
+import { ProposalActions } from "@/components/features/proposals/proposal-actions";
 import { apiClient } from "@/lib/api-client";
 import type { Proposal } from "@sealed/types";
 
@@ -59,12 +60,20 @@ export default async function ProposalDetailPage({
               </tbody>
             </table>
           </div>
-          <div className="flex justify-end">
+
+          <div className="flex items-center justify-between">
             <div className="text-right space-y-1">
               <p className="text-sm text-muted-foreground">
-                Total: <MoneyDisplay amount={Number(proposal.totalAmount)} className="font-bold text-foreground" />
+                Total:{" "}
+                <MoneyDisplay
+                  amount={Number(proposal.totalAmount)}
+                  className="font-bold text-foreground"
+                />
               </p>
             </div>
+            {proposal.status === "DRAFT" && (
+              <ProposalActions proposalId={proposal.id} />
+            )}
           </div>
         </div>
       ) : (

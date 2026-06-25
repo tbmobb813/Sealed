@@ -24,6 +24,7 @@ export async function apiClient<T>(
 
   const response = await fetch(`${API_URL}/api/v1${path}`, {
     ...options,
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -40,7 +41,9 @@ export async function apiClient<T>(
 }
 
 export async function publicApiClient<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}/api/v1${path}`);
+  const response = await fetch(`${API_URL}/api/v1${path}`, {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
