@@ -10,8 +10,10 @@ export default async function AgreementsPage() {
   try {
     const response = await apiClient<{ data: Agreement[] }>("/agreements");
     agreements = response.data;
-  } catch {
-    // API may not be running
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load agreements.",
+    );
   }
 
   return (

@@ -2,17 +2,34 @@ import { PageHeader } from "@/components/features/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityFeed } from "@/components/features/shared/activity-feed";
 import { apiClient } from "@/lib/api-client";
-import type { ActivityEvent } from "@sealed/types";
+import type { ActivityEvent, DashboardStats } from "@sealed/types";
 
 export default async function DashboardPage() {
   let events: ActivityEvent[] = [];
+  let stats: DashboardStats = {
+    openProposals: 0,
+    pendingAgreements: 0,
+    outstandingInvoices: 0,
+    activeProposals: 0,
+  };
 
   try {
-    const response = await apiClient<{ data: ActivityEvent[] }>("/activity");
-    events = response.data;
+    const [eventsRes, statsRes] = await Promise.all([
+      apiClient<{ data: ActivityEvent[] }>("/activity"),
+      apiClient<{ data: DashboardStats }>("/stats"),
+    ]);
+    events = eventsRes.data;
+    stats = statsRes.data;
   } catch {
-    // API may not be running
+    // Dashboard is non-critical — render with zeros rather than error boundary
   }
+
+  const statCards = [
+    { title: "Open Proposals", value: stats.openProposals },
+    { title: "Pending Agreements", value: stats.pendingAgreements },
+    { title: "Outstanding Invoices", value: stats.outstandingInvoices },
+    { title: "Active Proposals", value: stats.activeProposals },
+  ];
 
   return (
     <div>
@@ -21,12 +38,7 @@ export default async function DashboardPage() {
         description="Overview of your proposals, agreements, and invoices"
       />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { title: "Open Proposals", value: "—" },
-          { title: "Pending Agreements", value: "—" },
-          { title: "Outstanding Invoices", value: "—" },
-          { title: "Active Proposals", value: "—" },
-        ].map((stat) => (
+        {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">

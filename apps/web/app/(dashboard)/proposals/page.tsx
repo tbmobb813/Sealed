@@ -11,8 +11,10 @@ export default async function ProposalsPage() {
   try {
     const response = await apiClient<{ data: Proposal[] }>("/proposals");
     proposals = response.data;
-  } catch {
-    // API may not be running
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load proposals.",
+    );
   }
 
   return (

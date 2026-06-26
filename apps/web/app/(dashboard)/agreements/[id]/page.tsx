@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/features/shared/page-header";
 import { StatusBadge } from "@sealed/ui";
@@ -11,62 +12,66 @@ export default async function AgreementDetailPage({
 }: {
   params: { id: string };
 }) {
-  let agreement: Agreement | null = null;
+  let agreement: Agreement;
 
   try {
     const response = await apiClient<{ data: Agreement }>(
       `/agreements/${params.id}`,
     );
     agreement = response.data;
-  } catch {
-    // API may not be running
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message.toLowerCase().includes("not found") ||
+        error.message === "API error: 404")
+    ) {
+      notFound();
+    }
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load agreement.",
+    );
   }
 
   return (
     <div>
       <PageHeader
-        title={agreement?.title ?? "Agreement"}
-        action={agreement && <StatusBadge status={agreement.status} />}
+        title={agreement.title}
+        action={<StatusBadge status={agreement.status} />}
       />
-      {agreement ? (
-        <div className="space-y-6">
-          <dl className="grid gap-4 sm:grid-cols-2">
+      <div className="space-y-6">
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-sm text-muted-foreground">Status</dt>
+            <dd className="font-medium capitalize">
+              {agreement.status.replace(/_/g, " ")}
+            </dd>
+          </div>
+          {agreement.signedAt && (
             <div>
-              <dt className="text-sm text-muted-foreground">Status</dt>
-              <dd className="font-medium capitalize">
-                {agreement.status.replace(/_/g, " ")}
+              <dt className="text-sm text-muted-foreground">Signed At</dt>
+              <dd className="font-medium">
+                {new Date(agreement.signedAt).toLocaleDateString()}
               </dd>
             </div>
-            {agreement.signedAt && (
-              <div>
-                <dt className="text-sm text-muted-foreground">Signed At</dt>
-                <dd className="font-medium">
-                  {new Date(agreement.signedAt).toLocaleDateString()}
-                </dd>
-              </div>
-            )}
-          </dl>
+          )}
+        </dl>
 
-          <div className="flex items-center gap-3">
-            {(agreement.status === "DRAFT" ||
-              agreement.status === "SENT") && (
-              <AgreementActions
-                agreementId={agreement.id}
-                status={agreement.status}
-              />
-            )}
-            {agreement.status === "SIGNED" && (
-              <Button asChild>
-                <Link href={`/invoices/new?agreementId=${agreement.id}`}>
-                  Create Invoice
-                </Link>
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center gap-3">
+          {(agreement.status === "DRAFT" || agreement.status === "SENT") && (
+            <AgreementActions
+              agreementId={agreement.id}
+              status={agreement.status}
+            />
+          )}
+          {agreement.status === "SIGNED" && (
+            <Button asChild>
+              <Link href={`/invoices/new?agreementId=${agreement.id}`}>
+                Create Invoice
+              </Link>
+            </Button>
+          )}
         </div>
-      ) : (
-        <p className="text-muted-foreground">Agreement not found</p>
-      )}
+      </div>
     </div>
   );
 }
