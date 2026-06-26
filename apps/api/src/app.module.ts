@@ -20,6 +20,8 @@ import { DropboxSignModule } from "./integrations/dropbox-sign/dropbox-sign.modu
 import { ResendModule } from "./integrations/resend/resend.module";
 import { ClerkModule } from "./integrations/clerk/clerk.module";
 import { HealthModule } from "./health/health.module";
+import { StatsModule } from "./stats/stats.module";
+
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { HealthModule } from "./health/health.module";
     ResendModule,
     ClerkModule,
     HealthModule,
+    StatsModule,
   ],
   providers: [
     PrismaService,
