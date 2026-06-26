@@ -10,8 +10,10 @@ export default async function InvoicesPage() {
   try {
     const response = await apiClient<{ data: Invoice[] }>("/invoices");
     invoices = response.data;
-  } catch {
-    // API may not be running
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load invoices.",
+    );
   }
 
   return (

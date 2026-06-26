@@ -11,7 +11,7 @@ export default async function DashboardPage() {
     const response = await apiClient<{ data: ActivityEvent[] }>("/activity");
     events = response.data;
   } catch {
-    // API may not be running
+    // Activity feed is non-critical — dashboard still renders without it
   }
 
   return (
