@@ -194,4 +194,48 @@ export class AgreementsService {
       return updated;
     });
   }
+
+  async markAsSigned(tenantId: string, userId: string, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const agreement = await tx.agreement.findFirst({
+        where: { id, tenantId },
+        include: { proposal: true, contact: true },
+      });
+
+      if (!agreement) throw new NotFoundException("Agreement not found");
+
+      assertTransition(
+        AGREEMENT_TRANSITIONS,
+        agreement.status,
+        "SIGNED",
+        "agreement",
+      );
+
+      await tx.agreement.updateMany({
+        where: { id, tenantId },
+        data: {
+          status: "SIGNED",
+          signedAt: new Date(),
+        },
+      });
+
+      const updated = await tx.agreement.findFirst({
+        where: { id, tenantId },
+        include: { proposal: true, contact: true },
+      });
+
+      if (!updated) throw new NotFoundException("Agreement not found");
+
+      await emitActivityEvent(tx, {
+        tenantId,
+        actorId: userId,
+        objectType: "agreement",
+        objectId: id,
+        eventType: "agreement.signed",
+        metadata: { title: updated.title },
+      });
+
+      return updated;
+    });
+  }
 }

@@ -38,6 +38,7 @@ export default defineConfig({
       env: {
         DATABASE_URL,
         DEMO_MODE: "true",
+        DROPBOX_SIGN_API_KEY: "test_dropbox_sign_key",
         PORT: "3001",
       },
     },

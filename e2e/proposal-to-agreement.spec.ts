@@ -19,6 +19,7 @@ test.describe("Proposal to agreement flow", () => {
       await page
         .locator('input[placeholder="Design and development"]')
         .fill("Consulting services");
+      await page.getByLabel("Tax Amount").fill("100");
       await page.getByRole("button", { name: "Create Proposal" }).click();
       await page.waitForURL(/\/proposals\/[0-9a-f-]+$/);
     });
@@ -89,7 +90,54 @@ test.describe("Proposal to agreement flow", () => {
       await expect(
         page.getByRole("heading", { name: expectedAgreementTitle }),
       ).toBeVisible();
-      await expect(page.getByRole("definition")).toHaveText("DRAFT");
+      await expect(page.locator("dd.capitalize")).toHaveText("DRAFT");
+      await expect(
+        page.getByRole("button", { name: "Send for Signature" }),
+      ).toBeVisible();
+    });
+
+    await test.step("Send agreement for signature", async () => {
+      await page.getByRole("button", { name: "Send for Signature" }).click();
+      await expect(page.locator("dd.capitalize")).toHaveText("SENT");
+      await expect(
+        page.getByRole("button", { name: "Mark as Signed" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Send for Signature" }),
+      ).toHaveCount(0);
+    });
+
+    await test.step("Mark agreement as signed", async () => {
+      await page.getByRole("button", { name: "Mark as Signed" }).click();
+      await expect(page.locator("dd.capitalize")).toHaveText("SIGNED");
+      await expect(
+        page.getByRole("link", { name: "Create Invoice" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Mark as Signed" }),
+      ).toHaveCount(0);
+    });
+
+    const acceptedProposalResponse = await request.get(
+      `${API_URL}/api/v1/proposals/${proposalId}`,
+      { headers: AUTH_HEADER },
+    );
+    const { data: acceptedProposal } = await acceptedProposalResponse.json();
+    const expectedSubtotal = Number(acceptedProposal.totalAmount).toFixed(2);
+    const expectedTax = Number(acceptedProposal.taxAmount).toFixed(2);
+
+    await test.step("Create invoice with pre-filled amounts from proposal", async () => {
+      await page.getByRole("link", { name: "Create Invoice" }).click();
+      await page.waitForURL(/\/invoices\/new\?agreementId=/);
+      await expect(page.getByLabel("Subtotal")).toHaveValue(expectedSubtotal);
+      await expect(page.getByLabel("Tax Amount")).toHaveValue(expectedTax);
+      await page.getByRole("button", { name: "Create Invoice" }).click();
+      await page.waitForURL(/\/invoices\/[0-9a-f-]+$/);
+    });
+
+    await test.step("Confirm invoice detail shows generated number", async () => {
+      await expect(page.getByRole("heading", { name: /^INV-/ })).toBeVisible();
+      await expect(page.getByText("DRAFT", { exact: true }).first()).toBeVisible();
     });
 
     await test.step("Confirm activity log events", async () => {
@@ -111,6 +159,24 @@ test.describe("Proposal to agreement flow", () => {
         .first();
       await expect(createdEvent).toBeVisible();
       await expect(createdEvent.getByText(expectedAgreementTitle)).toBeVisible();
+
+      const sentEvent = page
+        .locator("li")
+        .filter({ hasText: "Agreement Sent" })
+        .first();
+      await expect(sentEvent).toBeVisible();
+
+      const signedEvent = page
+        .locator("li")
+        .filter({ hasText: "Agreement Signed" })
+        .first();
+      await expect(signedEvent).toBeVisible();
+
+      const invoiceEvent = page
+        .locator("li")
+        .filter({ hasText: "Invoice Created" })
+        .first();
+      await expect(invoiceEvent).toBeVisible();
     });
   });
 });
