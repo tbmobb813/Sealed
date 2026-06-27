@@ -14,10 +14,10 @@ export interface Invoice {
   publicToken: string;
   number: string;
   lineItems: unknown[];
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
-  amountPaid: number;
+  subtotal: string;
+  taxAmount: string;
+  totalAmount: string;
+  amountPaid: string;
   currency: string;
   status: InvoiceStatus;
   dueDate: string | null;

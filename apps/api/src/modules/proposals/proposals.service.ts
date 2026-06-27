@@ -20,16 +20,22 @@ export class ProposalsService {
       description: item.description,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      total: item.quantity * item.unitPrice,
+      total: new Prisma.Decimal(item.quantity)
+        .mul(new Prisma.Decimal(item.unitPrice))
+        .toNumber(),
     }));
   }
 
-  private calcTotals(lineItems: ProposalLineItemDto[], taxAmount = 0) {
+  private calcTotals(lineItems: ProposalLineItemDto[], taxAmount: Prisma.Decimal) {
     const subtotal = lineItems.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
+      (sum, item) =>
+        sum.add(
+          new Prisma.Decimal(item.quantity).mul(new Prisma.Decimal(item.unitPrice))
+        ),
+      new Prisma.Decimal(0),
     );
-    return { subtotal, taxAmount, totalAmount: subtotal + taxAmount };
+    const total = subtotal.add(taxAmount);
+    return { subtotal, taxAmount, totalAmount: total };
   }
 
   findAll(tenantId: string, query: ProposalQueryDto) {
@@ -175,10 +181,8 @@ export class ProposalsService {
 
   create(tenantId: string, userId: string, dto: CreateProposalDto) {
     const lineItems = this.buildLineItems(dto.lineItems);
-    const { subtotal, taxAmount, totalAmount } = this.calcTotals(
-      dto.lineItems,
-      dto.taxAmount ?? 0,
-    );
+    const taxAmount = new Prisma.Decimal(dto.taxAmount ?? 0);
+    const { subtotal, totalAmount } = this.calcTotals(dto.lineItems, taxAmount);
 
     return this.prisma.$transaction(async (tx) => {
       const contact = await tx.contact.findFirst({
@@ -242,15 +246,18 @@ export class ProposalsService {
       assertMutable("proposal", existing.status);
 
       let subtotal = existing.subtotal;
-      let taxAmount = dto.taxAmount ?? existing.taxAmount;
+      let taxAmount =
+        dto.taxAmount !== undefined
+          ? new Prisma.Decimal(dto.taxAmount)
+          : existing.taxAmount;
       let totalAmount = existing.totalAmount;
       let lineItems = existing.lineItems;
 
       if (dto.lineItems) {
-        const totals = this.calcTotals(dto.lineItems, Number(taxAmount));
-        subtotal = new Prisma.Decimal(totals.subtotal);
-        taxAmount = new Prisma.Decimal(totals.taxAmount);
-        totalAmount = new Prisma.Decimal(totals.totalAmount);
+        const totals = this.calcTotals(dto.lineItems, taxAmount);
+        subtotal = totals.subtotal;
+        taxAmount = totals.taxAmount;
+        totalAmount = totals.totalAmount;
         lineItems = this.buildLineItems(dto.lineItems);
       }
 
