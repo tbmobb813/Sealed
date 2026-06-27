@@ -78,7 +78,7 @@ export default async function PublicProposalPage({
               <p className="text-sm text-muted-foreground">
                 Subtotal: <MoneyDisplay amount={Number(proposal.subtotal)} />
               </p>
-              {proposal.taxAmount > 0 && (
+              {Number(proposal.taxAmount) > 0 && (
                 <p className="text-sm text-muted-foreground">
                   Tax: <MoneyDisplay amount={Number(proposal.taxAmount)} />
                 </p>

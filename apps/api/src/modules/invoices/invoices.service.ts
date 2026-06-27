@@ -67,18 +67,27 @@ export class InvoicesService {
 
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tenantId}))`;
 
-      const count = await tx.invoice.count({ where: { tenantId } });
-      const taxAmount = dto.taxAmount ?? 0;
-      const totalAmount = dto.subtotal + taxAmount;
+      const lastInvoice = await tx.invoice.findFirst({
+        where: { tenantId },
+        orderBy: { number: "desc" },
+        select: { number: true },
+      });
+      const lastNumber = lastInvoice
+        ? parseInt(lastInvoice.number.replace("INV-", ""), 10)
+        : 0;
+      const nextNumber = lastNumber + 1;
+      const subtotalDecimal = new Prisma.Decimal(dto.subtotal);
+      const taxAmountDecimal = new Prisma.Decimal(dto.taxAmount ?? 0);
+      const totalAmount = subtotalDecimal.add(taxAmountDecimal);
 
       const invoice = await tx.invoice.create({
         data: {
           tenantId,
           agreementId: dto.agreementId,
           contactId: dto.contactId,
-          number: `INV-${String(count + 1).padStart(4, "0")}`,
-          subtotal: dto.subtotal,
-          taxAmount,
+          number: `INV-${String(nextNumber).padStart(4, "0")}`,
+          subtotal: subtotalDecimal,
+          taxAmount: taxAmountDecimal,
           totalAmount,
           dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
           createdByUserId: userId,

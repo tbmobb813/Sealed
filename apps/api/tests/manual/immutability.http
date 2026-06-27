@@ -396,3 +396,34 @@ Content-Type: application/json
 ### D13: Activity log
 GET {{baseUrl}}/activity
 Authorization: Bearer {{authToken}}
+
+### ============================================================
+### Race safety test — create two invoices against same agreement
+### Run these back to back as fast as possible
+### Both should succeed with different numbers, never the same
+### ============================================================
+
+# @name invoice1
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 1000,
+  "taxAmount": 0
+}
+
+###
+# @name invoice2
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 2000,
+  "taxAmount": 0
+}
