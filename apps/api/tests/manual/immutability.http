@@ -163,14 +163,18 @@ Authorization: Bearer {{authToken}}
 
 ### ------------------------------------------------------------
 ### Step 11: Simulate Dropbox Sign webhook (SENT → SIGNED)
-### Expected: 201 Created
+### Generate a signed payload first (copy output into body below):
+###   pnpm --filter @sealed/api exec dotenv -e ../../.env -- node tests/manual/sign-dropbox-webhook.mjs {{signatureRequestId}}
+### Expected: 200 OK, body "Hello API Event Received"
 ### ------------------------------------------------------------
 POST {{baseUrl}}/webhooks/dropbox-sign
 Content-Type: application/json
 
 {
   "event": {
+    "event_time": "REPLACE_ME",
     "event_type": "signature_request_signed",
+    "event_hash": "REPLACE_ME",
     "event_metadata": {
       "related_signature_request_id": "{{signatureRequestId}}"
     }
@@ -339,12 +343,17 @@ Authorization: Bearer {{authToken}}
 @signatureRequestId = {{d4_sendAgreement.response.body.data.signatureRequestId}}
 
 ### D7b: Simulate Dropbox Sign webhook (SENT → SIGNED)
+### Generate a signed payload first (copy output into body below):
+###   pnpm --filter @sealed/api exec dotenv -e ../../.env -- node tests/manual/sign-dropbox-webhook.mjs {{signatureRequestId}}
+### Expected: 200 OK, body "Hello API Event Received"
 POST {{baseUrl}}/webhooks/dropbox-sign
 Content-Type: application/json
 
 {
   "event": {
+    "event_time": "REPLACE_ME",
     "event_type": "signature_request_signed",
+    "event_hash": "REPLACE_ME",
     "event_metadata": {
       "related_signature_request_id": "{{signatureRequestId}}"
     }

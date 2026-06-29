@@ -1,4 +1,13 @@
-import { Body, Controller, Headers, Post } from "@nestjs/common";
+import {
+  Controller,
+  Header,
+  HttpCode,
+  Post,
+  Req,
+  UseInterceptors,
+} from "@nestjs/common";
+import { AnyFilesInterceptor } from "@nestjs/platform-express";
+import { Request } from "express";
 import { Public } from "../../common/decorators/public.decorator";
 import { DropboxSignWebhookService } from "./dropbox-sign.webhook.service";
 
@@ -10,10 +19,23 @@ export class DropboxSignWebhookController {
 
   @Public()
   @Post()
-  handleWebhook(
-    @Body() body: unknown,
-    @Headers("x-hellosign-signature") signature: string,
-  ) {
-    return this.dropboxSignWebhookService.handleWebhook(body, signature);
+  @HttpCode(200)
+  @Header("Content-Type", "text/plain")
+  @UseInterceptors(AnyFilesInterceptor())
+  async handleWebhook(@Req() req: Request) {
+    const body = req.body as Record<string, string | unknown>;
+    let payload: unknown;
+    let rawJson: string;
+
+    if (typeof body.json === "string") {
+      rawJson = body.json;
+      payload = JSON.parse(rawJson);
+    } else {
+      // Fallback for integration tests sending application/json
+      payload = body;
+      rawJson = JSON.stringify(body);
+    }
+
+    return this.dropboxSignWebhookService.handleWebhook(payload, rawJson);
   }
 }

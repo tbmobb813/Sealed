@@ -5,6 +5,7 @@ import { ErrorCodes } from "../../src/common/constants/error-codes";
 import { expectActivityEvents, getActivityEvents } from "../helpers/activity";
 import { cleanDatabase, seedTestFixtures } from "../helpers/db";
 import { AUTH_HEADER, createTestApp } from "../helpers/test-app";
+import { buildDropboxSignWebhookPayload } from "../helpers/dropbox-sign-webhook";
 
 describe("Domain chain (integration)", () => {
   let app: INestApplication;
@@ -101,15 +102,13 @@ describe("Domain chain (integration)", () => {
 
     await request(app.getHttpServer())
       .post("/api/v1/webhooks/dropbox-sign")
-      .send({
-        event: {
-          event_type: "signature_request_signed",
-          event_metadata: {
-            related_signature_request_id: signatureRequestId,
-          },
-        },
-      })
-      .expect(201);
+      .send(
+        buildDropboxSignWebhookPayload(
+          process.env.DROPBOX_SIGN_API_KEY ?? "test_dropbox_sign_key",
+          signatureRequestId,
+        ),
+      )
+      .expect(200);
 
     const agreementImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/agreements/${agreementId}`)

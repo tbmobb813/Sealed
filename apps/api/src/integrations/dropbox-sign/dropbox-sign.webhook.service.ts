@@ -20,6 +20,8 @@ type DropboxSignWebhookPayload = {
   };
 };
 
+const WEBHOOK_ACK = "Hello API Event Received";
+
 @Injectable()
 export class DropboxSignWebhookService {
   constructor(
@@ -27,21 +29,23 @@ export class DropboxSignWebhookService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async handleWebhook(body: unknown, signature: string) {
-    const valid = this.dropboxSignService.verifyWebhook(body, signature);
+  async handleWebhook(payload: unknown, _rawJson: string) {
+    const valid = this.dropboxSignService.verifyWebhook(
+      payload as DropboxSignWebhookPayload,
+    );
     if (!valid) {
       throw new BadRequestException("Invalid webhook signature");
     }
 
-    const payload = body as DropboxSignWebhookPayload;
-    const eventType = payload.event?.event_type;
+    const body = payload as DropboxSignWebhookPayload;
+    const eventType = body.event?.event_type;
 
     if (eventType !== "signature_request_signed") {
-      return { received: true };
+      return WEBHOOK_ACK;
     }
 
     const signatureRequestId =
-      payload.event?.event_metadata?.related_signature_request_id;
+      body.event?.event_metadata?.related_signature_request_id;
 
     if (!signatureRequestId) {
       throw new BadRequestException("Missing signature request ID");
@@ -81,7 +85,7 @@ export class DropboxSignWebhookService {
         metadata: { title: agreement.title },
       });
 
-      return { received: true };
+      return WEBHOOK_ACK;
     });
   }
 }

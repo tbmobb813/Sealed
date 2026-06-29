@@ -154,6 +154,7 @@ export class AgreementsService {
         const result = await this.dropboxSignService.createSignatureRequest(
           agreement.id,
           agreement.contact.email,
+          agreement.body,
         );
         signatureRequestId = result.signatureRequestId;
       } catch (error) {
