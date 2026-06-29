@@ -14,9 +14,9 @@ import { DropboxSignService } from "./dropbox-sign.service";
 type DropboxSignWebhookPayload = {
   event?: {
     event_type?: string;
-    event_metadata?: {
-      related_signature_request_id?: string;
-    };
+  };
+  signature_request?: {
+    signature_request_id?: string;
   };
 };
 
@@ -48,7 +48,7 @@ export class DropboxSignWebhookService {
     }
 
     const signatureRequestId =
-      body.event?.event_metadata?.related_signature_request_id;
+      body.signature_request?.signature_request_id;
 
     if (!signatureRequestId) {
       throw new BadRequestException("Missing signature request ID");

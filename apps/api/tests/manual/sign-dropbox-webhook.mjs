@@ -34,9 +34,9 @@ console.log(
         event_time: eventTime,
         event_type: eventType,
         event_hash: eventHash,
-        event_metadata: {
-          related_signature_request_id: signatureRequestId,
-        },
+      },
+      signature_request: {
+        signature_request_id: signatureRequestId,
       },
     },
     null,

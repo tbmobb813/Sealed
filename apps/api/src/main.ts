@@ -12,10 +12,10 @@ async function bootstrap() {
   });
   const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
   app.enableCors({
-    // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — skip CORS headers.
+    // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — allow through.
     origin: (origin, callback) => {
       if (!origin) {
-        callback(null, false);
+        callback(null, true);
         return;
       }
       callback(null, origin === corsOrigin);

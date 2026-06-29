@@ -174,10 +174,10 @@ Content-Type: application/json
   "event": {
     "event_time": "REPLACE_ME",
     "event_type": "signature_request_signed",
-    "event_hash": "REPLACE_ME",
-    "event_metadata": {
-      "related_signature_request_id": "{{signatureRequestId}}"
-    }
+    "event_hash": "REPLACE_ME"
+  },
+  "signature_request": {
+    "signature_request_id": "{{signatureRequestId}}"
   }
 }
 
@@ -353,10 +353,10 @@ Content-Type: application/json
   "event": {
     "event_time": "REPLACE_ME",
     "event_type": "signature_request_signed",
-    "event_hash": "REPLACE_ME",
-    "event_metadata": {
-      "related_signature_request_id": "{{signatureRequestId}}"
-    }
+    "event_hash": "REPLACE_ME"
+  },
+  "signature_request": {
+    "signature_request_id": "{{signatureRequestId}}"
   }
 }
 
