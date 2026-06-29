@@ -1,21 +1,39 @@
 import {
   Controller,
+  Get,
+  Head,
   Header,
   HttpCode,
   Post,
   Req,
+  Res,
   UseInterceptors,
 } from "@nestjs/common";
 import { AnyFilesInterceptor } from "@nestjs/platform-express";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { Public } from "../../common/decorators/public.decorator";
 import { DropboxSignWebhookService } from "./dropbox-sign.webhook.service";
+
+const WEBHOOK_ACK = "Hello API Event Received";
 
 @Controller("webhooks/dropbox-sign")
 export class DropboxSignWebhookController {
   constructor(
     private readonly dropboxSignWebhookService: DropboxSignWebhookService,
   ) {}
+
+  // Dropbox Sign dashboard "Test" probes with GET/HEAD before saving the URL.
+  @Public()
+  @Get()
+  verifyCallbackUrl(@Res() res: Response) {
+    res.status(200).setHeader("Content-Type", "text/plain").end(WEBHOOK_ACK);
+  }
+
+  @Public()
+  @Head()
+  verifyCallbackUrlHead(@Res() res: Response) {
+    res.status(200).setHeader("Content-Type", "text/plain").end();
+  }
 
   @Public()
   @Post()

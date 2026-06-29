@@ -10,8 +10,16 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
   });
+  const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+    // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — skip CORS headers.
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, false);
+        return;
+      }
+      callback(null, origin === corsOrigin);
+    },
     credentials: true,
   });
 

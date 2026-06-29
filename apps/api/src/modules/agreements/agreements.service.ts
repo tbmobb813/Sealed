@@ -167,6 +167,7 @@ export class AgreementsService {
         where: { id, tenantId },
         data: {
           status: "SENT",
+          signatureStatus: "SENT",
           sentAt: new Date(),
           signatureRequestId,
           signatureProvider: "dropbox_sign",

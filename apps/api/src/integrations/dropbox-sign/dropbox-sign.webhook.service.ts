@@ -40,7 +40,10 @@ export class DropboxSignWebhookService {
     const body = payload as DropboxSignWebhookPayload;
     const eventType = body.event?.event_type;
 
-    if (eventType !== "signature_request_signed") {
+    if (
+      eventType !== "signature_request_signed" &&
+      eventType !== "signature_request_declined"
+    ) {
       return WEBHOOK_ACK;
     }
 
@@ -51,6 +54,14 @@ export class DropboxSignWebhookService {
       throw new BadRequestException("Missing signature request ID");
     }
 
+    if (eventType === "signature_request_signed") {
+      return this.handleSigned(signatureRequestId);
+    }
+
+    return this.handleDeclined(signatureRequestId);
+  }
+
+  private async handleSigned(signatureRequestId: string) {
     return this.prisma.$transaction(async (tx) => {
       const agreement = await tx.agreement.findFirst({
         where: { signatureRequestId },
@@ -82,6 +93,45 @@ export class DropboxSignWebhookService {
         objectType: "agreement",
         objectId: agreement.id,
         eventType: "agreement.signed",
+        metadata: { title: agreement.title },
+      });
+
+      return WEBHOOK_ACK;
+    });
+  }
+
+  private async handleDeclined(signatureRequestId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const agreement = await tx.agreement.findFirst({
+        where: { signatureRequestId },
+      });
+
+      if (!agreement) {
+        throw new NotFoundException("Agreement not found");
+      }
+
+      assertTransition(
+        AGREEMENT_TRANSITIONS,
+        agreement.status,
+        "DECLINED",
+        "agreement",
+      );
+
+      await tx.agreement.update({
+        where: { id: agreement.id },
+        data: {
+          status: "DECLINED",
+          signatureStatus: "DECLINED",
+          declinedAt: new Date(),
+        },
+      });
+
+      await emitActivityEvent(tx, {
+        tenantId: agreement.tenantId,
+        actorId: agreement.createdByUserId,
+        objectType: "agreement",
+        objectId: agreement.id,
+        eventType: "agreement.declined",
         metadata: { title: agreement.title },
       });
 

@@ -78,7 +78,7 @@ export class DropboxSignService {
       message: "Please review and sign this agreement.",
       signers: [signer],
       files: [fileStream as any],
-      testMode: true,
+      testMode: this.config.get<string>("DROPBOX_SIGN_TEST_MODE") !== "false",
       metadata: {
         agreementId,
       },
