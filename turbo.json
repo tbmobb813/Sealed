@@ -9,11 +9,11 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": ["^build", "^db:generate", "db:generate"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
-      "dependsOn": ["db:generate"],
+      "dependsOn": ["^db:generate", "db:generate"],
       "cache": false,
       "persistent": true
     },
@@ -24,7 +24,7 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": ["db:generate"],
+      "dependsOn": ["^db:generate", "db:generate"],
       "cache": false
     },
     "db:generate": {

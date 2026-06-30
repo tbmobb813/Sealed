@@ -1,3 +1,6 @@
 packages:
   - "apps/*"
   - "packages/*"
+publicHoistPattern:
+  - '*@prisma*'
+shamefullyHoist: true

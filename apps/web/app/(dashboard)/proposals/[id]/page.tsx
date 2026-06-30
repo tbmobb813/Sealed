@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/features/shared/page-header";
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { ProposalActions } from "@/components/features/proposals/proposal-actions";
+import { ProposalClientLink } from "@/components/features/proposals/proposal-client-link";
 import { apiClient } from "@/lib/api-client";
 import type { Proposal } from "@sealed/types";
 import Link from "next/link";
@@ -39,6 +40,10 @@ export default async function ProposalDetailPage({
         action={<StatusBadge status={proposal.status} />}
       />
       <div className="space-y-6">
+        <ProposalClientLink
+          publicToken={proposal.publicToken}
+          status={proposal.status}
+        />
         <div className="rounded-lg border">
           <table className="w-full">
             <thead>

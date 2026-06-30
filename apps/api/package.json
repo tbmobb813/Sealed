@@ -8,7 +8,6 @@
     "start": "node dist/src/main",
     "lint": "eslint \"{src,prisma}/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "db:generate": "dotenv -e ../../.env -e .env -- prisma generate",
     "db:migrate": "dotenv -e ../../.env -e .env -- prisma migrate dev",
     "db:seed": "dotenv -e ../../.env -e .env -- tsx prisma/seed.ts",
     "db:studio": "dotenv -e ../../.env -e .env -- prisma studio",

@@ -158,8 +158,11 @@ export class AgreementsService {
         );
         signatureRequestId = result.signatureRequestId;
       } catch (error) {
+        const body = (error as { body?: { error?: { errorMsg?: string } } })
+          ?.body;
         const message =
-          error instanceof Error ? error.message : "Signature request failed";
+          body?.error?.errorMsg ??
+          (error instanceof Error ? error.message : "Signature request failed");
         throwIntegrationError("Dropbox Sign", message);
       }
 
