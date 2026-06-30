@@ -9,6 +9,7 @@ import {
 import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
+import { ResendService } from "../../integrations/resend/resend.service";
 import { StripeService } from "../../integrations/stripe/stripe.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "./dto/create-invoice.dto";
 
@@ -17,6 +18,7 @@ export class InvoicesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stripeService: StripeService,
+    private readonly resend: ResendService,
   ) {}
 
   findAll(tenantId: string) {
@@ -186,6 +188,11 @@ export class InvoicesService {
         throw new NotFoundException("Invoice not found");
       }
 
+      const tenant = await tx.tenant.findUnique({
+        where: { id: invoice.tenantId },
+        select: { name: true },
+      });
+
       assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
 
       const amountCents = invoice.totalAmount
@@ -238,6 +245,15 @@ export class InvoicesService {
           number: updated.number,
           totalAmount: updated.totalAmount.toString(),
         },
+      });
+
+      void this.resend.sendInvoiceLink({
+        toEmail: updated.contact.email,
+        toName: updated.contact.name,
+        invoiceNumber: updated.number,
+        tenantName: tenant?.name ?? "Your service provider",
+        totalAmount: `$${updated.totalAmount.toString()}`,
+        paymentUrl: updated.stripePaymentLinkUrl ?? "",
       });
 
       return updated;

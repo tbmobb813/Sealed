@@ -57,6 +57,7 @@ Content-Type: application/json
 
 ### Auto-extract the new proposal's ID:
 @proposalId = {{createProposal.response.body.data.id}}
+@publicToken = {{createProposal.response.body.data.publicToken}}
 
 ### ------------------------------------------------------------
 ### Step 4: Update the DRAFT proposal
@@ -73,9 +74,19 @@ Content-Type: application/json
 ### ------------------------------------------------------------
 ### Step 5: Send the proposal (DRAFT → SENT)
 ### Expected: 200 OK, status = "SENT"
+### Side effect: Resend fires proposal email to the contact (fire-and-forget).
+###   Check API logs for: [ResendService] Proposal email sent to...
+###   With onboarding@resend.dev, only your Resend-verified email receives mail.
 ### ------------------------------------------------------------
+# @name sendProposal
 POST {{baseUrl}}/proposals/{{proposalId}}/send
 Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Step 5b: Verify the email link target (same URL embedded in the email)
+### Expected: 200 OK — proposal status becomes VIEWED
+### ------------------------------------------------------------
+GET {{baseUrl}}/proposals/public/{{publicToken}}
 
 ### ------------------------------------------------------------
 ### Step 6: ⚠️ THE CRITICAL TEST
@@ -109,14 +120,10 @@ Content-Type: application/json
 ### ============================================================
 
 ### ------------------------------------------------------------
-### Step 7: View proposal publicly (SENT → VIEWED) and accept (VIEWED → ACCEPTED)
-### Expected: 200 OK for both; proposal status becomes ACCEPTED
+### Step 7: Accept proposal (VIEWED → ACCEPTED)
+### Expected: 200 OK; proposal status becomes ACCEPTED
+### (Step 5b already opened the public link and moved SENT → VIEWED)
 ### ------------------------------------------------------------
-@publicToken = {{createProposal.response.body.data.publicToken}}
-
-GET {{baseUrl}}/proposals/public/{{publicToken}}
-
-###
 POST {{baseUrl}}/proposals/public/{{publicToken}}/accept
 
 ### ------------------------------------------------------------
@@ -390,6 +397,9 @@ GET {{baseUrl}}/invoices/{{invoiceId}}
 Authorization: Bearer {{authToken}}
 
 ### D11: Send invoice (DRAFT → SENT)
+### Side effect: Resend fires invoice email with Stripe payment link (fire-and-forget).
+###   Check API logs for: [ResendService] Invoice email sent to...
+# @name sendInvoice
 POST {{baseUrl}}/invoices/{{invoiceId}}/send
 Authorization: Bearer {{authToken}}
 

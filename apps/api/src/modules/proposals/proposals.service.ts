@@ -7,13 +7,17 @@ import {
 } from "../../common/constants/state-transitions";
 import { assertMutable } from "../../common/constants/mutability";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { ResendService } from "../../integrations/resend/resend.service";
 import { CreateProposalDto, UpdateProposalDto } from "./dto/create-proposal.dto";
 import { ProposalQueryDto } from "./dto/proposal-query.dto";
 import type { ProposalLineItemDto } from "./dto/create-proposal.dto";
 
 @Injectable()
 export class ProposalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resend: ResendService,
+  ) {}
 
   private buildLineItems(items: ProposalLineItemDto[]) {
     return items.map((item) => ({
@@ -310,6 +314,11 @@ export class ProposalsService {
         throw new NotFoundException("Proposal not found");
       }
 
+      const tenant = await tx.tenant.findUnique({
+        where: { id: proposal.tenantId },
+        select: { name: true },
+      });
+
       assertTransition(
         PROPOSAL_TRANSITIONS,
         proposal.status,
@@ -344,6 +353,14 @@ export class ProposalsService {
           title: updated.title,
           totalAmount: updated.totalAmount.toString(),
         },
+      });
+
+      void this.resend.sendProposalLink({
+        toEmail: updated.contact.email,
+        toName: updated.contact.name,
+        proposalTitle: updated.title,
+        tenantName: tenant?.name ?? "Your service provider",
+        publicToken: updated.publicToken,
       });
 
       return updated;

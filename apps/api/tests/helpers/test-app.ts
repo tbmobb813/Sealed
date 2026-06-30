@@ -6,6 +6,7 @@ import {
 import { Test } from "@nestjs/testing";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/common/filters/all-exceptions.filter";
+import { createResendMockProvider } from "./resend-mock";
 
 export const AUTH_HEADER = { Authorization: "Bearer demo" };
 
@@ -15,10 +16,17 @@ export async function createTestApp(): Promise<INestApplication> {
   process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";
   // Use Stripe stub in tests — placeholder keys in .env would hit the real API and fail.
   delete process.env.STRIPE_SECRET_KEY;
+  // Avoid live Resend calls in CI — assertions use resendMock instead.
+  delete process.env.RESEND_API_KEY;
+
+  const { provide, useValue } = createResendMockProvider();
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(provide)
+    .useValue(useValue)
+    .compile();
 
   const app = moduleRef.createNestApplication({ rawBody: true });
 
