@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/features/shared/page-header";
+import { InvoiceActions } from "@/components/features/invoices";
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { apiClient } from "@/lib/api-client";
 import type { Invoice } from "@sealed/types";
@@ -51,6 +52,12 @@ export default async function InvoiceDetailPage({
           </div>
         )}
       </dl>
+
+      {invoice.status === "DRAFT" && (
+        <div className="mt-6">
+          <InvoiceActions invoiceId={invoice.id} />
+        </div>
+      )}
     </div>
   );
 }

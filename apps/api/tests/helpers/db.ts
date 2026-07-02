@@ -1,5 +1,5 @@
 import { PrismaClient } from "@sealed/database";
-import { DEMO_CLERK_USER_ID } from "../../src/common/constants/demo";
+import { TEST_CLERK_USER_ID } from "../../src/common/constants/demo";
 
 export async function cleanDatabase(prisma: PrismaClient): Promise<void> {
   await prisma.activityEvent.deleteMany();
@@ -25,7 +25,7 @@ export async function seedTestFixtures(prisma: PrismaClient) {
   const user = await prisma.user.create({
     data: {
       tenantId: tenant.id,
-      clerkUserId: DEMO_CLERK_USER_ID,
+      clerkUserId: TEST_CLERK_USER_ID,
       email: "test@sealed.app",
       name: "Test User",
       role: "OWNER",

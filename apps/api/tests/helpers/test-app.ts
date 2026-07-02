@@ -11,6 +11,7 @@ import { createResendMockProvider } from "./resend-mock";
 export const AUTH_HEADER = { Authorization: "Bearer demo" };
 
 export async function createTestApp(): Promise<INestApplication> {
+  process.env.INTEGRATION_TEST = "true";
   process.env.DEMO_MODE ??= "true";
   process.env.DROPBOX_SIGN_API_KEY ??= "test_dropbox_sign_key";
   process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";

@@ -27,21 +27,33 @@ export class StripeService {
       };
     }
 
+    // Payment links require a Price object — inline price_data is not supported.
+    const price = await this.stripe.prices.create({
+      currency: params.currency.toLowerCase(),
+      unit_amount: params.amountCents,
+      product_data: {
+        name: `Invoice ${params.invoiceId}`,
+      },
+    });
+
+    const appUrl =
+      this.config.get<string>("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000";
+
     const paymentLink = await this.stripe.paymentLinks.create({
       line_items: [
         {
-          price_data: {
-            currency: params.currency.toLowerCase(),
-            unit_amount: params.amountCents,
-            product_data: {
-              name: `Invoice ${params.invoiceId}`,
-            },
-          },
+          price: price.id,
           quantity: 1,
         },
       ],
       metadata: {
         invoiceId: params.invoiceId,
+      },
+      after_completion: {
+        type: "redirect",
+        redirect: {
+          url: `${appUrl}/invoices/paid?invoiceId=${params.invoiceId}`,
+        },
       },
     });
 
@@ -49,17 +61,6 @@ export class StripeService {
       id: paymentLink.id,
       url: paymentLink.url,
     };
-  }
-
-  async createPaymentIntent(amount: number, currency = "usd") {
-    if (!this.stripe) {
-      throw new Error("Stripe is not configured");
-    }
-
-    return this.stripe.paymentIntents.create({
-      amount,
-      currency,
-    });
   }
 
   constructEvent(payload: Buffer, signature: string) {

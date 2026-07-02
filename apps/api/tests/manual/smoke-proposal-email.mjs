@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 config({ path: resolve(root, ".env") });
 
 const recipientEmail = process.argv[2];
@@ -21,7 +21,7 @@ if (!recipientEmail) {
   process.exit(1);
 }
 
-async function api(path: string, init: RequestInit = {}) {
+async function api(path, init = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
@@ -32,7 +32,7 @@ async function api(path: string, init: RequestInit = {}) {
   });
 
   const text = await response.text();
-  let body: unknown;
+  let body;
   try {
     body = JSON.parse(text);
   } catch {
@@ -45,7 +45,7 @@ async function api(path: string, init: RequestInit = {}) {
     process.exit(1);
   }
 
-  return body as { data: Record<string, string> };
+  return body;
 }
 
 const contact = await api("/contacts", {
@@ -77,4 +77,6 @@ console.log(`  Contact:  ${recipientEmail}`);
 console.log(`  Proposal: ${proposal.data.id}`);
 console.log(`  Public:   ${publicUrl}`);
 console.log("");
-console.log("Check your inbox and API logs for [ResendService] Proposal email sent to...");
+console.log(
+  "Check your inbox and API logs for [ResendService] Proposal email sent to...",
+);
