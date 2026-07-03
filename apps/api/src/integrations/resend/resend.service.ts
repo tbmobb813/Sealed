@@ -39,10 +39,11 @@ function escapeHtml(value: string): string {
 @Injectable()
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
-  private readonly client: Resend;
+  private readonly client: Resend | null;
 
   constructor(private readonly config: ConfigService) {
-    this.client = new Resend(this.config.get<string>("RESEND_API_KEY"));
+    const apiKey = this.config.get<string>("RESEND_API_KEY");
+    this.client = apiKey ? new Resend(apiKey) : null;
   }
 
   get fromEmail(): string {
@@ -58,6 +59,13 @@ export class ResendService {
   }
 
   async sendProposalLink(options: SendProposalLinkOptions): Promise<void> {
+    if (!this.client) {
+      this.logger.warn(
+        `Resend not configured — skipping proposal email to ${maskEmail(options.toEmail)}`,
+      );
+      return;
+    }
+
     const proposalUrl = `${this.appUrl}/p/${encodeURIComponent(options.publicToken)}`;
     const tenantName = escapeHtml(options.tenantName);
     const proposalTitle = escapeHtml(options.proposalTitle);
@@ -105,6 +113,13 @@ export class ResendService {
   }
 
   async sendInvoiceLink(options: SendInvoiceLinkOptions): Promise<void> {
+    if (!this.client) {
+      this.logger.warn(
+        `Resend not configured — skipping invoice email to ${maskEmail(options.toEmail)}`,
+      );
+      return;
+    }
+
     const tenantName = escapeHtml(options.tenantName);
     const invoiceNumber = escapeHtml(options.invoiceNumber);
     const totalAmount = escapeHtml(options.totalAmount);
