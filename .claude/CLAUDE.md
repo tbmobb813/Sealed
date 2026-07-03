@@ -45,7 +45,7 @@ pnpm dev           # web :3000 + API :3001
 
 ### Stripe
 - Payment links on invoice send
-- `StripeService` at `apps/api/src/modules/stripe/`
+- `StripeService` at `apps/api/src/integrations/stripe/`
 - Activated when `STRIPE_SECRET_KEY` is set
 - **Pre-production:** Confirm real link creation is live
 
