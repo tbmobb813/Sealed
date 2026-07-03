@@ -12,6 +12,11 @@ async function bootstrap() {
     rawBody: true,
   });
   app.use(helmet());
+  if (process.env.NODE_ENV === "production" && !process.env.CORS_ORIGIN) {
+    console.warn(
+      "WARNING: CORS_ORIGIN is not set in production — browsers will only be allowed from http://localhost:3000",
+    );
+  }
   const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
   app.enableCors({
     // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — allow through.

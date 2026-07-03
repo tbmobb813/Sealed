@@ -19,6 +19,13 @@ export interface SendInvoiceLinkOptions {
   paymentUrl: string;
 }
 
+/** Masks an email for logs: "jane.doe@example.com" → "j***@example.com". */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${local.slice(0, 1)}***@${domain}`;
+}
+
 /** Escapes tenant/contact-controlled values before HTML interpolation. */
 function escapeHtml(value: string): string {
   return value
@@ -86,11 +93,11 @@ export class ResendService {
         html,
       });
       this.logger.log(
-        `Proposal email sent to ${options.toEmail} for proposal ${options.publicToken}`,
+        `Proposal email sent to ${maskEmail(options.toEmail)} for proposal ${options.publicToken}`,
       );
     } catch (error) {
       this.logger.warn(
-        `Failed to send proposal email to ${options.toEmail}: ${
+        `Failed to send proposal email to ${maskEmail(options.toEmail)}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
@@ -136,11 +143,11 @@ export class ResendService {
         html,
       });
       this.logger.log(
-        `Invoice email sent to ${options.toEmail} for invoice ${options.invoiceNumber}`,
+        `Invoice email sent to ${maskEmail(options.toEmail)} for invoice ${options.invoiceNumber}`,
       );
     } catch (error) {
       this.logger.warn(
-        `Failed to send invoice email to ${options.toEmail}: ${
+        `Failed to send invoice email to ${maskEmail(options.toEmail)}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );

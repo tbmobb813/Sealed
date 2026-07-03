@@ -64,9 +64,14 @@ export class AgreementsService {
         throw new NotFoundException("Contact not found");
       }
 
+      // Map fields explicitly — spreading the DTO would silently make any
+      // future DTO field (e.g. status) writable through this endpoint.
       const agreement = await tx.agreement.create({
         data: {
-          ...dto,
+          proposalId: dto.proposalId,
+          contactId: dto.contactId,
+          title: dto.title,
+          body: dto.body,
           tenantId,
           createdByUserId: userId,
         },
@@ -255,7 +260,9 @@ export class AgreementsService {
         objectType: "agreement",
         objectId: id,
         eventType: "agreement.signed",
-        metadata: { title: updated.title },
+        // "manual" distinguishes a tenant-user override from a provider-
+        // verified signature — the audit trail must not conflate them.
+        metadata: { title: updated.title, method: "manual" },
       });
 
       return updated;

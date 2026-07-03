@@ -8,6 +8,9 @@ const config: Config = {
     "^.+\\.(t|j)s$": "ts-jest",
   },
   testEnvironment: "node",
+  // Integration tests call the live Dropbox Sign API (test mode) — its
+  // latency routinely exceeds the 5s default and causes flaky timeouts.
+  testTimeout: 30000,
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },

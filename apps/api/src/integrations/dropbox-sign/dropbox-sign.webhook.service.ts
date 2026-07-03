@@ -113,7 +113,7 @@ export class DropboxSignWebhookService {
         objectType: "agreement",
         objectId: agreement.id,
         eventType: "agreement.signed",
-        metadata: { title: agreement.title },
+        metadata: { title: agreement.title, method: "dropbox_sign" },
       });
 
       return WEBHOOK_ACK;
