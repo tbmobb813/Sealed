@@ -4,7 +4,10 @@ import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { ProposalActions } from "@/components/features/proposals/proposal-actions";
 import { ProposalClientLink } from "@/components/features/proposals/proposal-client-link";
 import { apiClient } from "@/lib/api-client";
+import { formatDate } from "@/lib/utils";
 import type { Proposal } from "@sealed/types";
+
+type ProposalDetail = Proposal & { contact?: { name: string; email: string } };
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -13,10 +16,10 @@ export default async function ProposalDetailPage({
 }: {
   params: { id: string };
 }) {
-  let proposal: Proposal;
+  let proposal: ProposalDetail;
 
   try {
-    const response = await apiClient<{ data: Proposal }>(
+    const response = await apiClient<{ data: ProposalDetail }>(
       `/proposals/${params.id}`,
     );
     proposal = response.data;
@@ -44,6 +47,41 @@ export default async function ProposalDetailPage({
           publicToken={proposal.publicToken}
           status={proposal.status}
         />
+        <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <dt className="text-sm text-muted-foreground">Contact</dt>
+            <dd className="font-medium">
+              {proposal.contact?.name ?? "—"}
+              {proposal.contact?.email && (
+                <span className="block text-sm text-muted-foreground">
+                  {proposal.contact.email}
+                </span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted-foreground">Sent</dt>
+            <dd className="font-medium">{formatDate(proposal.sentAt)}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted-foreground">Viewed by client</dt>
+            <dd className="font-medium">{formatDate(proposal.viewedAt)}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted-foreground">
+              {proposal.status === "ACCEPTED"
+                ? "Accepted"
+                : proposal.status === "REJECTED"
+                  ? "Declined"
+                  : "Expires"}
+            </dt>
+            <dd className="font-medium">
+              {proposal.status === "ACCEPTED" || proposal.status === "REJECTED"
+                ? formatDate(proposal.respondedAt)
+                : formatDate(proposal.expiresAt)}
+            </dd>
+          </div>
+        </dl>
         <div className="rounded-lg border">
           <table className="w-full">
             <thead>

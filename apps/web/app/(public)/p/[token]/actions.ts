@@ -11,10 +11,20 @@ export type AcceptProposalState = {
 export async function acceptProposal(
   token: string,
   _prevState: AcceptProposalState,
+  formData: FormData,
 ): Promise<AcceptProposalState> {
+  const acceptedBy = formData.get("acceptedBy");
+
+  if (typeof acceptedBy !== "string" || !acceptedBy.trim()) {
+    return { error: "Please type your full name to accept." };
+  }
+
   try {
     await publicApiClient(`/proposals/public/${token}/accept`, {
       method: "POST",
+      body: JSON.stringify({
+        acceptedBy: acceptedBy.trim().slice(0, 200),
+      }),
     });
   } catch (error) {
     return {

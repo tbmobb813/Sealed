@@ -176,7 +176,7 @@ export class ProposalsService {
     });
   }
 
-  async acceptByPublicToken(token: string) {
+  async acceptByPublicToken(token: string, acceptedBy?: string) {
     return this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findUnique({
         where: { publicToken: token },
@@ -214,7 +214,10 @@ export class ProposalsService {
         objectType: "proposal",
         objectId: proposal.id,
         eventType: "proposal.accepted",
-        metadata: { title: proposal.title },
+        metadata: {
+          title: proposal.title,
+          ...(acceptedBy ? { acceptedBy } : {}),
+        },
       });
 
       const updated = await tx.proposal.findUnique({

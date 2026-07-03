@@ -21,7 +21,9 @@ export interface Invoice {
   currency: string;
   status: InvoiceStatus;
   dueDate: string | null;
+  sentAt: string | null;
   paidAt: string | null;
+  stripePaymentLinkUrl: string | null;
   createdByUserId: string;
   createdAt: string;
   updatedAt: string;
