@@ -19,6 +19,16 @@ export interface SendInvoiceLinkOptions {
   paymentUrl: string;
 }
 
+/** Escapes tenant/contact-controlled values before HTML interpolation. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 @Injectable()
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
@@ -41,7 +51,9 @@ export class ResendService {
   }
 
   async sendProposalLink(options: SendProposalLinkOptions): Promise<void> {
-    const proposalUrl = `${this.appUrl}/p/${options.publicToken}`;
+    const proposalUrl = `${this.appUrl}/p/${encodeURIComponent(options.publicToken)}`;
+    const tenantName = escapeHtml(options.tenantName);
+    const proposalTitle = escapeHtml(options.proposalTitle);
 
     const html = `
 <!DOCTYPE html>
@@ -53,7 +65,7 @@ export class ResendService {
   <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111;">
     <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">You have a new proposal</h1>
     <p style="color: #555; margin-bottom: 32px;">
-      ${options.tenantName} has sent you a proposal: <strong>${options.proposalTitle}</strong>
+      ${tenantName} has sent you a proposal: <strong>${proposalTitle}</strong>
     </p>
     <a href="${proposalUrl}"
        style="display: inline-block; background: #0ea5e9; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">
@@ -86,6 +98,10 @@ export class ResendService {
   }
 
   async sendInvoiceLink(options: SendInvoiceLinkOptions): Promise<void> {
+    const tenantName = escapeHtml(options.tenantName);
+    const invoiceNumber = escapeHtml(options.invoiceNumber);
+    const totalAmount = escapeHtml(options.totalAmount);
+    const paymentUrl = escapeHtml(options.paymentUrl);
     const html = `
 <!DOCTYPE html>
 <html>
@@ -94,20 +110,20 @@ export class ResendService {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111;">
-    <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Invoice ${options.invoiceNumber}</h1>
+    <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Invoice ${invoiceNumber}</h1>
     <p style="color: #555; margin-bottom: 8px;">
-      ${options.tenantName} has sent you an invoice for <strong>${options.totalAmount}</strong>.
+      ${tenantName} has sent you an invoice for <strong>${totalAmount}</strong>.
     </p>
     <p style="color: #555; margin-bottom: 32px;">
       Please use the link below to complete your payment.
     </p>
-    <a href="${options.paymentUrl}"
+    <a href="${paymentUrl}"
        style="display: inline-block; background: #0ea5e9; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 15px;">
       Pay Invoice
     </a>
     <p style="color: #888; font-size: 13px; margin-top: 32px;">
       Or copy this link into your browser:<br />
-      <a href="${options.paymentUrl}" style="color: #0ea5e9;">${options.paymentUrl}</a>
+      <a href="${paymentUrl}" style="color: #0ea5e9;">${paymentUrl}</a>
     </p>
   </body>
 </html>`;

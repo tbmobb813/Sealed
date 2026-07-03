@@ -178,43 +178,56 @@ export class InvoicesService {
   }
 
   async send(tenantId: string, userId: string, id: string) {
+    // External call happens outside the transaction: Stripe latency would
+    // otherwise hold a DB connection and can exceed the interactive
+    // transaction timeout, aborting the commit after the link was created.
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException("Invoice not found");
+    }
+
+    assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
+
+    const amountCents = invoice.totalAmount
+      .mul(100)
+      .toDecimalPlaces(0)
+      .toNumber();
+
+    let stripePaymentLinkId: string;
+    let stripePaymentLinkUrl: string;
+    try {
+      const paymentLink = await this.stripeService.createPaymentLink({
+        amountCents,
+        currency: invoice.currency,
+        invoiceId: invoice.id,
+      });
+      stripePaymentLinkId = paymentLink.id;
+      stripePaymentLinkUrl = paymentLink.url ?? "";
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Payment link creation failed";
+      throwIntegrationError("Stripe", message);
+    }
+
     return this.prisma.$transaction(async (tx) => {
-      const invoice = await tx.invoice.findFirst({
+      const current = await tx.invoice.findFirst({
         where: { id, tenantId },
-        include: { contact: true, agreement: true, payments: true },
       });
 
-      if (!invoice) {
+      if (!current) {
         throw new NotFoundException("Invoice not found");
       }
 
+      // Re-check inside the transaction to guard against concurrent sends.
+      assertTransition(INVOICE_TRANSITIONS, current.status, "SENT", "invoice");
+
       const tenant = await tx.tenant.findUnique({
-        where: { id: invoice.tenantId },
+        where: { id: current.tenantId },
         select: { name: true },
       });
-
-      assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
-
-      const amountCents = invoice.totalAmount
-        .mul(100)
-        .toDecimalPlaces(0)
-        .toNumber();
-
-      let stripePaymentLinkId: string;
-      let stripePaymentLinkUrl: string;
-      try {
-        const paymentLink = await this.stripeService.createPaymentLink({
-          amountCents,
-          currency: invoice.currency,
-          invoiceId: invoice.id,
-        });
-        stripePaymentLinkId = paymentLink.id;
-        stripePaymentLinkUrl = paymentLink.url ?? "";
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Payment link creation failed";
-        throwIntegrationError("Stripe", message);
-      }
 
       await tx.invoice.updateMany({
         where: { id, tenantId },

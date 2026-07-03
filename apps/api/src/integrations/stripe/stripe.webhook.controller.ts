@@ -30,12 +30,17 @@ export class StripeWebhookController {
     const payload = req.rawBody ?? Buffer.from("");
     const event = this.stripeService.constructEvent(payload, signature);
 
-    void this.stripeWebhookService.handleEvent(event).catch((err: unknown) => {
+    // Await the handler: returning 200 before it completes means Stripe
+    // never retries a failed event and a real payment can be silently lost.
+    try {
+      await this.stripeWebhookService.handleEvent(event);
+    } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.error(
         `Stripe webhook handler failed for ${event.type}: ${message}`,
       );
-    });
+      throw err;
+    }
 
     return { received: true, type: event.type };
   }

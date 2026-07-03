@@ -26,6 +26,9 @@ export class DropboxSignService {
     return this.config.get<string>("DROPBOX_SIGN_API_KEY");
   }
 
+  /** Max age of a webhook event before it is rejected as a replay. */
+  private static readonly WEBHOOK_MAX_AGE_SECONDS = 300;
+
   verifyWebhook(payload: DropboxSignEventPayload): boolean {
     const apiKey = this.apiKey;
     if (!apiKey) return false;
@@ -35,6 +38,13 @@ export class DropboxSignService {
     const eventHash = payload.event?.event_hash;
 
     if (!eventTime || !eventType || !eventHash) return false;
+
+    // The HMAC only covers event_time + event_type, so an old captured hash
+    // could be replayed with a tampered payload. Reject stale events.
+    const ageSeconds = Math.abs(Date.now() / 1000 - Number(eventTime));
+    if (!Number.isFinite(ageSeconds) || ageSeconds > DropboxSignService.WEBHOOK_MAX_AGE_SECONDS) {
+      return false;
+    }
 
     const expected = crypto
       .createHmac("sha256", apiKey)
@@ -49,6 +59,26 @@ export class DropboxSignService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Confirms the actual status of a signature request against the Dropbox
+   * Sign API. The webhook HMAC does not cover signature_request_id, so the
+   * webhook body alone must never be trusted to flip an agreement to SIGNED.
+   */
+  async confirmSignatureRequestStatus(
+    signatureRequestId: string,
+  ): Promise<"signed" | "declined" | "pending"> {
+    if (!this.apiKey) {
+      throw new Error("Dropbox Sign is not configured");
+    }
+
+    const response = await this.client.signatureRequestGet(signatureRequestId);
+    const request = response.body.signatureRequest;
+
+    if (request?.isDeclined) return "declined";
+    if (request?.isComplete) return "signed";
+    return "pending";
   }
 
   async createSignatureRequest(
