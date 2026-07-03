@@ -26,6 +26,13 @@ export class DropboxSignService {
     return this.config.get<string>("DROPBOX_SIGN_API_KEY");
   }
 
+  /** E2E/CI uses a fake key — never call the live Dropbox Sign API. */
+  private get isStubMode(): boolean {
+    if (process.env.NODE_ENV === "production") return false;
+    if (this.config.get<string>("DROPBOX_SIGN_STUB") === "true") return true;
+    return this.apiKey === "test_dropbox_sign_key";
+  }
+
   /** Max age of a webhook event before it is rejected as a replay. */
   private static readonly WEBHOOK_MAX_AGE_SECONDS = 300;
 
@@ -73,6 +80,10 @@ export class DropboxSignService {
       throw new Error("Dropbox Sign is not configured");
     }
 
+    if (this.isStubMode) {
+      return signatureRequestId.includes("declined") ? "declined" : "signed";
+    }
+
     const response = await this.client.signatureRequestGet(signatureRequestId);
     const request = response.body.signatureRequest;
 
@@ -88,6 +99,10 @@ export class DropboxSignService {
   ) {
     if (!this.apiKey) {
       throw new Error("Dropbox Sign is not configured");
+    }
+
+    if (this.isStubMode) {
+      return { signatureRequestId: `sig_stub_${agreementId}_${Date.now()}` };
     }
 
     // Create an in-memory readable stream from the agreement body text.
