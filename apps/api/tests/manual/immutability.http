@@ -12,6 +12,7 @@
 ### ============================================================
 
 @baseUrl = http://localhost:3001/api/v1
+@rootUrl = http://localhost:3001
 @authToken = demo
 
 ### ------------------------------------------------------------
@@ -56,6 +57,7 @@ Content-Type: application/json
 
 ### Auto-extract the new proposal's ID:
 @proposalId = {{createProposal.response.body.data.id}}
+@publicToken = {{createProposal.response.body.data.publicToken}}
 
 ### ------------------------------------------------------------
 ### Step 4: Update the DRAFT proposal
@@ -72,9 +74,19 @@ Content-Type: application/json
 ### ------------------------------------------------------------
 ### Step 5: Send the proposal (DRAFT → SENT)
 ### Expected: 200 OK, status = "SENT"
+### Side effect: Resend fires proposal email to the contact (fire-and-forget).
+###   Check API logs for: [ResendService] Proposal email sent to...
+###   With onboarding@resend.dev, only your Resend-verified email receives mail.
 ### ------------------------------------------------------------
+# @name sendProposal
 POST {{baseUrl}}/proposals/{{proposalId}}/send
 Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Step 5b: Verify the email link target (same URL embedded in the email)
+### Expected: 200 OK — proposal status becomes VIEWED
+### ------------------------------------------------------------
+GET {{baseUrl}}/proposals/public/{{publicToken}}
 
 ### ------------------------------------------------------------
 ### Step 6: ⚠️ THE CRITICAL TEST
@@ -108,11 +120,15 @@ Content-Type: application/json
 ### ============================================================
 
 ### ------------------------------------------------------------
-### Step 7: Create an agreement from our SENT proposal
-###
-### Note: There's no current status check on the proposal.
-### This is a known gap we'll address separately.
-### Expected: 201 Created (or 200 if HttpCode applied)
+### Step 7: Accept proposal (VIEWED → ACCEPTED)
+### Expected: 200 OK; proposal status becomes ACCEPTED
+### (Step 5b already opened the public link and moved SENT → VIEWED)
+### ------------------------------------------------------------
+POST {{baseUrl}}/proposals/public/{{publicToken}}/accept
+
+### ------------------------------------------------------------
+### Step 8: Create an agreement from our ACCEPTED proposal
+### Expected: 201 Created
 ### ------------------------------------------------------------
 # @name createAgreement
 POST {{baseUrl}}/agreements
@@ -130,7 +146,7 @@ Content-Type: application/json
 @agreementId = {{createAgreement.response.body.data.id}}
 
 ### ------------------------------------------------------------
-### Step 8: Update DRAFT agreement — should succeed
+### Step 9: Update DRAFT agreement — should succeed
 ### Expected: 200 OK
 ### ------------------------------------------------------------
 PATCH {{baseUrl}}/agreements/{{agreementId}}
@@ -142,14 +158,38 @@ Content-Type: application/json
 }
 
 ### ------------------------------------------------------------
-### Step 9: Send the agreement
-### Expected: 200 OK, status = SENT
+### Step 10: Send the agreement
+### Expected: 200 OK, status = SENT, signatureRequestId populated
 ### ------------------------------------------------------------
+# @name sendAgreement
 POST {{baseUrl}}/agreements/{{agreementId}}/send
 Authorization: Bearer {{authToken}}
 
+###
+@signatureRequestId = {{sendAgreement.response.body.data.signatureRequestId}}
+
 ### ------------------------------------------------------------
-### Step 10: Try to update SENT agreement — SHOULD FAIL
+### Step 11: Simulate Dropbox Sign webhook (SENT → SIGNED)
+### Generate a signed payload first (copy output into body below):
+###   pnpm --filter @sealed/api exec dotenv -e ../../.env -- node tests/manual/sign-dropbox-webhook.mjs {{signatureRequestId}}
+### Expected: 200 OK, body "Hello API Event Received"
+### ------------------------------------------------------------
+POST {{baseUrl}}/webhooks/dropbox-sign
+Content-Type: application/json
+
+{
+  "event": {
+    "event_time": "REPLACE_ME",
+    "event_type": "signature_request_signed",
+    "event_hash": "REPLACE_ME"
+  },
+  "signature_request": {
+    "signature_request_id": "{{signatureRequestId}}"
+  }
+}
+
+### ------------------------------------------------------------
+### Step 12: Try to update SENT agreement — SHOULD FAIL
 ### Expected: 409 RESOURCE_IMMUTABLE
 ### ------------------------------------------------------------
 PATCH {{baseUrl}}/agreements/{{agreementId}}
@@ -158,4 +198,251 @@ Content-Type: application/json
 
 {
   "title": "This Should Be Blocked"
+}
+
+### ------------------------------------------------------------
+### Verify normalized 404 shape
+### Expected: { code: "RESOURCE_NOT_FOUND", message, timestamp, path, requestId }
+### ------------------------------------------------------------
+GET {{baseUrl}}/proposals/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{authToken}}
+
+### ------------------------------------------------------------
+### Verify normalized validation error shape
+### Expected: { code: "VALIDATION_ERROR", details: { errors: [...] }, ... }
+### ------------------------------------------------------------
+POST {{baseUrl}}/proposals
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "lineItems": []
+}
+
+### ------------------------------------------------------------
+### Piece 3 — Health endpoint (no /api/v1 prefix — excluded in main.ts)
+### Expected: 200 { status: "ok", timestamp, version, checks: { database: "ok" } }
+### ------------------------------------------------------------
+GET {{rootUrl}}/health
+
+### ============================================================
+### DAY 4 — PIECE 1: Contacts smoke test
+### ============================================================
+
+### C1: List contacts — expect 200, array in data
+GET {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+
+### C2: Create a contact
+# @name createContact
+POST {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane2@example.com",
+  "phone": "+12125550100",
+  "companyName": "Acme Corp"
+}
+
+###
+@newContactId = {{createContact.response.body.data.id}}
+
+### C3: Get the contact by ID — expect 200
+GET {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### C4: Update the contact — expect 200
+PATCH {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "companyName": "Acme Corp (Updated)"
+}
+
+### C5: Delete the contact — expect 200 with { data: { id } }
+DELETE {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### C6: Confirm deletion — expect 404 RESOURCE_NOT_FOUND
+GET {{baseUrl}}/contacts/{{newContactId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### DAY 4 — Full domain chain
+### ============================================================
+
+### D1: List contacts — capture first seeded contact
+# @name d4_listContacts
+GET {{baseUrl}}/contacts
+Authorization: Bearer {{authToken}}
+
+###
+@contactId = {{d4_listContacts.response.body.data.0.id}}
+
+### D2: Create draft proposal
+# @name d4_createProposal
+POST {{baseUrl}}/proposals
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "contactId": "{{contactId}}",
+  "title": "Day 4 Smoke Test",
+  "lineItems": [
+    { "description": "Service A", "quantity": 2, "unitPrice": 500 }
+  ],
+  "taxAmount": 100
+}
+
+###
+@proposalId = {{d4_createProposal.response.body.data.id}}
+@publicToken = {{d4_createProposal.response.body.data.publicToken}}
+
+### D3: Confirm totals — subtotal=1000, taxAmount=100, totalAmount=1100
+GET {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+
+### D4: Send proposal (DRAFT → SENT)
+POST {{baseUrl}}/proposals/{{proposalId}}/send
+Authorization: Bearer {{authToken}}
+
+### D5: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/proposals/{{proposalId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Should be blocked"
+}
+
+### D5b: Public view (SENT → VIEWED) and accept (VIEWED → ACCEPTED)
+GET {{baseUrl}}/proposals/public/{{publicToken}}
+
+###
+POST {{baseUrl}}/proposals/public/{{publicToken}}/accept
+
+### D6: Create draft agreement (requires ACCEPTED proposal)
+# @name d4_createAgreement
+POST {{baseUrl}}/agreements
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "proposalId": "{{proposalId}}",
+  "contactId": "{{contactId}}",
+  "title": "Day 4 Smoke Test Agreement",
+  "body": "Terms and conditions."
+}
+
+###
+@agreementId = {{d4_createAgreement.response.body.data.id}}
+
+### D7: Send agreement (DRAFT → SENT)
+# @name d4_sendAgreement
+POST {{baseUrl}}/agreements/{{agreementId}}/send
+Authorization: Bearer {{authToken}}
+
+###
+@signatureRequestId = {{d4_sendAgreement.response.body.data.signatureRequestId}}
+
+### D7b: Simulate Dropbox Sign webhook (SENT → SIGNED)
+### Generate a signed payload first (copy output into body below):
+###   pnpm --filter @sealed/api exec dotenv -e ../../.env -- node tests/manual/sign-dropbox-webhook.mjs {{signatureRequestId}}
+### Expected: 200 OK, body "Hello API Event Received"
+POST {{baseUrl}}/webhooks/dropbox-sign
+Content-Type: application/json
+
+{
+  "event": {
+    "event_time": "REPLACE_ME",
+    "event_type": "signature_request_signed",
+    "event_hash": "REPLACE_ME"
+  },
+  "signature_request": {
+    "signature_request_id": "{{signatureRequestId}}"
+  }
+}
+
+### D8: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/agreements/{{agreementId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Should be blocked"
+}
+
+### D9: Create invoice (requires SIGNED agreement)
+# @name d4_createInvoice
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 1100,
+  "taxAmount": 0
+}
+
+###
+@invoiceId = {{d4_createInvoice.response.body.data.id}}
+
+### D10: Confirm invoice number generated
+GET {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+
+### D11: Send invoice (DRAFT → SENT)
+### Side effect: Resend fires invoice email with Stripe payment link (fire-and-forget).
+###   Check API logs for: [ResendService] Invoice email sent to...
+# @name sendInvoice
+POST {{baseUrl}}/invoices/{{invoiceId}}/send
+Authorization: Bearer {{authToken}}
+
+### D12: Immutability check — expect 409 RESOURCE_IMMUTABLE
+PATCH {{baseUrl}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "subtotal": 9999
+}
+
+### D13: Activity log
+GET {{baseUrl}}/activity
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### Race safety test — create two invoices against same agreement
+### Run these back to back as fast as possible
+### Both should succeed with different numbers, never the same
+### ============================================================
+
+# @name invoice1
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 1000,
+  "taxAmount": 0
+}
+
+###
+# @name invoice2
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "agreementId": "{{agreementId}}",
+  "contactId": "{{contactId}}",
+  "subtotal": 2000,
+  "taxAmount": 0
 }

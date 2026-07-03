@@ -1,0 +1,31 @@
+"use client";
+
+import { useFormState, useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/button";
+import { sendProposal, type ProposalActionState } from "@/app/(dashboard)/proposals/[id]/actions";
+
+function SendButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? "Sending..." : "Send to Client"}
+    </Button>
+  );
+}
+
+export function ProposalActions({ proposalId }: { proposalId: string }) {
+  const sendWithId = sendProposal.bind(null, proposalId);
+  const [state, formAction] = useFormState<ProposalActionState, FormData>(
+    sendWithId,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="flex items-center gap-3">
+      <SendButton />
+      {state.error && (
+        <p className="text-sm text-destructive">{state.error}</p>
+      )}
+    </form>
+  );
+}

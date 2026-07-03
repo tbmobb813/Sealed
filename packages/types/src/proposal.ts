@@ -21,9 +21,9 @@ export interface Proposal {
   title: string;
   description: string | null;
   lineItems: ProposalLineItem[];
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
+  subtotal: string;
+  taxAmount: string;
+  totalAmount: string;
   currency: string;
   status: ProposalStatus;
   sentAt: string | null;
@@ -40,9 +40,9 @@ export interface PublicProposalView {
   description: string | null;
   status: ProposalStatus;
   lineItems: ProposalLineItem[];
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
+  subtotal: string;
+  taxAmount: string;
+  totalAmount: string;
   currency: string;
   contactName: string;
   tenantName: string;

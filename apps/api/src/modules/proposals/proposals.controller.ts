@@ -14,6 +14,8 @@ import type { AuthenticatedUser } from "../../common/decorators/current-user.dec
 import { ProposalsService } from "./proposals.service";
 import { CreateProposalDto, UpdateProposalDto } from "./dto/create-proposal.dto";
 import { ProposalQueryDto } from "./dto/proposal-query.dto";
+import { RejectProposalDto } from "./dto/reject-proposal.dto";
+import { AcceptProposalDto } from "./dto/accept-proposal.dto";
 
 @Controller("proposals")
 export class ProposalsController {
@@ -28,10 +30,39 @@ export class ProposalsController {
     return { data };
   }
 
+  // Static routes before :id — GET public/:token also advances SENT → VIEWED.
   @Public()
   @Get("public/:token")
   async getPublic(@Param("token") token: string) {
     const data = await this.proposalsService.findByPublicToken(token);
+    return { data };
+  }
+
+  @Public()
+  @Post("public/:token/accept")
+  @HttpCode(200)
+  async acceptPublic(
+    @Param("token") token: string,
+    @Body() dto: AcceptProposalDto,
+  ) {
+    const data = await this.proposalsService.acceptByPublicToken(
+      token,
+      dto.acceptedBy?.trim() || undefined,
+    );
+    return { data };
+  }
+
+  @Public()
+  @Post("public/:token/reject")
+  @HttpCode(200)
+  async rejectPublic(
+    @Param("token") token: string,
+    @Body() dto: RejectProposalDto,
+  ) {
+    const data = await this.proposalsService.rejectByPublicToken(
+      token,
+      dto.reason?.trim() || undefined,
+    );
     return { data };
   }
 

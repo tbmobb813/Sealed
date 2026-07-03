@@ -1,20 +1,46 @@
-import { Controller, Headers, Post, Req } from "@nestjs/common";
+import {
+  Controller,
+  Headers,
+  HttpCode,
+  Logger,
+  Post,
+  Req,
+} from "@nestjs/common";
 import { Request } from "express";
 import { Public } from "../../common/decorators/public.decorator";
 import { StripeService } from "./stripe.service";
+import { StripeWebhookService } from "./stripe.webhook.service";
 
 @Controller("webhooks/stripe")
 export class StripeWebhookController {
-  constructor(private readonly stripeService: StripeService) {}
+  private readonly logger = new Logger(StripeWebhookController.name);
+
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly stripeWebhookService: StripeWebhookService,
+  ) {}
 
   @Public()
   @Post()
-  handleWebhook(
+  @HttpCode(200)
+  async handleWebhook(
     @Req() req: Request & { rawBody?: Buffer },
     @Headers("stripe-signature") signature: string,
   ) {
     const payload = req.rawBody ?? Buffer.from("");
     const event = this.stripeService.constructEvent(payload, signature);
+
+    // Await the handler: returning 200 before it completes means Stripe
+    // never retries a failed event and a real payment can be silently lost.
+    try {
+      await this.stripeWebhookService.handleEvent(event);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Stripe webhook handler failed for ${event.type}: ${message}`,
+      );
+      throw err;
+    }
 
     return { received: true, type: event.type };
   }

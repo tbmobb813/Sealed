@@ -1,17 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
+    "DATABASE_URL",
+    "DEMO_MODE",
     "NEXT_PUBLIC_DEMO_MODE",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_API_URL"
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": ["^build", "^db:generate", "db:generate"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
-      "dependsOn": ["db:generate"],
+      "dependsOn": ["^db:generate", "db:generate"],
       "cache": false,
       "persistent": true
     },
@@ -20,6 +22,10 @@
     },
     "typecheck": {
       "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^db:generate", "db:generate"],
+      "cache": false
     },
     "db:generate": {
       "cache": false

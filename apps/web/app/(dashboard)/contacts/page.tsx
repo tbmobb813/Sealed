@@ -10,8 +10,10 @@ export default async function ContactsPage() {
   try {
     const response = await apiClient<{ data: Contact[] }>("/contacts");
     contacts = response.data;
-  } catch {
-    // API may not be running during scaffold
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load contacts.",
+    );
   }
 
   return (

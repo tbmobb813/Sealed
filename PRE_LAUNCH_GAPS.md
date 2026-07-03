@@ -7,44 +7,42 @@ to fix today, but blockers before money or signatures touch the system.
 ## Critical (Constitutional Violations)
 
 ### 1. Agreement creation does not validate source proposal status
+- **Status:** ✅ Resolved.
 - **File:** `apps/api/src/modules/agreements/agreements.service.ts`
 - **Method:** `create()`
-- **Issue:** Agreements can be created from proposals in any status
-  (DRAFT, SENT, VIEWED, REJECTED, EXPIRED, ACCEPTED).
-- **Expected behavior:** Agreement creation must require source proposal
-  to be in `ACCEPTED` status. Throw 409 `INVALID_STATE_TRANSITION`
-  with `requires: ["ACCEPTED"]` if not.
-- **Severity:** Constitutional. Violates "no out-of-order workflow" rule.
+- **Fix:** `assertPrecondition` requires proposal `ACCEPTED`; throws 409
+  `PRECONDITION_NOT_MET` with structured details.
 
 ### 2. Agreement send does not call signature provider
+- **Status:** ✅ Resolved (stub wired; real Dropbox Sign API still TODO).
 - **File:** `apps/api/src/modules/agreements/agreements.service.ts`
 - **Method:** `sendForSignature()`
-- **Issue:** Method updates status to SENT but never calls
-  `DropboxSignService.createSignatureRequest()`. No real signature
-  request is created.
-- **Expected behavior:** sendForSignature must call the signature
-  provider, store `signatureRequestId`, and only transition to SENT
-  on successful API response. On provider failure, transaction rolls back.
-- **Severity:** High. The product literally does not perform its core
-  function.
+- **Fix:** Calls `DropboxSignService.createSignatureRequest()`, stores
+  `signatureRequestId` and `signatureProvider` before transitioning to SENT.
+- **Remaining:** Replace stub with real Dropbox Sign API integration before production.
 
 ## High (User-Facing Bugs)
 
 ### 3. Invoice creation does not validate source agreement status
+- **Status:** ✅ Resolved.
 - **File:** `apps/api/src/modules/invoices/invoices.service.ts`
 - **Method:** `create()`
-- **Issue:** Invoices can be created from agreements in any status,
-  including DRAFT and DECLINED.
-- **Expected behavior:** Invoice creation must require source agreement
-  to be in `SIGNED` status.
-- **Severity:** High. Allows billing without legal foundation.
+- **Fix:** `assertPrecondition` requires agreement `SIGNED`; throws 409
+  `PRECONDITION_NOT_MET`.
 
 ### 4. Stripe payment link not generated on invoice send
+- **Status:** ✅ Resolved (stub wired; real Stripe API when `STRIPE_SECRET_KEY` set).
 - **File:** `apps/api/src/modules/invoices/invoices.service.ts`
 - **Method:** `send()`
-- **Issue:** Method updates status to SENT but never creates a Stripe
-  payment link or stores `stripePaymentLinkUrl`.
-- **Severity:** High. Invoices cannot be paid.
+- **Fix:** Calls `StripeService.createPaymentLink()`, stores
+  `stripePaymentLinkId` and `stripePaymentLinkUrl` on send.
+
+### 9. Invoice number generation race condition
+- **Status:** ✅ Resolved.
+- **File:** `apps/api/src/modules/invoices/invoices.service.ts`
+- **Fix:** `pg_advisory_xact_lock(hashtext(tenantId))` serializes per-tenant
+  number generation inside the create transaction. `@@unique([tenantId, number])`
+  was already present as a safety net.
 
 ## Medium (Cleanup)
 
@@ -62,6 +60,10 @@ to fix today, but blockers before money or signatures touch the system.
   via `@HttpCode(200)`.
 - **Remaining:** Audit other state-transition POST endpoints
   (e.g., `/accept`, `/reject`, `/void`) for the same issue.
+
+### 10. StateTransitionFilter orphaned dead code
+- **Status:** N/A — file never existed in current tree; only
+  `AllExceptionsFilter` is registered.
 
 ## Discovered During Smoke Testing
 
@@ -85,4 +87,14 @@ to fix today, but blockers before money or signatures touch the system.
 - **Lesson:** When fixing a field name in one method, grep the entire
   service file for the old name. State fields are usually referenced
   in multiple places (read in guards, written in transitions).
-- **Caught by:** Step 10 of immutability smoke test returning 200 instead of 409. 
+- **Caught by:** Step 10 of immutability smoke test returning 200 instead of 409.
+
+## Workflow API (added during pre-launch remediation)
+
+### Public proposal accept + Dropbox Sign webhook
+- **Status:** ✅ Implemented.
+- **Endpoints:**
+  - `GET /proposals/public/:token` — auto-advances SENT → VIEWED
+  - `POST /proposals/public/:token/accept` — VIEWED → ACCEPTED
+  - `POST /webhooks/dropbox-sign` — handles `signature_request_signed` → SIGNED
+- **Remaining before production:** Real Dropbox Sign HMAC verification and API calls.

@@ -25,6 +25,24 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: sealed
+          POSTGRES_PASSWORD: sealed_dev
+          POSTGRES_DB: sealed
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sealed -d sealed"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://sealed:sealed_dev@localhost:5432/sealed
+      DEMO_MODE: "true"
+      TURBO_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +62,20 @@ jobs:
 
       - run: pnpm typecheck
 
+      - run: pnpm --filter @sealed/api db:migrate:deploy
+
       - run: pnpm build
         env:
+          NEXT_PUBLIC_DEMO_MODE: "true"
+          NEXT_PUBLIC_API_URL: "http://localhost:3001"
+
+      - run: pnpm test
+
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - run: pnpm test:e2e
+        env:
+          CI: "true"
+          DATABASE_URL: postgresql://sealed:sealed_dev@localhost:5432/sealed
           NEXT_PUBLIC_DEMO_MODE: "true"
           NEXT_PUBLIC_API_URL: "http://localhost:3001"

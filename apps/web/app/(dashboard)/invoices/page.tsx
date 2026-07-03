@@ -2,16 +2,22 @@ import Link from "next/link";
 import { PageHeader } from "@/components/features/shared/page-header";
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { apiClient } from "@/lib/api-client";
+import { formatDate } from "@/lib/utils";
 import type { Invoice } from "@sealed/types";
 
+// The API includes the contact relation on list responses.
+type InvoiceRow = Invoice & { contact?: { name: string } };
+
 export default async function InvoicesPage() {
-  let invoices: Invoice[] = [];
+  let invoices: InvoiceRow[] = [];
 
   try {
-    const response = await apiClient<{ data: Invoice[] }>("/invoices");
+    const response = await apiClient<{ data: InvoiceRow[] }>("/invoices");
     invoices = response.data;
-  } catch {
-    // API may not be running
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to load invoices.",
+    );
   }
 
   return (
@@ -25,15 +31,18 @@ export default async function InvoicesPage() {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left text-sm font-medium">Number</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Contact</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Sent</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Due</th>
               <th className="px-4 py-3 text-right text-sm font-medium">Total</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
-                  No invoices yet
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                  No invoices yet — invoices are created from signed agreements
                 </td>
               </tr>
             ) : (
@@ -47,11 +56,23 @@ export default async function InvoicesPage() {
                       {invoice.number}
                     </Link>
                   </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {invoice.contact?.name ?? "—"}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={invoice.status} />
                   </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(invoice.sentAt)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(invoice.dueDate)}
+                  </td>
                   <td className="px-4 py-3 text-right">
-                    <MoneyDisplay amount={Number(invoice.totalAmount)} />
+                    <MoneyDisplay
+                      amount={Number(invoice.totalAmount)}
+                      currency={invoice.currency}
+                    />
                   </td>
                 </tr>
               ))

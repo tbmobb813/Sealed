@@ -6,12 +6,20 @@ import {
   assertTransition,
   INVOICE_TRANSITIONS,
 } from "../../common/constants/state-transitions";
+import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
+import { ResendService } from "../../integrations/resend/resend.service";
+import { StripeService } from "../../integrations/stripe/stripe.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "./dto/create-invoice.dto";
 
 @Injectable()
 export class InvoicesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly stripeService: StripeService,
+    private readonly resend: ResendService,
+  ) {}
 
   findAll(tenantId: string) {
     return this.prisma.invoice.findMany({
@@ -44,6 +52,13 @@ export class InvoicesService {
         throw new NotFoundException("Agreement not found");
       }
 
+      assertPrecondition(agreement.status === "SIGNED", {
+        entityName: "agreement",
+        sourceId: agreement.id,
+        currentStatus: agreement.status,
+        requiredStatus: "SIGNED",
+      });
+
       const contact = await tx.contact.findFirst({
         where: { id: dto.contactId, tenantId },
       });
@@ -52,18 +67,28 @@ export class InvoicesService {
         throw new NotFoundException("Contact not found");
       }
 
-      const count = await tx.invoice.count({ where: { tenantId } });
-      const taxAmount = dto.taxAmount ?? 0;
-      const totalAmount = dto.subtotal + taxAmount;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tenantId}))`;
+
+      // Compute the max numerically — a string orderBy on `number` sorts
+      // "INV-9999" above "INV-10000" and would reissue duplicates.
+      const [row] = await tx.$queryRaw<{ max: number | null }[]>`
+        SELECT MAX(CAST(SUBSTRING(number FROM 5) AS INTEGER)) AS max
+        FROM invoices
+        WHERE tenant_id = ${tenantId}
+      `;
+      const nextNumber = (row?.max ?? 0) + 1;
+      const subtotalDecimal = new Prisma.Decimal(dto.subtotal);
+      const taxAmountDecimal = new Prisma.Decimal(dto.taxAmount ?? 0);
+      const totalAmount = subtotalDecimal.add(taxAmountDecimal);
 
       const invoice = await tx.invoice.create({
         data: {
           tenantId,
           agreementId: dto.agreementId,
           contactId: dto.contactId,
-          number: `INV-${String(count + 1).padStart(4, "0")}`,
-          subtotal: dto.subtotal,
-          taxAmount,
+          number: `INV-${String(nextNumber).padStart(4, "0")}`,
+          subtotal: subtotalDecimal,
+          taxAmount: taxAmountDecimal,
           totalAmount,
           dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
           createdByUserId: userId,
@@ -106,15 +131,22 @@ export class InvoicesService {
       // amount and the audit trail must remain intact.
       assertMutable("invoice", existing.status);
 
-      const subtotal = dto.subtotal ?? Number(existing.subtotal);
-      const taxAmount = dto.taxAmount ?? Number(existing.taxAmount);
+      const subtotal =
+        dto.subtotal !== undefined
+          ? new Prisma.Decimal(dto.subtotal)
+          : existing.subtotal;
+      const taxAmount =
+        dto.taxAmount !== undefined
+          ? new Prisma.Decimal(dto.taxAmount)
+          : existing.taxAmount;
+      const totalAmount = subtotal.add(taxAmount);
 
       await tx.invoice.updateMany({
         where: { id, tenantId },
         data: {
-          subtotal: new Prisma.Decimal(subtotal),
-          taxAmount: new Prisma.Decimal(taxAmount),
-          totalAmount: new Prisma.Decimal(subtotal + taxAmount),
+          subtotal,
+          taxAmount,
+          totalAmount,
           dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
         },
       });
@@ -145,21 +177,70 @@ export class InvoicesService {
   }
 
   async send(tenantId: string, userId: string, id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const invoice = await tx.invoice.findFirst({
+    // External call happens outside the transaction: Stripe latency would
+    // otherwise hold a DB connection and can exceed the interactive
+    // transaction timeout, aborting the commit after the link was created.
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, tenantId },
+      include: { contact: true },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException("Invoice not found");
+    }
+
+    if (!invoice.contact) {
+      throw new NotFoundException("Contact not found");
+    }
+
+    assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
+
+    const amountCents = invoice.totalAmount
+      .mul(100)
+      .toDecimalPlaces(0)
+      .toNumber();
+
+    let stripePaymentLinkId: string;
+    let stripePaymentLinkUrl: string;
+    try {
+      const paymentLink = await this.stripeService.createPaymentLink({
+        amountCents,
+        currency: invoice.currency,
+        invoiceId: invoice.id,
+      });
+      stripePaymentLinkId = paymentLink.id;
+      stripePaymentLinkUrl = paymentLink.url ?? "";
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Payment link creation failed";
+      throwIntegrationError("Stripe", message);
+    }
+
+    const { updated, tenantName } = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.invoice.findFirst({
         where: { id, tenantId },
-        include: { contact: true, agreement: true, payments: true },
       });
 
-      if (!invoice) {
+      if (!current) {
         throw new NotFoundException("Invoice not found");
       }
 
-      assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
+      // Re-check inside the transaction to guard against concurrent sends.
+      assertTransition(INVOICE_TRANSITIONS, current.status, "SENT", "invoice");
+
+      const tenant = await tx.tenant.findUnique({
+        where: { id: current.tenantId },
+        select: { name: true },
+      });
 
       await tx.invoice.updateMany({
         where: { id, tenantId },
-        data: { status: "SENT", sentAt: new Date() },
+        data: {
+          status: "SENT",
+          sentAt: new Date(),
+          stripePaymentLinkId,
+          stripePaymentLinkUrl,
+        },
       });
 
       const updated = await tx.invoice.findFirst({
@@ -169,6 +250,10 @@ export class InvoicesService {
 
       if (!updated) {
         throw new NotFoundException("Invoice not found");
+      }
+
+      if (!updated.contact) {
+        throw new NotFoundException("Contact not found");
       }
 
       await emitActivityEvent(tx, {
@@ -183,7 +268,23 @@ export class InvoicesService {
         },
       });
 
-      return updated;
+      return { updated, tenantName: tenant?.name };
     });
+
+    // Email only after the transaction commits — otherwise a rollback would
+    // send a payment request for an invoice that was never marked SENT.
+    const contact = updated.contact;
+    if (contact) {
+      void this.resend.sendInvoiceLink({
+        toEmail: contact.email,
+        toName: contact.name,
+        invoiceNumber: updated.number,
+        tenantName: tenantName ?? "Your service provider",
+        totalAmount: `$${updated.totalAmount.toString()}`,
+        paymentUrl: updated.stripePaymentLinkUrl ?? "",
+      });
+    }
+
+    return updated;
   }
 }
