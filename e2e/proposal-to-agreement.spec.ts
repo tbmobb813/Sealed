@@ -56,6 +56,10 @@ test.describe("Proposal to agreement flow", () => {
 
     await test.step("Accept the proposal", async () => {
       await page.getByRole("button", { name: "Accept Proposal" }).click();
+      await page.getByLabel("Type your full name to accept this proposal").fill(
+        "Test Client",
+      );
+      await page.getByRole("button", { name: "Confirm Acceptance" }).click();
       await expect(
         page.getByText("You have accepted this proposal."),
       ).toBeVisible();
