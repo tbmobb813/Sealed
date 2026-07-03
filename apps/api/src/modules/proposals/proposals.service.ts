@@ -177,6 +177,18 @@ export class ProposalsService {
   }
 
   async acceptByPublicToken(token: string, acceptedBy?: string) {
+    // Commit expiration in its own transaction so the EXPIRED status and
+    // activity event are persisted even when the subsequent accept transition
+    // throws and rolls back the outer transaction.
+    await this.prisma.$transaction(async (tx) => {
+      const proposal = await tx.proposal.findUnique({
+        where: { publicToken: token },
+      });
+      if (proposal) {
+        await this.expireIfPastDue(tx, proposal);
+      }
+    });
+
     return this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findUnique({
         where: { publicToken: token },
@@ -185,12 +197,6 @@ export class ProposalsService {
 
       if (!proposal) {
         throw new NotFoundException("Proposal not found");
-      }
-
-      // An expired proposal must not be acceptable, no matter how the
-      // client reached the accept button.
-      if (await this.expireIfPastDue(tx, proposal)) {
-        assertTransition(PROPOSAL_TRANSITIONS, "EXPIRED", "ACCEPTED", "proposal");
       }
 
       assertTransition(
