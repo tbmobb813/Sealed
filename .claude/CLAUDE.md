@@ -39,10 +39,8 @@ pnpm dev           # web :3000 + API :3001
 
 ### Dropbox Sign
 - Handles e-signatures for proposals/agreements
-- `DropboxSignService` at `apps/api/src/modules/dropbox-sign/`
-- Webhook: `POST /api/v1/webhooks/dropbox-sign` — handles `signature_request_signed`
-- **Pre-production:** Real HMAC verification must replace the stub
-
+- `DropboxSignService` at `apps/api/src/integrations/dropbox-sign/`
+- Webhook: `POST /api/v1/webhooks/dropbox-sign` — handles `signature_request_signed` and `signature_request_declined`
 ### Stripe
 - Payment links on invoice send
 - `StripeService` at `apps/api/src/integrations/stripe/`
