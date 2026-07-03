@@ -30,8 +30,9 @@ export class StripeWebhookController {
     const payload = req.rawBody ?? Buffer.from("");
     const event = this.stripeService.constructEvent(payload, signature);
 
-    // Await the handler: returning 200 before it completes means Stripe
-    // never retries a failed event and a real payment can be silently lost.
+    // Always ack a verified event with 200 — a non-2xx makes Stripe retry
+    // and eventually disable the endpoint. Permanent failures (e.g. invalid
+    // state transition) would retry forever without ever succeeding.
     try {
       await this.stripeWebhookService.handleEvent(event);
     } catch (err: unknown) {
@@ -39,7 +40,6 @@ export class StripeWebhookController {
       this.logger.error(
         `Stripe webhook handler failed for ${event.type}: ${message}`,
       );
-      throw err;
     }
 
     return { received: true, type: event.type };

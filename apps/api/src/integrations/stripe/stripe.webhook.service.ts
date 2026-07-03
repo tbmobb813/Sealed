@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@sealed/database";
 import Stripe from "stripe";
 import {
@@ -52,7 +52,12 @@ export class StripeWebhookService {
       });
 
       if (!invoice) {
-        throw new NotFoundException(`Invoice not found: ${invoiceId}`);
+        // Ack unknown IDs: a non-2xx makes Stripe retry and eventually
+        // disable the webhook endpoint, and a 404 is an enumeration side-channel.
+        this.logger.warn(
+          `checkout.session.completed for unknown invoice ${invoiceId} (session ${session.id})`,
+        );
+        return;
       }
 
       if (invoice.status === "PAID") {
