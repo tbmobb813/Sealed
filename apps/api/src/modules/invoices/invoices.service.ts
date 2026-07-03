@@ -182,10 +182,15 @@ export class InvoicesService {
     // transaction timeout, aborting the commit after the link was created.
     const invoice = await this.prisma.invoice.findFirst({
       where: { id, tenantId },
+      include: { contact: true },
     });
 
     if (!invoice) {
       throw new NotFoundException("Invoice not found");
+    }
+
+    if (!invoice.contact) {
+      throw new NotFoundException("Contact not found");
     }
 
     assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
@@ -247,6 +252,10 @@ export class InvoicesService {
         throw new NotFoundException("Invoice not found");
       }
 
+      if (!updated.contact) {
+        throw new NotFoundException("Contact not found");
+      }
+
       await emitActivityEvent(tx, {
         tenantId,
         actorId: userId,
@@ -264,14 +273,17 @@ export class InvoicesService {
 
     // Email only after the transaction commits — otherwise a rollback would
     // send a payment request for an invoice that was never marked SENT.
-    void this.resend.sendInvoiceLink({
-      toEmail: updated.contact.email,
-      toName: updated.contact.name,
-      invoiceNumber: updated.number,
-      tenantName: tenantName ?? "Your service provider",
-      totalAmount: `$${updated.totalAmount.toString()}`,
-      paymentUrl: updated.stripePaymentLinkUrl ?? "",
-    });
+    const contact = updated.contact;
+    if (contact) {
+      void this.resend.sendInvoiceLink({
+        toEmail: contact.email,
+        toName: contact.name,
+        invoiceNumber: updated.number,
+        tenantName: tenantName ?? "Your service provider",
+        totalAmount: `$${updated.totalAmount.toString()}`,
+        paymentUrl: updated.stripePaymentLinkUrl ?? "",
+      });
+    }
 
     return updated;
   }

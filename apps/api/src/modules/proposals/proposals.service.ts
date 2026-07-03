@@ -421,6 +421,10 @@ export class ProposalsService {
         throw new NotFoundException("Proposal not found");
       }
 
+      if (!proposal.contact) {
+        throw new NotFoundException("Contact not found");
+      }
+
       const tenant = await tx.tenant.findUnique({
         where: { id: proposal.tenantId },
         select: { name: true },
@@ -450,6 +454,10 @@ export class ProposalsService {
         throw new NotFoundException("Proposal not found");
       }
 
+      if (!updated.contact) {
+        throw new NotFoundException("Contact not found");
+      }
+
       await emitActivityEvent(tx, {
         tenantId,
         actorId: userId,
@@ -467,13 +475,16 @@ export class ProposalsService {
 
     // Email only after the transaction commits — otherwise a rollback would
     // leave the client holding a link to a proposal that was never sent.
-    void this.resend.sendProposalLink({
-      toEmail: updated.contact.email,
-      toName: updated.contact.name,
-      proposalTitle: updated.title,
-      tenantName: tenantName ?? "Your service provider",
-      publicToken: updated.publicToken,
-    });
+    const contact = updated.contact;
+    if (contact) {
+      void this.resend.sendProposalLink({
+        toEmail: contact.email,
+        toName: contact.name,
+        proposalTitle: updated.title,
+        tenantName: tenantName ?? "Your service provider",
+        publicToken: updated.publicToken,
+      });
+    }
 
     return updated;
   }
