@@ -1,6 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { RequestMethod, ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 
@@ -10,6 +11,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
   });
+  app.use(helmet());
   const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
   app.enableCors({
     // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — allow through.

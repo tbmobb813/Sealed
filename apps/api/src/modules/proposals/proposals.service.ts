@@ -66,6 +66,38 @@ export class ProposalsService {
     return proposal;
   }
 
+  /**
+   * Transitions a SENT/VIEWED proposal to EXPIRED when past its expiry.
+   * Returns true if the proposal was expired (caller must not proceed).
+   */
+  private async expireIfPastDue(
+    tx: Prisma.TransactionClient,
+    proposal: { id: string; tenantId: string; createdByUserId: string; status: string; title: string; expiresAt: Date | null },
+  ): Promise<boolean> {
+    const expirable = proposal.status === "SENT" || proposal.status === "VIEWED";
+    if (!expirable || !proposal.expiresAt || proposal.expiresAt > new Date()) {
+      return false;
+    }
+
+    assertTransition(PROPOSAL_TRANSITIONS, proposal.status, "EXPIRED", "proposal");
+
+    await tx.proposal.update({
+      where: { id: proposal.id },
+      data: { status: "EXPIRED" },
+    });
+
+    await emitActivityEvent(tx, {
+      tenantId: proposal.tenantId,
+      actorId: proposal.createdByUserId,
+      objectType: "proposal",
+      objectId: proposal.id,
+      eventType: "proposal.expired",
+      metadata: { title: proposal.title },
+    });
+
+    return true;
+  }
+
   async findByPublicToken(token: string) {
     return this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findUnique({
@@ -82,7 +114,16 @@ export class ProposalsService {
 
       let current = proposal;
 
-      if (current.status === "SENT") {
+      if (await this.expireIfPastDue(tx, current)) {
+        const refreshed = await tx.proposal.findUnique({
+          where: { id: current.id },
+          include: { contact: true, tenant: true },
+        });
+        if (!refreshed) {
+          throw new NotFoundException("Proposal not found");
+        }
+        current = refreshed;
+      } else if (current.status === "SENT") {
         assertTransition(
           PROPOSAL_TRANSITIONS,
           current.status,
@@ -144,6 +185,12 @@ export class ProposalsService {
 
       if (!proposal) {
         throw new NotFoundException("Proposal not found");
+      }
+
+      // An expired proposal must not be acceptable, no matter how the
+      // client reached the accept button.
+      if (await this.expireIfPastDue(tx, proposal)) {
+        assertTransition(PROPOSAL_TRANSITIONS, "EXPIRED", "ACCEPTED", "proposal");
       }
 
       assertTransition(

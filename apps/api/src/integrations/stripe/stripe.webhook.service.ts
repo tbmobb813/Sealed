@@ -37,6 +37,16 @@ export class StripeWebhookService {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      // providerPaymentId is unique — an already-recorded session means this
+      // event was processed; ack the retry without double-applying it.
+      const alreadyProcessed = await tx.payment.findUnique({
+        where: { providerPaymentId: session.id },
+      });
+      if (alreadyProcessed) {
+        this.logger.log(`Stripe session ${session.id} already processed — skipping`);
+        return;
+      }
+
       const invoice = await tx.invoice.findFirst({
         where: { id: invoiceId },
       });
@@ -60,6 +70,21 @@ export class StripeWebhookService {
       const amountPaid = session.amount_total
         ? new Prisma.Decimal(session.amount_total).div(100)
         : invoice.totalAmount;
+
+      // Record the payment itself — invoice status and the payments table
+      // must agree on where the money came from.
+      await tx.payment.create({
+        data: {
+          tenantId: invoice.tenantId,
+          invoiceId: invoice.id,
+          provider: "STRIPE",
+          providerPaymentId: session.id,
+          amount: amountPaid,
+          currency: session.currency?.toUpperCase() ?? invoice.currency,
+          status: "SUCCEEDED",
+          succeededAt: new Date(),
+        },
+      });
 
       await tx.invoice.update({
         where: { id: invoiceId },
