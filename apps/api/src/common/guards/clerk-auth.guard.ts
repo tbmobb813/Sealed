@@ -14,6 +14,7 @@ import { verifyToken } from "@clerk/backend";
 import {
   DEMO_CLERK_USER_ID,
   DEMO_MODE_TOKEN,
+  TEST_CLERK_USER_ID,
   isDemoModeEnabled,
 } from "../constants/demo";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
@@ -125,8 +126,13 @@ export class ClerkAuthGuard implements CanActivate {
       role: string;
     };
   }): Promise<boolean> {
+    const demoClerkUserId =
+      process.env.INTEGRATION_TEST === "true"
+        ? TEST_CLERK_USER_ID
+        : DEMO_CLERK_USER_ID;
+
     const user = await this.prisma.user.findFirst({
-      where: { clerkUserId: DEMO_CLERK_USER_ID },
+      where: { clerkUserId: demoClerkUserId },
     });
 
     if (!user) {

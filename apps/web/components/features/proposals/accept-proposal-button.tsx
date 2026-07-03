@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,18 @@ import {
   type AcceptProposalState,
 } from "@/app/(public)/p/[token]/actions";
 
-function AcceptButton() {
+function ConfirmAcceptButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" disabled={pending}>
-      {pending ? "Accepting..." : "Accept Proposal"}
+      {pending ? "Accepting..." : "Confirm Acceptance"}
     </Button>
   );
 }
 
 export function AcceptProposalButton({ token }: { token: string }) {
   const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
   const acceptWithToken = acceptProposal.bind(null, token);
   const [state, formAction] = useFormState<AcceptProposalState, FormData>(
     acceptWithToken,
@@ -42,9 +43,40 @@ export function AcceptProposalButton({ token }: { token: string }) {
     );
   }
 
+  if (!confirming) {
+    return (
+      <Button size="lg" onClick={() => setConfirming(true)}>
+        Accept Proposal
+      </Button>
+    );
+  }
+
   return (
-    <form action={formAction} className="flex flex-col items-center gap-3">
-      <AcceptButton />
+    <form
+      action={formAction}
+      className="flex w-full max-w-md flex-col items-center gap-3"
+    >
+      <label htmlFor="acceptedBy" className="text-sm text-muted-foreground">
+        Type your full name to accept this proposal
+      </label>
+      <input
+        id="acceptedBy"
+        name="acceptedBy"
+        required
+        maxLength={200}
+        placeholder="Your full name"
+        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+      />
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setConfirming(false)}
+        >
+          Cancel
+        </Button>
+        <ConfirmAcceptButton />
+      </div>
       {state.error && (
         <p className="text-sm text-destructive">{state.error}</p>
       )}

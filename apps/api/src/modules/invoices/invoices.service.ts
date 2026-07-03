@@ -9,6 +9,7 @@ import {
 import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
+import { ResendService } from "../../integrations/resend/resend.service";
 import { StripeService } from "../../integrations/stripe/stripe.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "./dto/create-invoice.dto";
 
@@ -17,6 +18,7 @@ export class InvoicesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stripeService: StripeService,
+    private readonly resend: ResendService,
   ) {}
 
   findAll(tenantId: string) {
@@ -67,15 +69,14 @@ export class InvoicesService {
 
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tenantId}))`;
 
-      const lastInvoice = await tx.invoice.findFirst({
-        where: { tenantId },
-        orderBy: { number: "desc" },
-        select: { number: true },
-      });
-      const lastNumber = lastInvoice
-        ? parseInt(lastInvoice.number.replace("INV-", ""), 10)
-        : 0;
-      const nextNumber = lastNumber + 1;
+      // Compute the max numerically — a string orderBy on `number` sorts
+      // "INV-9999" above "INV-10000" and would reissue duplicates.
+      const [row] = await tx.$queryRaw<{ max: number | null }[]>`
+        SELECT MAX(CAST(SUBSTRING(number FROM 5) AS INTEGER)) AS max
+        FROM invoices
+        WHERE tenant_id = ${tenantId}
+      `;
+      const nextNumber = (row?.max ?? 0) + 1;
       const subtotalDecimal = new Prisma.Decimal(dto.subtotal);
       const taxAmountDecimal = new Prisma.Decimal(dto.taxAmount ?? 0);
       const totalAmount = subtotalDecimal.add(taxAmountDecimal);
@@ -176,19 +177,28 @@ export class InvoicesService {
   }
 
   async send(tenantId: string, userId: string, id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      const invoice = await tx.invoice.findFirst({
+    const { updated, tenantName } = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.invoice.findFirst({
         where: { id, tenantId },
-        include: { contact: true, agreement: true, payments: true },
+        include: { contact: true },
       });
 
-      if (!invoice) {
+      if (!current) {
         throw new NotFoundException("Invoice not found");
       }
 
-      assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
+      if (!current.contact) {
+        throw new NotFoundException("Contact not found");
+      }
 
-      const amountCents = invoice.totalAmount
+      assertTransition(INVOICE_TRANSITIONS, current.status, "SENT", "invoice");
+
+      const tenant = await tx.tenant.findUnique({
+        where: { id: current.tenantId },
+        select: { name: true },
+      });
+
+      const amountCents = current.totalAmount
         .mul(100)
         .toDecimalPlaces(0)
         .toNumber();
@@ -198,8 +208,8 @@ export class InvoicesService {
       try {
         const paymentLink = await this.stripeService.createPaymentLink({
           amountCents,
-          currency: invoice.currency,
-          invoiceId: invoice.id,
+          currency: current.currency,
+          invoiceId: current.id,
         });
         stripePaymentLinkId = paymentLink.id;
         stripePaymentLinkUrl = paymentLink.url ?? "";
@@ -228,6 +238,10 @@ export class InvoicesService {
         throw new NotFoundException("Invoice not found");
       }
 
+      if (!updated.contact) {
+        throw new NotFoundException("Contact not found");
+      }
+
       await emitActivityEvent(tx, {
         tenantId,
         actorId: userId,
@@ -240,7 +254,23 @@ export class InvoicesService {
         },
       });
 
-      return updated;
+      return { updated, tenantName: tenant?.name };
     });
+
+    // Email only after the transaction commits — otherwise a rollback would
+    // send a payment request for an invoice that was never marked SENT.
+    const contact = updated.contact;
+    if (contact) {
+      void this.resend.sendInvoiceLink({
+        toEmail: contact.email,
+        toName: contact.name,
+        invoiceNumber: updated.number,
+        tenantName: tenantName ?? "Your service provider",
+        totalAmount: `$${updated.totalAmount.toString()}`,
+        paymentUrl: updated.stripePaymentLinkUrl ?? "",
+      });
+    }
+
+    return updated;
   }
 }

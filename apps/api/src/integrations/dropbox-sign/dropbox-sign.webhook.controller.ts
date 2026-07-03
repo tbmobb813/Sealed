@@ -1,6 +1,20 @@
-import { Body, Controller, Headers, Post } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Head,
+  Header,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UseInterceptors,
+} from "@nestjs/common";
+import { AnyFilesInterceptor } from "@nestjs/platform-express";
+import { Request, Response } from "express";
 import { Public } from "../../common/decorators/public.decorator";
 import { DropboxSignWebhookService } from "./dropbox-sign.webhook.service";
+
+const WEBHOOK_ACK = "Hello API Event Received";
 
 @Controller("webhooks/dropbox-sign")
 export class DropboxSignWebhookController {
@@ -8,12 +22,54 @@ export class DropboxSignWebhookController {
     private readonly dropboxSignWebhookService: DropboxSignWebhookService,
   ) {}
 
+  // Dropbox Sign dashboard "Test" probes with GET/HEAD before saving the URL.
+  @Public()
+  @Get()
+  verifyCallbackUrl(@Res() res: Response) {
+    res.status(200).setHeader("Content-Type", "text/plain").end(WEBHOOK_ACK);
+  }
+
+  @Public()
+  @Head()
+  verifyCallbackUrlHead(@Res() res: Response) {
+    res.status(200).setHeader("Content-Type", "text/plain").end();
+  }
+
   @Public()
   @Post()
-  handleWebhook(
-    @Body() body: unknown,
-    @Headers("x-hellosign-signature") signature: string,
-  ) {
-    return this.dropboxSignWebhookService.handleWebhook(body, signature);
+  @HttpCode(200)
+  @Header("Content-Type", "text/plain")
+  // Dropbox Sign posts a multipart form with a single `json` field; bound
+  // the parser so the public endpoint can't be used for upload DoS.
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      limits: {
+        files: 5,
+        fileSize: 1024 * 1024,
+        fields: 20,
+        fieldSize: 1024 * 1024,
+      },
+    }),
+  )
+  async handleWebhook(@Req() req: Request) {
+    const body = req.body as Record<string, string | unknown>;
+    let payload: unknown;
+    let rawJson: string;
+
+    if (typeof body.json === "string") {
+      rawJson = body.json;
+      try {
+        payload = JSON.parse(rawJson);
+      } catch {
+        // Malformed payload — acknowledge so Dropbox Sign doesn't retry/disable the callback URL.
+        return WEBHOOK_ACK;
+      }
+    } else {
+      // Fallback for integration tests sending application/json
+      payload = body;
+      rawJson = JSON.stringify(body);
+    }
+
+    return this.dropboxSignWebhookService.handleWebhook(payload, rawJson);
   }
 }

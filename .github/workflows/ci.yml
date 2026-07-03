@@ -42,6 +42,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://sealed:sealed_dev@localhost:5432/sealed
       DEMO_MODE: "true"
+      TURBO_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v4
 

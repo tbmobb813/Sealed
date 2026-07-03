@@ -5,6 +5,12 @@ import { ErrorCodes } from "../../src/common/constants/error-codes";
 import { expectActivityEvents, getActivityEvents } from "../helpers/activity";
 import { cleanDatabase, seedTestFixtures } from "../helpers/db";
 import { AUTH_HEADER, createTestApp } from "../helpers/test-app";
+import { buildDropboxSignWebhookPayload } from "../helpers/dropbox-sign-webhook";
+import {
+  resetResendMock,
+  resendMock,
+  waitForResendMock,
+} from "../helpers/resend-mock";
 
 describe("Domain chain (integration)", () => {
   let app: INestApplication;
@@ -18,6 +24,7 @@ describe("Domain chain (integration)", () => {
 
   beforeEach(async () => {
     await cleanDatabase(prisma);
+    resetResendMock();
     const fixtures = await seedTestFixtures(prisma);
     contactId = fixtures.contact.id;
   });
@@ -56,6 +63,18 @@ describe("Domain chain (integration)", () => {
       .post(`/api/v1/proposals/${proposalId}/send`)
       .set(AUTH_HEADER)
       .expect(200);
+
+    await waitForResendMock(
+      () => resendMock.sendProposalLink.mock.calls.length > 0,
+    );
+
+    expect(resendMock.sendProposalLink).toHaveBeenCalledWith({
+      toEmail: "jane@example.com",
+      toName: "Jane Client",
+      proposalTitle: "Day 4 Smoke Test",
+      tenantName: "Test Company",
+      publicToken: proposalDetails.body.data.publicToken,
+    });
 
     const proposalImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/proposals/${proposalId}`)
@@ -101,15 +120,13 @@ describe("Domain chain (integration)", () => {
 
     await request(app.getHttpServer())
       .post("/api/v1/webhooks/dropbox-sign")
-      .send({
-        event: {
-          event_type: "signature_request_signed",
-          event_metadata: {
-            related_signature_request_id: signatureRequestId,
-          },
-        },
-      })
-      .expect(201);
+      .send(
+        buildDropboxSignWebhookPayload(
+          process.env.DROPBOX_SIGN_API_KEY ?? "test_dropbox_sign_key",
+          signatureRequestId,
+        ),
+      )
+      .expect(200);
 
     const agreementImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/agreements/${agreementId}`)
@@ -145,6 +162,19 @@ describe("Domain chain (integration)", () => {
       .expect(200);
 
     expect(invoiceSendResponse.body.data.stripePaymentLinkUrl).toBeTruthy();
+
+    await waitForResendMock(
+      () => resendMock.sendInvoiceLink.mock.calls.length > 0,
+    );
+
+    expect(resendMock.sendInvoiceLink).toHaveBeenCalledWith({
+      toEmail: "jane@example.com",
+      toName: "Jane Client",
+      invoiceNumber: invoiceDetails.body.data.number,
+      tenantName: "Test Company",
+      totalAmount: `$${invoiceSendResponse.body.data.totalAmount}`,
+      paymentUrl: invoiceSendResponse.body.data.stripePaymentLinkUrl,
+    });
 
     const invoiceImmutable = await request(app.getHttpServer())
       .patch(`/api/v1/invoices/${invoiceId}`)

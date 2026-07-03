@@ -1,13 +1,32 @@
 import { NestFactory } from "@nestjs/core";
 import { RequestMethod, ValidationPipe } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
-
+  // rawBody: true registers express.json with a verify callback that sets
+  // req.rawBody on every JSON request — required for webhook HMAC verification.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
+  app.use(helmet());
+  if (process.env.NODE_ENV === "production" && !process.env.CORS_ORIGIN) {
+    console.warn(
+      "WARNING: CORS_ORIGIN is not set in production — browsers will only be allowed from http://localhost:3000",
+    );
+  }
+  const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+    // Webhook probes (Dropbox Sign, Stripe, etc.) omit Origin — allow through.
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      callback(null, origin === corsOrigin);
+    },
     credentials: true,
   });
 
@@ -24,7 +43,6 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new AllExceptionsFilter());
-
   const port = process.env.API_PORT ?? process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`API running on http://localhost:${port}`);

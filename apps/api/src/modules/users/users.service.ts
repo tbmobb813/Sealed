@@ -47,6 +47,25 @@ export class UsersService {
       return existing;
     }
 
+    try {
+      return await this.createUserWithTenant(input);
+    } catch (error) {
+      // Two concurrent first requests can both miss the existing-user check;
+      // the loser hits the clerkUserId unique constraint — return the winner.
+      if ((error as { code?: string }).code === "P2002") {
+        const winner = await this.prisma.user.findUnique({
+          where: { clerkUserId: input.clerkUserId },
+          include: { tenant: true },
+        });
+        if (winner) {
+          return winner;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private createUserWithTenant(input: ProvisionClerkUserInput) {
     return this.prisma.$transaction(async (tx) => {
       const tenant = await (async () => {
 

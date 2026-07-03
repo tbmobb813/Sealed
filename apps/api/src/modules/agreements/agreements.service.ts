@@ -64,9 +64,14 @@ export class AgreementsService {
         throw new NotFoundException("Contact not found");
       }
 
+      // Map fields explicitly — spreading the DTO would silently make any
+      // future DTO field (e.g. status) writable through this endpoint.
       const agreement = await tx.agreement.create({
         data: {
-          ...dto,
+          proposalId: dto.proposalId,
+          contactId: dto.contactId,
+          title: dto.title,
+          body: dto.body,
           tenantId,
           createdByUserId: userId,
         },
@@ -134,38 +139,61 @@ export class AgreementsService {
   }
 
   async sendForSignature(tenantId: string, userId: string, id: string) {
+    // External call happens outside the transaction: Dropbox Sign latency
+    // would otherwise hold a DB connection and can exceed the interactive
+    // transaction timeout, aborting the commit after the signature request
+    // was already created (orphaning it and duplicating on retry).
+    const agreement = await this.prisma.agreement.findFirst({
+      where: { id, tenantId },
+      include: { contact: true },
+    });
+
+    if (!agreement) throw new NotFoundException("Agreement not found");
+
+    assertTransition(
+      AGREEMENT_TRANSITIONS,
+      agreement.status,
+      "SENT",
+      "agreement",
+    );
+
+    let signatureRequestId: string;
+    try {
+      const result = await this.dropboxSignService.createSignatureRequest(
+        agreement.id,
+        agreement.contact.email,
+        agreement.body,
+      );
+      signatureRequestId = result.signatureRequestId;
+    } catch (error) {
+      const body = (error as { body?: { error?: { errorMsg?: string } } })
+        ?.body;
+      const message =
+        body?.error?.errorMsg ??
+        (error instanceof Error ? error.message : "Signature request failed");
+      throwIntegrationError("Dropbox Sign", message);
+    }
+
     return this.prisma.$transaction(async (tx) => {
-      const agreement = await tx.agreement.findFirst({
+      const current = await tx.agreement.findFirst({
         where: { id, tenantId },
-        include: { proposal: true, contact: true },
       });
-      
-      if (!agreement) throw new NotFoundException("Agreement not found");
-      
+
+      if (!current) throw new NotFoundException("Agreement not found");
+
+      // Re-check inside the transaction to guard against concurrent sends.
       assertTransition(
         AGREEMENT_TRANSITIONS,
-        agreement.status,
+        current.status,
         "SENT",
         "agreement",
       );
-
-      let signatureRequestId: string;
-      try {
-        const result = await this.dropboxSignService.createSignatureRequest(
-          agreement.id,
-          agreement.contact.email,
-        );
-        signatureRequestId = result.signatureRequestId;
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Signature request failed";
-        throwIntegrationError("Dropbox Sign", message);
-      }
 
       await tx.agreement.updateMany({
         where: { id, tenantId },
         data: {
           status: "SENT",
+          signatureStatus: "SENT",
           sentAt: new Date(),
           signatureRequestId,
           signatureProvider: "dropbox_sign",
@@ -232,7 +260,9 @@ export class AgreementsService {
         objectType: "agreement",
         objectId: id,
         eventType: "agreement.signed",
-        metadata: { title: updated.title },
+        // "manual" distinguishes a tenant-user override from a provider-
+        // verified signature — the audit trail must not conflate them.
+        metadata: { title: updated.title, method: "manual" },
       });
 
       return updated;

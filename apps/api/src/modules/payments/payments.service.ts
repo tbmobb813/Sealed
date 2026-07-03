@@ -1,5 +1,15 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { Prisma } from "@sealed/database";
 import { PrismaService } from "../../prisma/prisma.service";
+import {
+  assertTransition,
+  INVOICE_TRANSITIONS,
+} from "../../common/constants/state-transitions";
+import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 
@@ -28,6 +38,9 @@ export class PaymentsService {
     return payment;
   }
 
+  // Records money already received (e.g. a check or bank transfer) and
+  // reconciles the invoice: amountPaid accumulates and status advances to
+  // PARTIALLY_PAID or PAID accordingly.
   async create(tenantId: string, userId: string, dto: CreatePaymentDto) {
     return this.prisma.$transaction(async (tx) => {
       const invoice = await tx.invoice.findFirst({
@@ -38,16 +51,51 @@ export class PaymentsService {
         throw new NotFoundException("Invoice not found");
       }
 
+      const payableStatuses = ["SENT", "PARTIALLY_PAID", "OVERDUE"];
+      assertPrecondition(payableStatuses.includes(invoice.status), {
+        entityName: "invoice",
+        sourceId: invoice.id,
+        currentStatus: invoice.status,
+        requiredStatus: payableStatuses.join(" | "),
+      });
+
+      const amount = new Prisma.Decimal(dto.amount);
+      const outstanding = invoice.totalAmount.sub(invoice.amountPaid ?? 0);
+      if (amount.gt(outstanding)) {
+        throw new BadRequestException(
+          `Payment of ${amount.toString()} exceeds outstanding balance of ${outstanding.toString()}`,
+        );
+      }
+
       const payment = await tx.payment.create({
         data: {
           tenantId,
           invoiceId: dto.invoiceId,
-          amount: dto.amount,
-          currency: dto.currency ?? "USD",
+          amount,
+          currency: dto.currency ?? invoice.currency,
           provider: dto.provider ?? "MANUAL",
-          status: "PENDING",
+          status: "SUCCEEDED",
+          succeededAt: new Date(),
         },
         include: { invoice: true },
+      });
+
+      const newAmountPaid = (invoice.amountPaid ?? new Prisma.Decimal(0)).add(amount);
+      const nextStatus = newAmountPaid.gte(invoice.totalAmount)
+        ? "PAID"
+        : "PARTIALLY_PAID";
+
+      if (invoice.status !== nextStatus) {
+        assertTransition(INVOICE_TRANSITIONS, invoice.status, nextStatus, "invoice");
+      }
+
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          amountPaid: newAmountPaid,
+          status: nextStatus,
+          ...(nextStatus === "PAID" ? { paidAt: new Date() } : {}),
+        },
       });
 
       await emitActivityEvent(tx, {
@@ -59,6 +107,18 @@ export class PaymentsService {
         metadata: {
           amount: payment.amount.toString(),
           invoiceId: payment.invoiceId,
+        },
+      });
+
+      await emitActivityEvent(tx, {
+        tenantId,
+        actorId: userId,
+        objectType: "invoice",
+        objectId: invoice.id,
+        eventType: nextStatus === "PAID" ? "invoice.paid" : "invoice.partially_paid",
+        metadata: {
+          number: invoice.number,
+          amountPaid: newAmountPaid.toString(),
         },
       });
 
