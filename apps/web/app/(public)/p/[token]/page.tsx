@@ -1,6 +1,7 @@
 import { StatusBadge, MoneyDisplay } from "@sealed/ui";
 import { publicApiClient } from "@/lib/api-client";
 import { AcceptProposalButton } from "@/components/features/proposals/accept-proposal-button";
+import { DeclineProposalButton } from "@/components/features/proposals/decline-proposal-button";
 import type { PublicProposalView } from "@sealed/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -99,13 +100,30 @@ export default async function PublicProposalPage({
       )}
 
       {proposal.status === "SENT" || proposal.status === "VIEWED" ? (
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex flex-col items-center gap-4">
           <AcceptProposalButton token={params.token} />
+          <DeclineProposalButton token={params.token} />
         </div>
       ) : proposal.status === "ACCEPTED" ? (
         <div className="rounded-lg bg-green-50 border border-green-200 px-6 py-4 text-center mt-8">
           <p className="text-green-800 font-medium">
             You have accepted this proposal.
+          </p>
+        </div>
+      ) : proposal.status === "REJECTED" ? (
+        <div className="rounded-lg bg-muted border px-6 py-4 text-center mt-8">
+          <p className="font-medium">You have declined this proposal.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Contact {proposal.tenantName} if you would like a revised proposal.
+          </p>
+        </div>
+      ) : proposal.status === "EXPIRED" ? (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-6 py-4 text-center mt-8">
+          <p className="text-amber-800 font-medium">
+            This proposal has expired.
+          </p>
+          <p className="text-sm text-amber-700 mt-1">
+            Contact {proposal.tenantName} to request a new one.
           </p>
         </div>
       ) : null}

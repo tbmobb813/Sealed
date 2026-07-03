@@ -25,3 +25,34 @@ export async function acceptProposal(
   revalidatePath(`/p/${token}`);
   return { accepted: true };
 }
+
+export type RejectProposalState = {
+  error?: string;
+  rejected?: boolean;
+};
+
+export async function rejectProposal(
+  token: string,
+  _prevState: RejectProposalState,
+  formData: FormData,
+): Promise<RejectProposalState> {
+  const reason = formData.get("reason");
+
+  try {
+    await publicApiClient(`/proposals/public/${token}/reject`, {
+      method: "POST",
+      body: JSON.stringify({
+        ...(typeof reason === "string" && reason.trim()
+          ? { reason: reason.trim().slice(0, 500) }
+          : {}),
+      }),
+    });
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Failed to decline proposal.",
+    };
+  }
+
+  revalidatePath(`/p/${token}`);
+  return { rejected: true };
+}

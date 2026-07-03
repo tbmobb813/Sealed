@@ -230,6 +230,63 @@ export class ProposalsService {
     });
   }
 
+  async rejectByPublicToken(token: string, reason?: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const proposal = await tx.proposal.findUnique({
+        where: { publicToken: token },
+        include: { contact: true },
+      });
+
+      if (!proposal) {
+        throw new NotFoundException("Proposal not found");
+      }
+
+      // An expired proposal can no longer be declined either — surface the
+      // standard invalid-transition error with EXPIRED as the current state.
+      if (await this.expireIfPastDue(tx, proposal)) {
+        assertTransition(PROPOSAL_TRANSITIONS, "EXPIRED", "REJECTED", "proposal");
+      }
+
+      assertTransition(
+        PROPOSAL_TRANSITIONS,
+        proposal.status,
+        "REJECTED",
+        "proposal",
+      );
+
+      await tx.proposal.update({
+        where: { id: proposal.id },
+        data: {
+          status: "REJECTED",
+          respondedAt: new Date(),
+        },
+      });
+
+      await emitActivityEvent(tx, {
+        tenantId: proposal.tenantId,
+        actorId: proposal.createdByUserId,
+        objectType: "proposal",
+        objectId: proposal.id,
+        eventType: "proposal.rejected",
+        metadata: {
+          title: proposal.title,
+          ...(reason ? { reason } : {}),
+        },
+      });
+
+      const updated = await tx.proposal.findUnique({
+        where: { id: proposal.id },
+        include: { contact: true },
+      });
+
+      if (!updated) {
+        throw new NotFoundException("Proposal not found");
+      }
+
+      return updated;
+    });
+  }
+
   create(tenantId: string, userId: string, dto: CreateProposalDto) {
     const lineItems = this.buildLineItems(dto.lineItems);
     const taxAmount = new Prisma.Decimal(dto.taxAmount ?? 0);
