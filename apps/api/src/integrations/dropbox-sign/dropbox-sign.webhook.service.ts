@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
   assertTransition,
@@ -24,6 +20,8 @@ const WEBHOOK_ACK = "Hello API Event Received";
 
 @Injectable()
 export class DropboxSignWebhookService {
+  private readonly logger = new Logger(DropboxSignWebhookService.name);
+
   constructor(
     private readonly dropboxSignService: DropboxSignService,
     private readonly prisma: PrismaService,
@@ -84,8 +82,13 @@ export class DropboxSignWebhookService {
         where: { signatureRequestId },
       });
 
+      // Ack unknown IDs: a non-2xx makes Dropbox Sign retry and eventually
+      // disable the callback URL, and a 404 is an enumeration side-channel.
       if (!agreement) {
-        throw new NotFoundException("Agreement not found");
+        this.logger.warn(
+          `Signed event for unknown signature request ${signatureRequestId}`,
+        );
+        return WEBHOOK_ACK;
       }
 
       assertTransition(
@@ -124,7 +127,10 @@ export class DropboxSignWebhookService {
       });
 
       if (!agreement) {
-        throw new NotFoundException("Agreement not found");
+        this.logger.warn(
+          `Declined event for unknown signature request ${signatureRequestId}`,
+        );
+        return WEBHOOK_ACK;
       }
 
       assertTransition(

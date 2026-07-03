@@ -39,7 +39,18 @@ export class DropboxSignWebhookController {
   @Post()
   @HttpCode(200)
   @Header("Content-Type", "text/plain")
-  @UseInterceptors(AnyFilesInterceptor())
+  // Dropbox Sign posts a multipart form with a single `json` field; bound
+  // the parser so the public endpoint can't be used for upload DoS.
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      limits: {
+        files: 5,
+        fileSize: 1024 * 1024,
+        fields: 20,
+        fieldSize: 1024 * 1024,
+      },
+    }),
+  )
   async handleWebhook(@Req() req: Request) {
     const body = req.body as Record<string, string | unknown>;
     let payload: unknown;

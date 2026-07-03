@@ -69,15 +69,14 @@ export class InvoicesService {
 
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${tenantId}))`;
 
-      const lastInvoice = await tx.invoice.findFirst({
-        where: { tenantId },
-        orderBy: { number: "desc" },
-        select: { number: true },
-      });
-      const lastNumber = lastInvoice
-        ? parseInt(lastInvoice.number.replace("INV-", ""), 10)
-        : 0;
-      const nextNumber = lastNumber + 1;
+      // Compute the max numerically — a string orderBy on `number` sorts
+      // "INV-9999" above "INV-10000" and would reissue duplicates.
+      const [row] = await tx.$queryRaw<{ max: number | null }[]>`
+        SELECT MAX(CAST(SUBSTRING(number FROM 5) AS INTEGER)) AS max
+        FROM invoices
+        WHERE tenant_id = ${tenantId}
+      `;
+      const nextNumber = (row?.max ?? 0) + 1;
       const subtotalDecimal = new Prisma.Decimal(dto.subtotal);
       const taxAmountDecimal = new Prisma.Decimal(dto.taxAmount ?? 0);
       const totalAmount = subtotalDecimal.add(taxAmountDecimal);
@@ -212,7 +211,7 @@ export class InvoicesService {
       throwIntegrationError("Stripe", message);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const { updated, tenantName } = await this.prisma.$transaction(async (tx) => {
       const current = await tx.invoice.findFirst({
         where: { id, tenantId },
       });
@@ -260,16 +259,20 @@ export class InvoicesService {
         },
       });
 
-      void this.resend.sendInvoiceLink({
-        toEmail: updated.contact.email,
-        toName: updated.contact.name,
-        invoiceNumber: updated.number,
-        tenantName: tenant?.name ?? "Your service provider",
-        totalAmount: `$${updated.totalAmount.toString()}`,
-        paymentUrl: updated.stripePaymentLinkUrl ?? "",
-      });
-
-      return updated;
+      return { updated, tenantName: tenant?.name };
     });
+
+    // Email only after the transaction commits — otherwise a rollback would
+    // send a payment request for an invoice that was never marked SENT.
+    void this.resend.sendInvoiceLink({
+      toEmail: updated.contact.email,
+      toName: updated.contact.name,
+      invoiceNumber: updated.number,
+      tenantName: tenantName ?? "Your service provider",
+      totalAmount: `$${updated.totalAmount.toString()}`,
+      paymentUrl: updated.stripePaymentLinkUrl ?? "",
+    });
+
+    return updated;
   }
 }

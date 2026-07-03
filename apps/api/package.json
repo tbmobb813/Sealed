@@ -23,6 +23,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.2",
     "@nestjs/platform-express": "^11.1.2",
+    "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "6.9.0",
     "@sealed/database": "workspace:*",
     "@sealed/types": "workspace:*",

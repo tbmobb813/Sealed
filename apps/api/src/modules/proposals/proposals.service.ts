@@ -304,7 +304,7 @@ export class ProposalsService {
   }
 
   async send(tenantId: string, userId: string, id: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const { updated, tenantName } = await this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findFirst({
         where: { id, tenantId },
         include: { contact: true },
@@ -355,15 +355,19 @@ export class ProposalsService {
         },
       });
 
-      void this.resend.sendProposalLink({
-        toEmail: updated.contact.email,
-        toName: updated.contact.name,
-        proposalTitle: updated.title,
-        tenantName: tenant?.name ?? "Your service provider",
-        publicToken: updated.publicToken,
-      });
-
-      return updated;
+      return { updated, tenantName: tenant?.name };
     });
+
+    // Email only after the transaction commits — otherwise a rollback would
+    // leave the client holding a link to a proposal that was never sent.
+    void this.resend.sendProposalLink({
+      toEmail: updated.contact.email,
+      toName: updated.contact.name,
+      proposalTitle: updated.title,
+      tenantName: tenantName ?? "Your service provider",
+      publicToken: updated.publicToken,
+    });
+
+    return updated;
   }
 }

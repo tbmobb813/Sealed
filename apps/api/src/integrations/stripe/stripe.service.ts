@@ -21,6 +21,13 @@ export class StripeService {
     invoiceId: string;
   }) {
     if (!this.stripe) {
+      // The stub link is dev-only: silently emailing a dead payment URL to a
+      // real client is worse than failing the send loudly.
+      if (process.env.NODE_ENV === "production") {
+        throw new Error(
+          "Stripe is not configured — refusing to issue a stub payment link in production",
+        );
+      }
       return {
         id: `plink_${Date.now()}`,
         url: `https://pay.stripe.test/invoices/${params.invoiceId}`,
