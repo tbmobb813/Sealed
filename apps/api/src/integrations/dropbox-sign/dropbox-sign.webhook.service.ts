@@ -54,19 +54,15 @@ export class DropboxSignWebhookService {
 
     // The webhook HMAC does not cover signature_request_id, so confirm the
     // real status with the Dropbox Sign API before mutating legal state.
-    // Skipped in integration tests, which have no live API to query.
-    if (process.env.INTEGRATION_TEST !== "true") {
-      const status =
-        await this.dropboxSignService.confirmSignatureRequestStatus(
-          signatureRequestId,
-        );
-      const expected =
-        eventType === "signature_request_signed" ? "signed" : "declined";
-      if (status !== expected) {
-        throw new BadRequestException(
-          "Webhook event does not match signature request status",
-        );
-      }
+    const status = await this.dropboxSignService.confirmSignatureRequestStatus(
+      signatureRequestId,
+    );
+    const expected =
+      eventType === "signature_request_signed" ? "signed" : "declined";
+    if (status !== expected) {
+      throw new BadRequestException(
+        "Webhook event does not match signature request status",
+      );
     }
 
     if (eventType === "signature_request_signed") {
