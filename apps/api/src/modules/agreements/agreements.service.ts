@@ -150,6 +150,10 @@ export class AgreementsService {
 
     if (!agreement) throw new NotFoundException("Agreement not found");
 
+    if (!agreement.contact) {
+      throw new NotFoundException("Contact not found");
+    }
+
     assertTransition(
       AGREEMENT_TRANSITIONS,
       agreement.status,
@@ -157,11 +161,16 @@ export class AgreementsService {
       "agreement",
     );
 
+    // Capture the identity we send to Dropbox Sign — the transaction must
+    // confirm it is still current before we persist signatureRequestId.
+    const contactId = agreement.contactId;
+    const signerEmail = agreement.contact.email;
+
     let signatureRequestId: string;
     try {
       const result = await this.dropboxSignService.createSignatureRequest(
         agreement.id,
-        agreement.contact.email,
+        signerEmail,
         agreement.body,
       );
       signatureRequestId = result.signatureRequestId;
@@ -174,53 +183,85 @@ export class AgreementsService {
       throwIntegrationError("Dropbox Sign", message);
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const current = await tx.agreement.findFirst({
-        where: { id, tenantId },
+    return this.prisma
+      .$transaction(async (tx) => {
+        const current = await tx.agreement.findFirst({
+          where: { id, tenantId },
+          include: { contact: true },
+        });
+
+        if (!current) throw new NotFoundException("Agreement not found");
+
+        if (!current.contact) {
+          throw new NotFoundException("Contact not found");
+        }
+
+        // Reject if the contact was reassigned or their email changed after we
+        // already created the signature request — signerEmail must match what
+        // Dropbox Sign received.
+        assertPrecondition(
+          current.contactId === contactId &&
+            current.contact.email === signerEmail,
+          {
+            entityName: "contact",
+            sourceId: contactId,
+            currentStatus: "changed",
+            requiredStatus: "unchanged",
+          },
+        );
+
+        // Re-check inside the transaction to guard against concurrent sends.
+        assertTransition(
+          AGREEMENT_TRANSITIONS,
+          current.status,
+          "SENT",
+          "agreement",
+        );
+
+        await tx.agreement.updateMany({
+          where: { id, tenantId },
+          data: {
+            status: "SENT",
+            signatureStatus: "SENT",
+            sentAt: new Date(),
+            signatureRequestId,
+            signatureProvider: "dropbox_sign",
+            signerEmail,
+          },
+        });
+
+        const updated = await tx.agreement.findFirst({
+          where: { id, tenantId },
+          include: { proposal: true, contact: true },
+        });
+
+        if (!updated) {
+          throw new NotFoundException("Agreement not found");
+        }
+
+        await emitActivityEvent(tx, {
+          tenantId,
+          actorId: userId,
+          objectType: "agreement",
+          objectId: id,
+          eventType: "agreement.sent",
+          metadata: { title: updated.title },
+        });
+
+        return updated;
+      })
+      .catch(async (error: unknown) => {
+        // Signature request was created before the tx — cancel so we do not
+        // leave an orphaned request for an agreement that stayed DRAFT.
+        try {
+          await this.dropboxSignService.cancelSignatureRequest(
+            signatureRequestId,
+          );
+        } catch {
+          // Best-effort cleanup; surface the original failure.
+        }
+        throw error;
       });
-
-      if (!current) throw new NotFoundException("Agreement not found");
-
-      // Re-check inside the transaction to guard against concurrent sends.
-      assertTransition(
-        AGREEMENT_TRANSITIONS,
-        current.status,
-        "SENT",
-        "agreement",
-      );
-
-      await tx.agreement.updateMany({
-        where: { id, tenantId },
-        data: {
-          status: "SENT",
-          signatureStatus: "SENT",
-          sentAt: new Date(),
-          signatureRequestId,
-          signatureProvider: "dropbox_sign",
-          signerEmail: agreement.contact.email,
-        },
-      });
-
-      const updated = await tx.agreement.findFirst({
-        where: { id, tenantId },
-        include: { proposal: true, contact: true },
-      });
-
-      if (!updated) {
-        throw new NotFoundException("Agreement not found");
-      }
-
-      await emitActivityEvent(tx, {
-        tenantId,
-        actorId: userId,
-        objectType: "agreement",
-        objectId: id,
-        eventType: "agreement.sent",
-        metadata: { title: updated.title },
-      });
-
-      return updated;
-    });
   }
 
   async markAsSigned(tenantId: string, userId: string, id: string) {
