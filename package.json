@@ -9,11 +9,10 @@
     "test": "turbo test",
     "test:e2e": "pnpm --filter @sealed/api db:migrate:deploy && pnpm --filter @sealed/web build && playwright test",
     "test:e2e:install": "playwright install chromium",
-    "db:generate": "turbo db:generate",
+    "db:generate": "pnpm --filter @sealed/database run db:generate",
     "db:migrate": "pnpm --filter @sealed/api db:migrate",
     "db:seed": "pnpm --filter @sealed/api db:seed",
-    "db:studio": "pnpm --filter @sealed/api db:studio",
-    "postinstall": "pnpm db:generate"
+    "db:studio": "pnpm --filter @sealed/api db:studio"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
