@@ -3,7 +3,8 @@
 ## Pre-Launch Blockers
 
 - [x] Full workflow verified in REAL mode (Clerk auth, no demo bypass) 2026-07-03: first sign-in auto-provisioned tenant/user → contact → proposal (DRAFT→SENT→VIEWED→ACCEPTED via public /p/ link with typed-name consent) → agreement (DRAFT→SENT via Dropbox Sign→SIGNED via manual mark) → invoice (DRAFT→SENT with real Stripe link→PAID via webhook, $150 payment recorded). Per-tenant INV numbering confirmed.
-- [ ] UI bug: "Create Proposal" submit stays on "Creating..." and never redirects (proposal IS created; agreement/invoice forms redirect fine). File: proposals/new page.
+- [x] UI bug: "Create Proposal" stuck on "Creating..." — could NOT reproduce (2026-07-08): verified create → redirect → detail render in BOTH demo mode and real Clerk mode; no web code changed since the bug was filed, so it was likely a stale dev server / HMR state on 2026-07-03. Reopen if seen again.
+- [ ] Deployment: scaffold DONE (2026-07-08: apps/api/Dockerfile + railway.json + Vercel deploy in deploy.yml + docs/DEPLOYMENT.md; image builds, /health + migrate deploy verified in-container). Remaining manual: create Railway project + Postgres, link Vercel project + set VERCEL_* secrets, set prod env vars, register webhooks — steps in docs/DEPLOYMENT.md.
 - [ ] Dropbox Sign signed-webhook path untested locally (used manual "Mark as Signed"); needs tunnel or prod URL + real HMAC verification before launch.
 
 - [x] Dropbox Sign end-to-end wired: testMode env-driven, signatureStatus synced on send, declined webhook handled

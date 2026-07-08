@@ -1,0 +1,17 @@
+.git
+.github
+node_modules
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+test-results
+e2e
+docs
+_tmp_*
+*.md
