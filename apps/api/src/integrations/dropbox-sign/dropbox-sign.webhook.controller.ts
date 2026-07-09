@@ -58,7 +58,12 @@ export class DropboxSignWebhookController {
 
     if (typeof body.json === "string") {
       rawJson = body.json;
-      payload = JSON.parse(rawJson);
+      try {
+        payload = JSON.parse(rawJson);
+      } catch {
+        // Malformed payload — acknowledge so Dropbox Sign doesn't retry/disable the callback URL.
+        return WEBHOOK_ACK;
+      }
     } else {
       // Fallback for integration tests sending application/json
       payload = body;
