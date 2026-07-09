@@ -31,7 +31,7 @@ to fix today, but blockers before money or signatures touch the system.
   `PRECONDITION_NOT_MET`.
 
 ### 4. Stripe payment link not generated on invoice send
-- **Status:** ✅ Resolved (stub wired; real Stripe API when `STRIPE_SECRET_KEY` set).
+- **Status:** ✅ Resolved and verified end-to-end in Stripe test mode (2026-07-03): real payment link on send, sandbox checkout paid, webhook flipped invoice to PAID with payment record.
 - **File:** `apps/api/src/modules/invoices/invoices.service.ts`
 - **Method:** `send()`
 - **Fix:** Calls `StripeService.createPaymentLink()`, stores

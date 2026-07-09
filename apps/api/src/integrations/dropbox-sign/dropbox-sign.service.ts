@@ -142,4 +142,16 @@ export class DropboxSignService {
 
     return { signatureRequestId };
   }
+
+  /**
+   * Best-effort cleanup when a signature request was created but the
+   * agreement send transaction failed — avoids orphaned requests.
+   */
+  async cancelSignatureRequest(signatureRequestId: string): Promise<void> {
+    if (!this.apiKey || this.isStubMode) {
+      return;
+    }
+
+    await this.client.signatureRequestCancel(signatureRequestId);
+  }
 }

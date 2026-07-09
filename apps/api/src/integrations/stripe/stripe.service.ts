@@ -31,6 +31,7 @@ export class StripeService {
       return {
         id: `plink_${Date.now()}`,
         url: `https://pay.stripe.test/invoices/${params.invoiceId}`,
+        priceId: undefined,
       };
     }
 
@@ -59,15 +60,39 @@ export class StripeService {
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${appUrl}/invoices/paid?invoiceId=${params.invoiceId}`,
+          url: `${appUrl}/invoices/paid?invoiceId=${encodeURIComponent(params.invoiceId)}`,
         },
       },
     });
 
+    if (!paymentLink.url) {
+      throw new Error("Stripe did not return a payment link URL");
+    }
+
     return {
       id: paymentLink.id,
       url: paymentLink.url,
+      priceId: price.id,
     };
+  }
+
+  /**
+   * Best-effort cleanup when a payment link was created but the invoice
+   * send transaction failed — deactivates the link and archives the Price
+   * so neither remains usable for a DRAFT invoice.
+   */
+  async deactivatePaymentLink(
+    paymentLinkId: string,
+    priceId?: string,
+  ): Promise<void> {
+    if (!this.stripe) {
+      return;
+    }
+
+    await this.stripe.paymentLinks.update(paymentLinkId, { active: false });
+    if (priceId) {
+      await this.stripe.prices.update(priceId, { active: false });
+    }
   }
 
   constructEvent(payload: Buffer, signature: string) {

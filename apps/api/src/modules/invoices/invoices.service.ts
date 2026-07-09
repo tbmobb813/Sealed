@@ -177,85 +177,128 @@ export class InvoicesService {
   }
 
   async send(tenantId: string, userId: string, id: string) {
-    const { updated, tenantName } = await this.prisma.$transaction(async (tx) => {
-      const current = await tx.invoice.findFirst({
-        where: { id, tenantId },
-        include: { contact: true },
-      });
-
-      if (!current) {
-        throw new NotFoundException("Invoice not found");
-      }
-
-      if (!current.contact) {
-        throw new NotFoundException("Contact not found");
-      }
-
-      assertTransition(INVOICE_TRANSITIONS, current.status, "SENT", "invoice");
-
-      const tenant = await tx.tenant.findUnique({
-        where: { id: current.tenantId },
-        select: { name: true },
-      });
-
-      const amountCents = current.totalAmount
-        .mul(100)
-        .toDecimalPlaces(0)
-        .toNumber();
-
-      let stripePaymentLinkId: string;
-      let stripePaymentLinkUrl: string;
-      try {
-        const paymentLink = await this.stripeService.createPaymentLink({
-          amountCents,
-          currency: current.currency,
-          invoiceId: current.id,
-        });
-        stripePaymentLinkId = paymentLink.id;
-        stripePaymentLinkUrl = paymentLink.url ?? "";
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Payment link creation failed";
-        throwIntegrationError("Stripe", message);
-      }
-
-      await tx.invoice.updateMany({
-        where: { id, tenantId },
-        data: {
-          status: "SENT",
-          sentAt: new Date(),
-          stripePaymentLinkId,
-          stripePaymentLinkUrl,
-        },
-      });
-
-      const updated = await tx.invoice.findFirst({
-        where: { id, tenantId },
-        include: { contact: true, agreement: true, payments: true },
-      });
-
-      if (!updated) {
-        throw new NotFoundException("Invoice not found");
-      }
-
-      if (!updated.contact) {
-        throw new NotFoundException("Contact not found");
-      }
-
-      await emitActivityEvent(tx, {
-        tenantId,
-        actorId: userId,
-        objectType: "invoice",
-        objectId: id,
-        eventType: "invoice.sent",
-        metadata: {
-          number: updated.number,
-          totalAmount: updated.totalAmount.toString(),
-        },
-      });
-
-      return { updated, tenantName: tenant?.name };
+    // External call happens outside the transaction: Stripe latency would
+    // otherwise hold a DB connection and can exceed the interactive
+    // transaction timeout, aborting the commit after the link was created.
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, tenantId },
+      include: { contact: true },
     });
+
+    if (!invoice) {
+      throw new NotFoundException("Invoice not found");
+    }
+
+    if (!invoice.contact) {
+      throw new NotFoundException("Contact not found");
+    }
+
+    assertTransition(INVOICE_TRANSITIONS, invoice.status, "SENT", "invoice");
+
+    const amountCents = invoice.totalAmount
+      .mul(100)
+      .toDecimalPlaces(0)
+      .toNumber();
+
+    let stripePaymentLinkId: string;
+    let stripePaymentLinkUrl: string;
+    let stripePriceId: string | undefined;
+    try {
+      const paymentLink = await this.stripeService.createPaymentLink({
+        amountCents,
+        currency: invoice.currency,
+        invoiceId: invoice.id,
+      });
+      if (!paymentLink.id || !paymentLink.url) {
+        throw new Error("Payment link creation returned incomplete data");
+      }
+      stripePaymentLinkId = paymentLink.id;
+      stripePaymentLinkUrl = paymentLink.url;
+      stripePriceId = paymentLink.priceId;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Payment link creation failed";
+      throwIntegrationError("Stripe", message);
+    }
+
+    const { updated, tenantName } = await this.prisma
+      .$transaction(async (tx) => {
+        const current = await tx.invoice.findFirst({
+          where: { id, tenantId },
+          include: { contact: true },
+        });
+
+        if (!current) {
+          throw new NotFoundException("Invoice not found");
+        }
+
+        if (!current.contact) {
+          throw new NotFoundException("Contact not found");
+        }
+
+        // Re-check inside the transaction to guard against concurrent sends.
+        assertTransition(
+          INVOICE_TRANSITIONS,
+          current.status,
+          "SENT",
+          "invoice",
+        );
+
+        const tenant = await tx.tenant.findUnique({
+          where: { id: current.tenantId },
+          select: { name: true },
+        });
+
+        await tx.invoice.updateMany({
+          where: { id, tenantId },
+          data: {
+            status: "SENT",
+            sentAt: new Date(),
+            stripePaymentLinkId,
+            stripePaymentLinkUrl,
+          },
+        });
+
+        const sent = await tx.invoice.findFirst({
+          where: { id, tenantId },
+          include: { contact: true, agreement: true, payments: true },
+        });
+
+        if (!sent) {
+          throw new NotFoundException("Invoice not found");
+        }
+
+        if (!sent.contact) {
+          throw new NotFoundException("Contact not found");
+        }
+
+        await emitActivityEvent(tx, {
+          tenantId,
+          actorId: userId,
+          objectType: "invoice",
+          objectId: id,
+          eventType: "invoice.sent",
+          metadata: {
+            number: sent.number,
+            totalAmount: sent.totalAmount.toString(),
+          },
+        });
+
+        return { updated: sent, tenantName: tenant?.name };
+      })
+      .catch(async (error: unknown) => {
+        // Link was created before the tx — deactivate so clients cannot pay a
+        // DRAFT invoice if the commit failed (concurrent send, state race, etc.).
+        try {
+          await this.stripeService.deactivatePaymentLink(
+            stripePaymentLinkId,
+            stripePriceId,
+          );
+        } catch {
+          // Best-effort cleanup; surface the original failure.
+        }
+        throw error;
+      });
 
     // Email only after the transaction commits — otherwise a rollback would
     // send a payment request for an invoice that was never marked SENT.
