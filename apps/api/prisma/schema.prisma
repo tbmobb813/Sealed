@@ -390,3 +390,12 @@ model ActivityEvent {
   @@index([tenantId, eventType])
   @@map("activity_events")
 }
+// Marketing email capture from the public landing page (no tenant)
+model EmailSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  source    String   @default("landing") // landing | referral | ...
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("email_subscribers")
+}

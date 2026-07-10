@@ -85,6 +85,6 @@ export async function createProposal(
   }
 
   revalidatePath("/proposals");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   redirect(`/proposals/${proposal.id}`);
 }

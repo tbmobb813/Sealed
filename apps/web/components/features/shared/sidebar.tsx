@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { AuthControls } from "@/components/features/shared/auth-controls";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/contacts", label: "Contacts", icon: Users },
   { href: "/proposals", label: "Proposals", icon: FileText },
   { href: "/agreements", label: "Agreements", icon: Handshake },
@@ -23,7 +23,7 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center border-b px-6">
-        <Link href="/" className="text-xl font-bold text-primary">
+        <Link href="/dashboard" className="text-xl font-bold text-primary">
           Sealed
         </Link>
       </div>
@@ -32,7 +32,7 @@ export function Sidebar({ currentPath }: { currentPath: string }) {
           const Icon = item.icon;
           const isActive =
             currentPath === item.href ||
-            (item.href !== "/" && currentPath.startsWith(item.href));
+            (item.href !== "/dashboard" && currentPath.startsWith(item.href));
 
           return (
             <Link

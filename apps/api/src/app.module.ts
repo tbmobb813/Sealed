@@ -16,6 +16,7 @@ import { AgreementsModule } from "./modules/agreements/agreements.module";
 import { InvoicesModule } from "./modules/invoices/invoices.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { ActivityModule } from "./modules/activity/activity.module";
+import { MarketingModule } from "./modules/marketing/marketing.module";
 import { StripeModule } from "./integrations/stripe/stripe.module";
 import { DropboxSignModule } from "./integrations/dropbox-sign/dropbox-sign.module";
 import { ResendModule } from "./integrations/resend/resend.module";
@@ -46,6 +47,7 @@ import { StatsModule } from "./stats/stats.module";
     InvoicesModule,
     PaymentsModule,
     ActivityModule,
+    MarketingModule,
     StripeModule,
     DropboxSignModule,
     ResendModule,

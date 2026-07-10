@@ -23,7 +23,7 @@
 
 ## Launch Runway (mailroom downtime)
 
-- [ ] Landing page
+- [x] Landing page LIVE 2026-07-10 at / (9f83527): hero + propose/sign/get-paid steps + sign-up CTAs; dashboard moved to /dashboard
 - [ ] Email capture
 - [ ] First-10-users outreach
 
