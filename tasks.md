@@ -19,7 +19,7 @@
 - [ ] Dropbox Sign paid API plan → DROPBOX_SIGN_TEST_MODE=false (test mode watermarks docs + only sends to own email)
 - [ ] Resend: verify a sending domain + set RESEND_FROM_EMAIL (onboarding@resend.dev only reaches own email)
 - [ ] Clerk production instance → swap keys in Vercel AND Railway together
-- [ ] Custom domain (optional): replace sealed-api.vercel.app → update CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL
+- [x] Custom domains LIVE 2026-07-10: web https://sealed.techtrendwire.com (Vercel), API https://sealedapi.techtrendwire.com (Railway); Hostinger DNS (2 CNAME + railway-verify TXT); CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL + NEXT_PUBLIC_API_URL updated and redeployed; ALL 3 WEBHOOKS re-pointed to sealedapi.techtrendwire.com (Dropbox Sign test passed, Clerk + Stripe URLs edited, same signing secrets). Old vercel.app/railway.app domains still serve as fallback
 
 ## Launch Runway (mailroom downtime)
 
