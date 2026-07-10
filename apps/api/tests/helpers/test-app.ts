@@ -13,7 +13,8 @@ export const AUTH_HEADER = { Authorization: "Bearer demo" };
 
 export async function createTestApp(): Promise<INestApplication> {
   process.env.INTEGRATION_TEST = "true";
-  process.env.DEMO_MODE ??= "true";
+  // Force demo auth in tests (not ??=): a real .env DEMO_MODE=false must not win.
+  process.env.DEMO_MODE = "true";
   // Force the test key (not ??=): the service is mocked and webhook HMACs
   // are built from this env var, so a real key from .env must never win.
   process.env.DROPBOX_SIGN_API_KEY = "test_dropbox_sign_key";
