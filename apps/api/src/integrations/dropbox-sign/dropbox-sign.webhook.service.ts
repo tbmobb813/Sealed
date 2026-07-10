@@ -38,8 +38,13 @@ export class DropboxSignWebhookService {
     const body = payload as DropboxSignWebhookPayload;
     const eventType = body.event?.event_type;
 
+    // signature_request_signed can arrive before the API reflects
+    // isComplete (single-signer race) and gets rejected by the status
+    // confirmation below; signature_request_all_signed fires exactly when
+    // isComplete flips, so treat both as the "signed" trigger.
     if (
       eventType !== "signature_request_signed" &&
+      eventType !== "signature_request_all_signed" &&
       eventType !== "signature_request_declined"
     ) {
       return WEBHOOK_ACK;
@@ -58,14 +63,14 @@ export class DropboxSignWebhookService {
       signatureRequestId,
     );
     const expected =
-      eventType === "signature_request_signed" ? "signed" : "declined";
+      eventType === "signature_request_declined" ? "declined" : "signed";
     if (status !== expected) {
       throw new BadRequestException(
         "Webhook event does not match signature request status",
       );
     }
 
-    if (eventType === "signature_request_signed") {
+    if (expected === "signed") {
       return this.handleSigned(signatureRequestId);
     }
 
@@ -84,6 +89,12 @@ export class DropboxSignWebhookService {
         this.logger.warn(
           `Signed event for unknown signature request ${signatureRequestId}`,
         );
+        return WEBHOOK_ACK;
+      }
+
+      // Both signed and all_signed events (plus retries) map here — ack
+      // duplicates instead of throwing INVALID_STATE_TRANSITION.
+      if (agreement.status === "SIGNED") {
         return WEBHOOK_ACK;
       }
 

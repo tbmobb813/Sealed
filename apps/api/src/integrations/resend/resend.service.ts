@@ -94,12 +94,19 @@ export class ResendService {
 </html>`;
 
     try {
-      await this.client.emails.send({
+      // The Resend SDK does not throw on API errors — it returns { data, error }.
+      const { error } = await this.client.emails.send({
         from: this.fromEmail,
         to: options.toEmail,
         subject: `New proposal: ${options.proposalTitle}`,
         html,
       });
+      if (error) {
+        this.logger.warn(
+          `Resend rejected proposal email to ${maskEmail(options.toEmail)}: ${error.name}: ${error.message}`,
+        );
+        return;
+      }
       this.logger.log(
         `Proposal email sent to ${maskEmail(options.toEmail)} for proposal ${options.publicToken}`,
       );
@@ -151,12 +158,19 @@ export class ResendService {
 </html>`;
 
     try {
-      await this.client.emails.send({
+      // The Resend SDK does not throw on API errors — it returns { data, error }.
+      const { error } = await this.client.emails.send({
         from: this.fromEmail,
         to: options.toEmail,
         subject: `Invoice ${options.invoiceNumber} from ${options.tenantName}`,
         html,
       });
+      if (error) {
+        this.logger.warn(
+          `Resend rejected invoice email to ${maskEmail(options.toEmail)}: ${error.name}: ${error.message}`,
+        );
+        return;
+      }
       this.logger.log(
         `Invoice email sent to ${maskEmail(options.toEmail)} for invoice ${options.invoiceNumber}`,
       );

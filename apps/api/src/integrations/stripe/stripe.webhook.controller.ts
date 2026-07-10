@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Headers,
   HttpCode,
@@ -28,7 +29,14 @@ export class StripeWebhookController {
     @Headers("stripe-signature") signature: string,
   ) {
     const payload = req.rawBody ?? Buffer.from("");
-    const event = this.stripeService.constructEvent(payload, signature);
+    let event;
+    try {
+      event = this.stripeService.constructEvent(payload, signature);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Rejected Stripe webhook: ${message}`);
+      throw new BadRequestException("Invalid Stripe webhook signature");
+    }
 
     // Always ack a verified event with 200 — a non-2xx makes Stripe retry
     // and eventually disable the endpoint. Permanent failures (e.g. invalid
