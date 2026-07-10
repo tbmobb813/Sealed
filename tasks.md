@@ -29,8 +29,8 @@
 
 ## Medium Priority
 
-- [ ] Audit state-transition POST endpoints (`/accept`, `/reject`, `/void`) for correct HTTP status codes (should return 200, not 201)
-- [ ] Remove compiled `.js` and `.d.ts` artifacts from source history; add to `.gitignore`
+- [x] Audit state-transition POST endpoints — verified 2026-07-10: all transition endpoints (send/sign/accept/reject) already carry @HttpCode(200); item was stale
+- [x] Compiled-artifact audit — verified 2026-07-10: no compiled .js/.d.ts tracked (only eslint configs + next-env.d.ts); item was stale
 
 ## In Progress
 
