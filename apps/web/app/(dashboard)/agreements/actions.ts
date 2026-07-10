@@ -24,7 +24,7 @@ export async function sendAgreement(
 
   revalidatePath(`/agreements/${agreementId}`);
   revalidatePath("/agreements");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   return {};
 }
 
@@ -45,6 +45,6 @@ export async function signAgreement(
 
   revalidatePath(`/agreements/${agreementId}`);
   revalidatePath("/agreements");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   return {};
 }

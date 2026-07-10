@@ -23,6 +23,6 @@ export async function sendInvoice(
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   return {};
 }

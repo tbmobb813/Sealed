@@ -45,6 +45,6 @@ export async function createContact(
   }
 
   revalidatePath("/contacts");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   redirect(`/contacts/${contact.id}`);
 }

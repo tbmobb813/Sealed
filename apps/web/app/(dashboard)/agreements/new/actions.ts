@@ -38,6 +38,6 @@ export async function createAgreement(
   }
 
   revalidatePath("/agreements");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   redirect(`/agreements/${agreement.id}`);
 }

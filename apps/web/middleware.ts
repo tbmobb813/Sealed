@@ -4,6 +4,7 @@ import type { NextFetchEvent, NextRequest } from "next/server";
 import { shouldUseClerk } from "@/lib/demo";
 
 const isPublicRoute = createRouteMatcher([
+  "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/p/(.*)",
@@ -21,7 +22,7 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   if (!shouldUseClerk()) {
     const { pathname } = request.nextUrl;
     if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
   }

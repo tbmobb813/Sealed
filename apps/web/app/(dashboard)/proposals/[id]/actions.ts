@@ -23,6 +23,6 @@ export async function sendProposal(
 
   revalidatePath(`/proposals/${proposalId}`);
   revalidatePath("/proposals");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   return {};
 }

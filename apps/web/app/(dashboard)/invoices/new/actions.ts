@@ -56,6 +56,6 @@ export async function createInvoice(
   }
 
   revalidatePath("/invoices");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   redirect(`/invoices/${invoice.id}`);
 }
