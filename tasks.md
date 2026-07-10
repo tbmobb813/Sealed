@@ -1,5 +1,7 @@
 # Sealed — Active Tasks
 
+**PRODUCTION VERIFIED END-TO-END 2026-07-10** — full workflow on deployed stack (Vercel web + Railway API + Postgres): Clerk sign-in → contact → proposal (sent + accepted) → agreement (sent via Dropbox Sign, really signed, webhook → SIGNED) → invoice (sent with Stripe payment link, paid with test card, webhook → PAID in 64ms). All in sandbox/test tiers; go-live hardening list below.
+
 ## Pre-Launch Blockers
 
 - [x] Full workflow verified in REAL mode (Clerk auth, no demo bypass) 2026-07-03: first sign-in auto-provisioned tenant/user → contact → proposal (DRAFT→SENT→VIEWED→ACCEPTED via public /p/ link with typed-name consent) → agreement (DRAFT→SENT via Dropbox Sign→SIGNED via manual mark) → invoice (DRAFT→SENT with real Stripe link→PAID via webhook, $150 payment recorded). Per-tenant INV numbering confirmed.
@@ -10,6 +12,20 @@
 - [x] Dropbox Sign end-to-end wired: testMode env-driven, signatureStatus synced on send, declined webhook handled
 - [x] Real Stripe payment link generation verified end-to-end (2026-07-03): send → payment link → sandbox checkout paid → webhook → invoice PAID + payment record. Gotcha: `stripe listen` must be authenticated to the same sandbox account as `STRIPE_SECRET_KEY` (use `--api-key`), or events/`whsec` go to the wrong account.
   - File: `apps/api/src/modules/invoices/invoices.service.ts`
+
+## Go-Live Hardening (before real customers / real money)
+
+- [ ] Stripe live keys + live-mode webhook endpoint (webhooks don't carry over from sandbox)
+- [ ] Dropbox Sign paid API plan → DROPBOX_SIGN_TEST_MODE=false (test mode watermarks docs + only sends to own email)
+- [ ] Resend: verify a sending domain + set RESEND_FROM_EMAIL (onboarding@resend.dev only reaches own email)
+- [ ] Clerk production instance → swap keys in Vercel AND Railway together
+- [ ] Custom domain (optional): replace sealed-api.vercel.app → update CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL
+
+## Launch Runway (mailroom downtime)
+
+- [ ] Landing page
+- [ ] Email capture
+- [ ] First-10-users outreach
 
 ## Medium Priority
 
