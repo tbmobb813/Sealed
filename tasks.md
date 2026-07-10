@@ -17,7 +17,7 @@
 
 - [ ] Stripe live keys + live-mode webhook endpoint (webhooks don't carry over from sandbox)
 - [ ] Dropbox Sign paid API plan → DROPBOX_SIGN_TEST_MODE=false (test mode watermarks docs + only sends to own email)
-- [ ] Resend: verify a sending domain + set RESEND_FROM_EMAIL (onboarding@resend.dev only reaches own email)
+- [x] Resend DONE 2026-07-10: techtrendwire.com verified (root domain — covers sealed@ + future senders on the single free slot); RESEND_FROM_EMAIL=sealed@techtrendwire.com set in Railway. Proposal/invoice emails can now reach any client address
 - [ ] Clerk production instance → swap keys in Vercel AND Railway together
 - [x] Custom domains LIVE 2026-07-10: web https://sealed.techtrendwire.com (Vercel), API https://sealedapi.techtrendwire.com (Railway); Hostinger DNS (2 CNAME + railway-verify TXT); CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL + NEXT_PUBLIC_API_URL updated and redeployed; ALL 3 WEBHOOKS re-pointed to sealedapi.techtrendwire.com (Dropbox Sign test passed, Clerk + Stripe URLs edited, same signing secrets). Old vercel.app/railway.app domains still serve as fallback
 
