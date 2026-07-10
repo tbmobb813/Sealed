@@ -145,7 +145,7 @@ test.describe("Proposal to agreement flow", () => {
     });
 
     await test.step("Confirm activity log events", async () => {
-      await page.goto("/");
+      await page.goto("/dashboard");
       await expect(
         page.getByRole("heading", { name: "Recent Activity" }),
       ).toBeVisible();

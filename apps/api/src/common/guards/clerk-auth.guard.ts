@@ -84,19 +84,26 @@ export class ClerkAuthGuard implements CanActivate {
           secretKey,
         );
       } catch (error) {
-        if (error instanceof BadRequestException) {
-          throw new UnauthorizedException(error.message);
+        // A first sign-in fires several dashboard requests at once; a loser
+        // of that provisioning race can fail here (e.g. concurrent Clerk API
+        // lookups) even though a sibling request already created the user.
+        // Re-check before surfacing an error to avoid a spurious 503.
+        user = await this.prisma.user.findFirst({ where: { clerkUserId } });
+        if (!user) {
+          if (error instanceof BadRequestException) {
+            throw new UnauthorizedException(error.message);
+          }
+          if (error instanceof HttpException) {
+            throw error;
+          }
+          this.logger.error(
+            `Failed to provision Clerk user ${clerkUserId}`,
+            error instanceof Error ? error.stack : error,
+          );
+          throw new ServiceUnavailableException(
+            "Failed to provision user from Clerk",
+          );
         }
-        if (error instanceof HttpException) {
-          throw error;
-        }
-        this.logger.error(
-          `Failed to provision Clerk user ${clerkUserId}`,
-          error instanceof Error ? error.stack : error,
-        );
-        throw new ServiceUnavailableException(
-          "Failed to provision user from Clerk",
-        );
       }
     }
 

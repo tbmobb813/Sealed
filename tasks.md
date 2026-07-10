@@ -24,13 +24,13 @@
 ## Launch Runway (mailroom downtime)
 
 - [x] Landing page LIVE 2026-07-10 at / (9f83527): hero + propose/sign/get-paid steps + sign-up CTAs; dashboard moved to /dashboard
-- [ ] Email capture
+- [x] Email capture LIVE 2026-07-10 (c8207e9 + 744c6d8): public POST /api/v1/marketing/subscribe → email_subscribers table (own Postgres), landing form with honeypot; verified in prod (200/400/CORS all correct); probe rows cleaned
 - [ ] First-10-users outreach
 
 ## Medium Priority
 
-- [ ] Audit state-transition POST endpoints (`/accept`, `/reject`, `/void`) for correct HTTP status codes (should return 200, not 201)
-- [ ] Remove compiled `.js` and `.d.ts` artifacts from source history; add to `.gitignore`
+- [x] Audit state-transition POST endpoints — verified 2026-07-10: all transition endpoints (send/sign/accept/reject) already carry @HttpCode(200); item was stale
+- [x] Compiled-artifact audit — verified 2026-07-10: no compiled .js/.d.ts tracked (only eslint configs + next-env.d.ts); item was stale
 
 ## In Progress
 
