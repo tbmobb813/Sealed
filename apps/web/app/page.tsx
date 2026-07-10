@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText, Handshake, Receipt, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmailCaptureForm } from "@/components/features/marketing/email-capture-form";
 
 export const metadata = {
   title: "Sealed — Proposals, contracts, and invoices in one flow",
@@ -96,6 +97,17 @@ export default function LandingPage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
+        </section>
+
+        <section className="border-t bg-muted/30">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <h2 className="text-xl font-semibold">Not ready yet?</h2>
+            <p className="mx-auto mt-2 mb-6 max-w-md text-sm text-muted-foreground">
+              Leave your email and we&apos;ll let you know as Sealed grows —
+              no spam, just launch updates.
+            </p>
+            <EmailCaptureForm />
+          </div>
         </section>
       </main>
 
