@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 import { canInitializeClerk } from "@/lib/demo";
@@ -15,6 +15,11 @@ const ClerkRootLayout = dynamic(
 export const metadata: Metadata = {
   title: "Sealed",
   description: "Proposal-to-payment platform",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

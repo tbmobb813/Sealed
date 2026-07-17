@@ -22,7 +22,7 @@ export default async function AgreementsPage() {
         title="Agreements"
         description="Track e-signature status for your agreements"
       />
-      <div className="rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
