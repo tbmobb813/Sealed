@@ -23,6 +23,8 @@
 
 ## Launch Runway (mailroom downtime)
 
+- [x] Mobile responsiveness DONE 2026-07-17 (verified on device): sidebar → hamburger drawer below md (closes on nav/backdrop/Escape/route change), overflow-x-auto on all data tables, p-4 mobile padding, explicit viewport export (007dc68); Clerk popover transparency fixed by dropping @clerk/ui shadcn theme whose color vars were invalid HSL fragments (994183e)
+
 - [x] Landing page LIVE 2026-07-10 at / (9f83527): hero + propose/sign/get-paid steps + sign-up CTAs; dashboard moved to /dashboard
 - [x] Email capture LIVE 2026-07-10 (c8207e9 + 744c6d8): public POST /api/v1/marketing/subscribe → email_subscribers table (own Postgres), landing form with honeypot; verified in prod (200/400/CORS all correct); probe rows cleaned
 - [ ] First-10-users outreach
