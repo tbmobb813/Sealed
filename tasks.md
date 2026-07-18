@@ -29,6 +29,10 @@
 - [x] Email capture LIVE 2026-07-10 (c8207e9 + 744c6d8): public POST /api/v1/marketing/subscribe → email_subscribers table (own Postgres), landing form with honeypot; verified in prod (200/400/CORS all correct); probe rows cleaned
 - [ ] First-10-users outreach
 
+## Post-Launch Backlog (do NOT build before first real users)
+
+- [ ] Proposal/agreement templates — deferred 2026-07-17: solves a repeat-volume problem that doesn't exist at 0 users; design from real user proposals post-launch. Cheaper first step if a prospect asks: "Duplicate proposal" action.
+
 ## Medium Priority
 
 - [x] Audit state-transition POST endpoints — verified 2026-07-10: all transition endpoints (send/sign/accept/reject) already carry @HttpCode(200); item was stale

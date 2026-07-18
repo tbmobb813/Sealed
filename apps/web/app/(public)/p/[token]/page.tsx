@@ -4,7 +4,6 @@ import { formatDate } from "@/lib/utils";
 import { AcceptProposalButton } from "@/components/features/proposals/accept-proposal-button";
 import { DeclineProposalButton } from "@/components/features/proposals/decline-proposal-button";
 import type { PublicProposalView } from "@sealed/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function PublicProposalPage({
   params,
@@ -35,77 +34,124 @@ export default async function PublicProposalPage({
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <p className="text-sm text-muted-foreground">{proposal.tenantName}</p>
-        <h1 className="text-3xl font-bold mt-1">{proposal.title}</h1>
-        <p className="text-muted-foreground mt-2">
-          Prepared for {proposal.contactName}
-        </p>
-        <div className="mt-4">
-          <StatusBadge status={proposal.status} />
-        </div>
-      </div>
+      <article
+        id="main-content"
+        className="rounded-lg bg-card px-6 py-10 shadow-sm ring-1 ring-border sm:px-12 sm:py-14"
+      >
+        <header className="border-b pb-8">
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            {proposal.tenantName}
+          </p>
+          <h1 className="mt-3 font-serif text-3xl font-medium tracking-tight text-balance sm:text-4xl">
+            {proposal.title}
+          </h1>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <p className="text-muted-foreground">
+              Prepared for {proposal.contactName}
+            </p>
+            <StatusBadge status={proposal.status} />
+          </div>
+        </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Line Items</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <div className="mt-8 overflow-x-auto">
           <table className="w-full">
+            <caption className="sr-only">
+              Proposal line items with quantity, unit price, and total
+            </caption>
             <thead>
               <tr className="border-b">
-                <th className="pb-3 text-left text-sm font-medium">Description</th>
-                <th className="pb-3 text-right text-sm font-medium">Qty</th>
-                <th className="pb-3 text-right text-sm font-medium">Price</th>
-                <th className="pb-3 text-right text-sm font-medium">Total</th>
+                <th
+                  scope="col"
+                  className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Description
+                </th>
+                <th
+                  scope="col"
+                  className="pb-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Qty
+                </th>
+                <th
+                  scope="col"
+                  className="pb-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Price
+                </th>
+                <th
+                  scope="col"
+                  className="pb-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                >
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody>
               {proposal.lineItems.map((item, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-3">{item.description}</td>
-                  <td className="py-3 text-right">{item.quantity}</td>
-                  <td className="py-3 text-right">
+                <tr key={index} className="border-b border-border/60">
+                  <td className="py-3.5">{item.description}</td>
+                  <td className="py-3.5 text-right tabular-nums">
+                    {item.quantity}
+                  </td>
+                  <td className="py-3.5 text-right">
                     <MoneyDisplay amount={item.unitPrice} currency={proposal.currency} />
                   </td>
-                  <td className="py-3 text-right">
+                  <td className="py-3.5 text-right">
                     <MoneyDisplay amount={item.total} currency={proposal.currency} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="mt-6 flex justify-end">
-            <div className="text-right space-y-1">
-              <p className="text-sm text-muted-foreground">
-                Subtotal: <MoneyDisplay amount={Number(proposal.subtotal)} currency={proposal.currency} />
-              </p>
-              {Number(proposal.taxAmount) > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Tax: <MoneyDisplay amount={Number(proposal.taxAmount)} currency={proposal.currency} />
-                </p>
-              )}
-              <p className="text-lg font-bold">
-                Total: <MoneyDisplay amount={Number(proposal.totalAmount)} currency={proposal.currency} />
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {proposal.expiresAt && (
-        <p className="text-sm text-muted-foreground text-center mt-6">
-          This proposal expires on{" "}
-          {formatDate(proposal.expiresAt)}
-        </p>
-      )}
-
-      {proposal.status === "SENT" || proposal.status === "VIEWED" ? (
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <AcceptProposalButton token={params.token} />
-          <DeclineProposalButton token={params.token} />
         </div>
-      ) : proposal.status === "ACCEPTED" ? (
+
+        <div className="mt-6 flex justify-end">
+          <dl className="w-full max-w-xs space-y-2 text-right">
+            <div className="flex items-baseline justify-between gap-8 text-sm text-muted-foreground">
+              <dt>Subtotal</dt>
+              <dd>
+                <MoneyDisplay amount={Number(proposal.subtotal)} currency={proposal.currency} />
+              </dd>
+            </div>
+            {Number(proposal.taxAmount) > 0 && (
+              <div className="flex items-baseline justify-between gap-8 text-sm text-muted-foreground">
+                <dt>Tax</dt>
+                <dd>
+                  <MoneyDisplay amount={Number(proposal.taxAmount)} currency={proposal.currency} />
+                </dd>
+              </div>
+            )}
+            <div className="flex items-baseline justify-between gap-8 border-t-2 border-foreground/80 pt-3 text-lg font-semibold">
+              <dt>Total</dt>
+              <dd>
+                <MoneyDisplay amount={Number(proposal.totalAmount)} currency={proposal.currency} />
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {proposal.status === "SENT" || proposal.status === "VIEWED" ? (
+          <div className="mt-10 flex flex-col items-center gap-3 border-t pt-8">
+            <AcceptProposalButton token={params.token} />
+            <DeclineProposalButton token={params.token} />
+            {proposal.expiresAt && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                This proposal expires on {formatDate(proposal.expiresAt)}
+              </p>
+            )}
+          </div>
+        ) : null}
+      </article>
+
+      {proposal.expiresAt &&
+        proposal.status !== "SENT" &&
+        proposal.status !== "VIEWED" && (
+          <p className="text-sm text-muted-foreground text-center mt-6">
+            This proposal expires on {formatDate(proposal.expiresAt)}
+          </p>
+        )}
+
+      {proposal.status === "ACCEPTED" ? (
         <div className="rounded-lg bg-green-50 border border-green-200 px-6 py-4 text-center mt-8">
           <p className="text-green-800 font-medium">
             You have accepted this proposal.

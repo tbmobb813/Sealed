@@ -1,10 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
-import { Inter } from "next/font/google";
+import { Instrument_Sans, Lora } from "next/font/google";
 import { canInitializeClerk } from "@/lib/demo";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const sans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+const serif = Lora({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
 
 const ClerkRootLayout = dynamic(
   () =>
@@ -29,7 +36,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${sans.variable} ${serif.variable} font-sans`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
         {canInitializeClerk() ? (
           <ClerkRootLayout>{children}</ClerkRootLayout>
         ) : (

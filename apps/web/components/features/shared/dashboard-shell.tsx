@@ -74,7 +74,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="sticky top-0 hidden h-screen md:block">
           <Sidebar currentPath={pathname} />
         </div>
-        <main className="flex-1 overflow-auto p-4 md:p-8">{children}</main>
+        <main id="main-content" className="flex-1 overflow-auto p-4 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

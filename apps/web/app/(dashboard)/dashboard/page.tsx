@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/features/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityFeed } from "@/components/features/shared/activity-feed";
@@ -25,10 +26,22 @@ export default async function DashboardPage() {
   }
 
   const statCards = [
-    { title: "Open Proposals", value: stats.openProposals },
-    { title: "Pending Agreements", value: stats.pendingAgreements },
-    { title: "Outstanding Invoices", value: stats.outstandingInvoices },
-    { title: "Active Proposals", value: stats.activeProposals },
+    { title: "Open Proposals", value: stats.openProposals, href: "/proposals" },
+    {
+      title: "Pending Agreements",
+      value: stats.pendingAgreements,
+      href: "/agreements",
+    },
+    {
+      title: "Outstanding Invoices",
+      value: stats.outstandingInvoices,
+      href: "/invoices",
+    },
+    {
+      title: "Active Proposals",
+      value: stats.activeProposals,
+      href: "/proposals",
+    },
   ];
 
   return (
@@ -39,16 +52,20 @@ export default async function DashboardPage() {
       />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
+          <Link key={stat.title} href={stat.href} className="group">
+            <Card className="transition-colors group-hover:border-primary/40">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tabular-nums">
+                  {stat.value}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
