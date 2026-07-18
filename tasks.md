@@ -15,10 +15,10 @@
 
 ## Go-Live Hardening (before real customers / real money)
 
-- [ ] Stripe live keys + live-mode webhook endpoint (webhooks don't carry over from sandbox)
+- [x] Stripe live keys + live-mode webhook DONE 2026-07-17: STRIPE_SECRET_KEY swapped to live in Railway; live-mode webhook endpoint created ("Your account", checkout.session.completed → sealedapi.techtrendwire.com/api/v1/webhooks/stripe); STRIPE_WEBHOOK_SECRET updated; unsigned POST correctly rejected 400 "Invalid Stripe webhook signature". Remaining: positive-path proof — first live payment (or `stripe trigger` in live mode) confirms the secret matches
 - [ ] Dropbox Sign paid API plan → DROPBOX_SIGN_TEST_MODE=false (test mode watermarks docs + only sends to own email)
 - [x] Resend DONE 2026-07-10: techtrendwire.com verified (root domain — covers sealed@ + future senders on the single free slot); RESEND_FROM_EMAIL=sealed@techtrendwire.com set in Railway. Proposal/invoice emails can now reach any client address
-- [ ] Clerk production instance → swap keys in Vercel AND Railway together
+- [x] Clerk production instance DONE 2026-07-17 (verified: prod test event succeeded + real sign-in → dashboard 200s): pk_live on sign-in page, prod Frontend API live at clerk.sealed.techtrendwire.com (DNS verified), CLERK_SECRET_KEY swapped in Railway; prod-instance webhook re-registered (dev-instance hPRIXD doesn't carry over) at /api/v1/webhooks/clerk, new svix secret in Railway, unsigned POST correctly 400 "Missing svix headers". Remaining: (1) dashboard test event from prod instance to prove secret matches, (2) one real browser sign-in → dashboard to prove pk/sk are the same instance (dev-instance users don't carry over — fresh sign-up expected)
 - [x] Custom domains LIVE 2026-07-10: web https://sealed.techtrendwire.com (Vercel), API https://sealedapi.techtrendwire.com (Railway); Hostinger DNS (2 CNAME + railway-verify TXT); CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL + NEXT_PUBLIC_API_URL updated and redeployed; ALL 3 WEBHOOKS re-pointed to sealedapi.techtrendwire.com (Dropbox Sign test passed, Clerk + Stripe URLs edited, same signing secrets). Old vercel.app/railway.app domains still serve as fallback
 
 ## Launch Runway (mailroom downtime)

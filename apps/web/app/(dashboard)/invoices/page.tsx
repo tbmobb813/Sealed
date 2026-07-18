@@ -26,7 +26,7 @@ export default async function InvoicesPage() {
         title="Invoices"
         description="Manage invoices and track payments"
       />
-      <div className="rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
