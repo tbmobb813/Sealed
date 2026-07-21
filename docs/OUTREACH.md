@@ -4,11 +4,13 @@ _Drafted 2026-07-10. Goal: 10 freelancers trying Sealed and reporting where it
 breaks. The ask is feedback, not sign-ups — at n=10 a reply beats a
 registration._
 
-**Constraint to stay honest about:** until go-live hardening (Resend domain,
-Dropbox Sign paid plan, Clerk production instance — see tasks.md), a tester's
-emails to *their* clients won't deliver; test tiers only send to the account
-owner. So the pitch is "try it and tell me where it breaks," not "run your
-business on it."
+**Constraint to stay honest about (updated 2026-07-21):** Resend domain and
+Clerk production are DONE — proposal/invoice emails now deliver to any client
+address. The one remaining limit is the e-signature step: it runs in test
+mode (watermarked, delivers only to the account owner) until the signature
+provider is purchased — now DocuSeal Pro $20/mo, triggered by the first
+tester with a real client ready to sign (see tasks.md). Pitch accordingly:
+everything works for real except the signature is watermarked until then.
 
 ---
 
@@ -22,7 +24,7 @@ business on it."
 > it becomes an e-signed agreement → that becomes an invoice with a payment
 > link. Each step unlocks the next, so nothing falls through the cracks.
 >
-> It's live and free right now: https://sealed-api.vercel.app
+> It's live and free right now: https://sealed.techtrendwire.com
 >
 > Would you poke at it for 10 minutes and tell me where it's confusing or
 > broken? Brutal honesty is the favor I'm asking for — "this part sucks" is
