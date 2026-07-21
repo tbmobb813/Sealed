@@ -35,6 +35,9 @@ export default function LandingPage() {
           <span className="text-xl font-bold text-primary">Sealed</span>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost">
+              <Link href="/pricing">Pricing</Link>
+            </Button>
+            <Button asChild variant="ghost">
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
@@ -161,6 +164,9 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} Sealed. Built by JNix.</span>
           <div className="flex gap-4">
+            <Link href="/pricing" className="hover:text-foreground">
+              Pricing
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>
