@@ -27,7 +27,7 @@
 
 - [x] Landing page LIVE 2026-07-10 at / (9f83527): hero + propose/sign/get-paid steps + sign-up CTAs; dashboard moved to /dashboard
 - [x] Email capture LIVE 2026-07-10 (c8207e9 + 744c6d8): public POST /api/v1/marketing/subscribe → email_subscribers table (own Postgres), landing form with honeypot; verified in prod (200/400/CORS all correct); probe rows cleaned
-- [ ] First-10-users outreach
+- [~] First-10-users outreach — list started 2026-07-17: (1) Mars, (2) filmmaker friend (small-budget video gigs), (3) sister (AI-training startup, B2B proposals). All 3 messages drafted; sending is on JNix. Trigger: first prospect with a real client ready to sign → buy Dropbox Sign paid plan
 
 ## Post-Launch Backlog (do NOT build before first real users)
 
