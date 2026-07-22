@@ -29,10 +29,12 @@ Sealed takes a client from **proposal → signed agreement → paid invoice** in
 
 Your client gets an email with a private link. They see a clean, professional proposal page — no account or login needed on their end — and can **Accept** (typing their name as consent) or **Decline**. You see the status change on your dashboard: SENT → VIEWED → ACCEPTED.
 
+> **⚠️ Check spam the first time.** Emails come from `sealed@techtrendwire.com`, a new sending domain, so Gmail often files the *first* message in **Spam**. Tell your client to check their spam folder and mark it **"Not spam"** — after that, future emails land in the inbox. (Same applies to the signature and invoice emails in the next steps.)
+
 ## 4. Turn the accepted proposal into a signed agreement
 
 1. Once the proposal shows **ACCEPTED**, go to **Agreements** → create one from that proposal.
-2. Hit **Send for Signature**. The client gets the agreement to e-sign (powered by Dropbox Sign — legally binding).
+2. Hit **Send for Signature**. The client gets the agreement to e-sign (powered by DocuSeal — legally binding).
 3. When they sign, the agreement flips to **SIGNED** automatically. No chasing, no "did you get my email?"
 
 ## 5. Invoice and get paid
@@ -56,7 +58,7 @@ If you don't see a "create agreement/invoice" option, the previous step isn't co
 
 ## Tips
 
-- **Emails come from** `sealed@techtrendwire.com` — tell clients to check spam on the first send.
+- **Emails come from** `sealed@techtrendwire.com` — first-time recipients (you *and* your clients) should check spam and mark **"Not spam"** once; inbox delivery follows from there.
 - **Statuses are live.** SENT / VIEWED / ACCEPTED / SIGNED / PAID update from real events (opens, signatures, payments) — the dashboard is the truth.
 - **Works on your phone.** Full dashboard is mobile-friendly; check a proposal status from anywhere.
 
