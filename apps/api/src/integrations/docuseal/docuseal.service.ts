@@ -115,7 +115,12 @@ export class DocuSealService {
 
     const submission = (await this.request("POST", "/submissions/html", {
       name: `Agreement ${agreementId}`,
-      html: this.renderAgreementHtml(agreementBody),
+      documents: [
+        {
+          name: `Agreement ${agreementId}`,
+          html: this.renderAgreementHtml(agreementBody),
+        },
+      ],
       send_email: true,
       submitters: [{ email: signerEmail, role: "Signer" }],
       metadata: { agreementId },
