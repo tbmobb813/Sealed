@@ -18,7 +18,7 @@ const steps = [
   {
     icon: Handshake,
     title: "Sign",
-    body: "The accepted proposal becomes an agreement, e-signed through Dropbox Sign. Status updates land in your dashboard automatically.",
+    body: "The accepted proposal becomes an agreement, e-signed through DocuSeal. Status updates land in your dashboard automatically.",
   },
   {
     icon: Receipt,

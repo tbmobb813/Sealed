@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function PublicLayout({
   children,
 }: {
@@ -7,7 +9,9 @@ export default function PublicLayout({
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
         <div className="container mx-auto flex h-16 items-center px-4">
-          <span className="text-xl font-bold text-primary">Sealed</span>
+          <Link href="/" className="text-xl font-bold text-primary">
+            Sealed
+          </Link>
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">{children}</main>
