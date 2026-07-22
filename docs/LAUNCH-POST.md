@@ -182,4 +182,5 @@ comments" in the body. Reply to every comment.
 - 2026-07-22 — Facebook (personal) — §4 milestone post — results TBD
 - 2026-07-22 — Instagram (personal) — §5 caption + black hook slide, Story with link sticker — results TBD
 - 2026-07-22 — r/SideProject — §2 post REMOVED by Reddit sitewide spam filter (low-karma account + unknown domain link); mods messaged for manual approval; if not restored in 24h, repost with link in comments only. Meanwhile: build comment karma in the sub
-- 2026-07-22 — Show HN — §1 title + link submitted — results TBD; first-comment pitch must go up immediately (NOTE: §1 draft's test-mode caveat is now stale — signatures are fully live via DocuSeal, adjust when posting)
+- 2026-07-22 — Show HN — §1 title + link submitted, first-comment pitch posted, camping thread — no comments yet as of posting
+- 2026-07-22 — Engagement follow-up: FB post got 14 reactions + 1 (Darrell George Jr.); IG post got 1 like + 1 comment (misziggy: "making a name!"). Replied on both with a two-hop referral ask ("know anyone who freelances, send them my way") rather than treating passive engagement as dead-end. Personal network for direct DMs (slots 4-10) is thin — reframing plan: public posts (HN/Reddit/IG/FB) are the primary distribution channel, not more cold DMs; referral asks on existing engagement are the next-best lever
