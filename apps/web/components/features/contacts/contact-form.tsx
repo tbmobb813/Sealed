@@ -18,7 +18,7 @@ function SubmitButton() {
 
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Saving..." : "Create Contact"}
+      {pending ? "Saving…" : "Create Contact"}
     </Button>
   );
 }
@@ -37,6 +37,7 @@ export function ContactForm() {
         </label>
         <input
           id="name"
+          autoComplete="off"
           name="name"
           type="text"
           required
@@ -51,6 +52,7 @@ export function ContactForm() {
         </label>
         <input
           id="email"
+          autoComplete="off"
           name="email"
           type="email"
           required
@@ -65,6 +67,7 @@ export function ContactForm() {
         </label>
         <input
           id="phone"
+          autoComplete="off"
           name="phone"
           type="tel"
           className={inputClassName}
@@ -78,6 +81,7 @@ export function ContactForm() {
         </label>
         <input
           id="companyName"
+          autoComplete="off"
           name="companyName"
           type="text"
           className={inputClassName}
@@ -85,9 +89,7 @@ export function ContactForm() {
         />
       </div>
 
-      {state.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
-      )}
+      <p aria-live="polite" className="text-sm text-destructive">{state.error ?? null}</p>
 
       <div className="flex gap-3">
         <SubmitButton />

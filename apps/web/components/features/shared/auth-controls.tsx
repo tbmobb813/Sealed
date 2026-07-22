@@ -12,7 +12,7 @@ const ClerkAuthControls = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="text-sm text-muted-foreground">Loading auth...</div>
+      <div className="text-sm text-muted-foreground">Loading auth…</div>
     ),
   },
 );

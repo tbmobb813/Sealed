@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -10,6 +10,19 @@ import { isDemoMode } from "@/lib/demo";
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // While the drawer is open: lock background scroll and move focus into
+  // the drawer so keyboard users aren't tabbing through the page behind it.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [sidebarOpen]);
 
   // Safety net: always close the drawer after navigation.
   useEffect(() => {
@@ -54,12 +67,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             aria-hidden="true"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 z-50 flex">
+          <div className="fixed inset-y-0 left-0 z-50 flex overscroll-contain">
             <Sidebar
               currentPath={pathname}
               onNavigate={() => setSidebarOpen(false)}
             />
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label="Close menu"
               onClick={() => setSidebarOpen(false)}

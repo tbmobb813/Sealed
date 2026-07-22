@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { MoneyDisplay } from "@sealed/ui";
 import {
   createProposal,
   type ProposalFormState,
@@ -32,7 +33,7 @@ function SubmitButton() {
 
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Creating..." : "Create Proposal"}
+      {pending ? "Creating…" : "Create Proposal"}
     </Button>
   );
 }
@@ -168,8 +169,14 @@ export function ProposalForm({ contacts }: { contacts: Contact[] }) {
               className="grid gap-3 rounded-lg border p-4 sm:grid-cols-[1fr_100px_120px_auto]"
             >
               <div className="space-y-2">
-                <label className={labelClassName}>Description</label>
+                <label
+                  htmlFor={`line-item-${index}-description`}
+                  className={labelClassName}
+                >
+                  Description
+                </label>
                 <input
+                  id={`line-item-${index}-description`}
                   type="text"
                   required
                   className={inputClassName}
@@ -182,8 +189,14 @@ export function ProposalForm({ contacts }: { contacts: Contact[] }) {
               </div>
 
               <div className="space-y-2">
-                <label className={labelClassName}>Qty</label>
+                <label
+                  htmlFor={`line-item-${index}-quantity`}
+                  className={labelClassName}
+                >
+                  Qty
+                </label>
                 <input
+                  id={`line-item-${index}-quantity`}
                   type="number"
                   min="1"
                   step="1"
@@ -197,8 +210,14 @@ export function ProposalForm({ contacts }: { contacts: Contact[] }) {
               </div>
 
               <div className="space-y-2">
-                <label className={labelClassName}>Unit Price</label>
+                <label
+                  htmlFor={`line-item-${index}-unit-price`}
+                  className={labelClassName}
+                >
+                  Unit Price
+                </label>
                 <input
+                  id={`line-item-${index}-unit-price`}
                   type="number"
                   min="0"
                   step="0.01"
@@ -243,16 +262,14 @@ export function ProposalForm({ contacts }: { contacts: Contact[] }) {
           />
         </div>
 
-        <div className="flex items-end justify-end text-sm text-muted-foreground">
-          Subtotal: ${subtotal.toFixed(2)}
+        <div className="flex items-end justify-end gap-1 text-sm text-muted-foreground">
+          Subtotal: <MoneyDisplay amount={subtotal} />
         </div>
       </div>
 
       <input type="hidden" name="lineItems" value={serializedLineItems} />
 
-      {state.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
-      )}
+      <p aria-live="polite" className="text-sm text-destructive">{state.error ?? null}</p>
 
       <div className="flex gap-3">
         <SubmitButton />
