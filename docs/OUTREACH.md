@@ -54,6 +54,84 @@ learn from the response, then adapt for the next._
 >
 > [link] — I'll be in the comments answering everything.
 
+## 2b. Niche-tailored DM variants (for prospect slots 4–10, drafted 2026-07-22)
+
+_Same skeleton as variant 1 — personal opener, one pain, one mechanism,
+feedback ask — with the pain swapped per niche. Product is now FULLY LIVE
+(real signatures via DocuSeal, real payments), so no test-mode hedging.
+Personalize the [bracket] in the first line or don't send it._
+
+### Videographer / photographer
+
+> Hey [name] — I built something with people like you in mind and I'd
+> genuinely value your take on it.
+>
+> It's called Sealed. You know the dance: quote the shoot, chase the
+> signed agreement, then chase the deposit — three tools, three follow-ups.
+> Sealed chains it into one: send the proposal → client accepts from a
+> link (no account on their side) → it becomes an e-signed contract →
+> that becomes an invoice they pay by card. You can't get invoiced-but-
+> unsigned or shot-but-unquoted; each step unlocks the next.
+>
+> It's live and free: https://sealed.techtrendwire.com
+>
+> Would you run one fake gig through it — 10 minutes — and tell me where
+> it's confusing or where it doesn't fit how you actually book work?
+> "This part sucks" is exactly the feedback I need.
+
+### Freelance developer / designer
+
+> Hey [name] — shipped something and I want a builder's eyes on it.
+>
+> Sealed: proposal → e-signed agreement → Stripe invoice, one enforced
+> state machine. The pitch is that deals die in the gaps between the
+> Google Doc, the e-sign tool, and the invoice app — so it chains them,
+> and the server enforces the chain (you literally can't invoice an
+> unsigned contract).
+>
+> Live and free: https://sealed.techtrendwire.com — I built it nights
+> around a day job, NestJS/Next/Postgres, real signatures and payments
+> verified end to end.
+>
+> Two asks: run a fake client through it and tell me where the flow
+> breaks — and if it's not something you'd use for your own client work,
+> tell me why. That second answer is worth more than the first.
+
+### Consultant / coach (B2B proposals)
+
+> Hey [name] — I built a tool for exactly the paperwork side of what you
+> do, and I'd love your honest read.
+>
+> Sealed takes a client engagement from proposal to paid in one thread:
+> you send a proposal link, they accept it (no account, no PDF
+> attachments), it becomes an e-signed agreement, and that becomes an
+> invoice with a card-payment link. Every status — viewed, accepted,
+> signed, paid — shows live on one dashboard, so nothing sits in your
+> head or your follow-up list.
+>
+> It's live and free: https://sealed.techtrendwire.com
+>
+> Could you mock up one engagement in it and tell me what's missing for
+> how you actually close clients? If your proposals need something it
+> doesn't do, that's precisely what I'm trying to learn.
+
+### Quote-based trades (detailer, handyman, cleaner, DJ, events)
+
+> Hey [name] — built an app I think fits how you get jobs, want your
+> opinion on it.
+>
+> It's called Sealed. Instead of texting a quote, hoping they say yes,
+> and chasing the money after — you send one link. They see the quote,
+> accept it, sign the agreement right on their phone, and when the job's
+> done they get an invoice they can pay by card. You see where every job
+> stands — viewed, agreed, signed, paid — in one place.
+>
+> Free right now: https://sealed.techtrendwire.com
+>
+> Try it with a made-up job and tell me straight — would you actually
+> use this with your customers, and what's annoying about it? Blunt
+> answers are the favor I'm asking for.
+
 ## 3. Follow-up nudge (send once, ~4–5 days after silence)
 
 > No pressure at all — but if you had 10 minutes this week to click through
