@@ -17,6 +17,11 @@ lands. Log results in the send log below._
    strict self-promo rules; use the feedback-ask variant in OUTREACH.md §2,
    adjusted per subreddit rules, AFTER the story post has proof ("30 people
    tried it and said X").
+4. **Personal Facebook + Instagram (§4–5)** — the friends/family graph.
+   Frame as a personal milestone, not a product pitch; the reach mechanic
+   is friends tagging friends who freelance. Post from the PERSONAL
+   account — a new brand account is an empty room (board precedent
+   07-09: Sealed standalone, founder-fronted).
 
 Rule for all: reply to every comment for the first 3 hours. The comments
 section is the product demo.
@@ -96,6 +101,68 @@ section is the product demo.
 > https://sealed.techtrendwire.com
 >
 > What I learned shipping solo 🧵
+
+## 4. Facebook (personal account — friends/family graph, milestone framing)
+
+> Some personal news: I built something, and it's live.
+>
+> By day I work in the mailroom at a law firm here in NYC. Nights and
+> weekends for the past few months, I've been building **Sealed** — an app
+> for freelancers and anyone who does client work. It takes the annoying
+> paperwork part — the proposal, the contract, the invoice — and chains it
+> into one flow: you send a proposal, your client accepts it from a link
+> (no account needed), it becomes a contract they e-sign, and that becomes
+> an invoice they can pay by card. Each step happens automatically —
+> nothing falls through the cracks between three different apps.
+>
+> This week it did the whole thing for real for the first time — real
+> signature, real payment — and honestly, watching that happen for
+> something I built between mail runs was a moment.
+>
+> It's free right now: **https://sealed.techtrendwire.com**
+>
+> Here's my ask: if you freelance, run a side business, or do any work
+> where you quote a client and chase a payment — try it and tell me what's
+> confusing or broken. And if you know someone like that, tag them or
+> share this. "This part sucks" is genuinely the most helpful thing you
+> can say to me right now.
+
+**Facebook mechanics:** Facebook can suppress link-post reach — if the
+post stalls, repost with the link in the FIRST COMMENT and "link in
+comments" in the body. Reply to every comment.
+
+## 5. Instagram (personal account — caption; links don't work in captions)
+
+> Day job: law firm mailroom. 🏢
+> Night job: I just shipped my first app. 🚀
+>
+> It's called Sealed — for freelancers who are tired of the proposal
+> living in one app, the contract in another, and the invoice in a third.
+> Sealed chains them: send proposal → client accepts from a link →
+> e-signed contract → invoice with a pay-by-card link. Automatic, start
+> to finish.
+>
+> This week it handled its first real signature and real payment end to
+> end. Built entirely between mail runs and after midnight.
+>
+> It's live and free — **link in bio.** 🔗
+>
+> If you do client work (or know someone who does): try it, break it, and
+> DM me what annoyed you. Early users shape what this becomes — and the
+> first ones keep it free forever.
+>
+> #buildinpublic #freelance #sidehustle #indiedev #smallbusiness #shipped
+
+**Instagram mechanics:**
+- Put `sealed.techtrendwire.com` in bio BEFORE posting.
+- Visual options, ranked: (1) phone-screenshot carousel: landing page →
+  proposal page → PAID status; (2) a photo of you (faces stop scrolls,
+  UI doesn't); (3) plain black slide: "Day job: mailroom. Night job:
+  shipped a SaaS."
+- Also post to Stories with a LINK STICKER — stories get the tap-through
+  captions can't.
+- "Tag someone who freelances" is the honest viral mechanic here —
+  friends tagging friends reaches freelancers you don't know.
 
 ---
 
