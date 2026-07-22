@@ -179,3 +179,5 @@ comments" in the body. Reply to every comment.
 ## Send log
 
 <!-- date — channel — title used — upvotes/comments — testers gained -->
+- 2026-07-22 — Facebook (personal) — §4 milestone post — results TBD
+- 2026-07-22 — Instagram (personal) — §5 caption + black hook slide, Story with link sticker — results TBD
