@@ -13,7 +13,7 @@ function ConfirmDeclineButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="destructive" disabled={pending}>
-      {pending ? "Declining..." : "Confirm Decline"}
+      {pending ? "Declining…" : "Confirm Decline"}
     </Button>
   );
 }

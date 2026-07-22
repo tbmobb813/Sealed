@@ -7,7 +7,10 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-muted/40 p-4">
-      <Link href="/" className="text-3xl font-bold text-primary">
+      <Link
+        href="/"
+        className="text-3xl font-bold text-primary transition-opacity hover:opacity-80"
+      >
         Sealed
       </Link>
       <div className="flex w-full justify-center">{children}</div>
