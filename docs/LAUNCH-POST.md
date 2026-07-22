@@ -181,3 +181,5 @@ comments" in the body. Reply to every comment.
 <!-- date — channel — title used — upvotes/comments — testers gained -->
 - 2026-07-22 — Facebook (personal) — §4 milestone post — results TBD
 - 2026-07-22 — Instagram (personal) — §5 caption + black hook slide, Story with link sticker — results TBD
+- 2026-07-22 — r/SideProject — §2 post REMOVED by Reddit sitewide spam filter (low-karma account + unknown domain link); mods messaged for manual approval; if not restored in 24h, repost with link in comments only. Meanwhile: build comment karma in the sub
+- 2026-07-22 — Show HN — §1 title + link submitted — results TBD; first-comment pitch must go up immediately (NOTE: §1 draft's test-mode caveat is now stale — signatures are fully live via DocuSeal, adjust when posting)
