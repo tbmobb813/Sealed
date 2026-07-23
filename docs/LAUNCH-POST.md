@@ -248,6 +248,48 @@ above is intentional, don't trim it to HN length. Cross-post the
 milestone to your IH "Product" page if the community responds well, and
 answer every comment same-day.
 
+## 8. LinkedIn (professional network — doubles as job-market signal)
+
+> Some personal news: I built and shipped my first SaaS product.
+>
+> By day I'm an Office Services Specialist at Canon Business Process
+> Services — mailroom, client account management, workflow coordination.
+> Nights and weekends for the past few months, I designed, built, and
+> deployed Sealed: a full-stack app that chains a freelancer's client
+> paperwork into one enforced flow — proposal → client accepts via a
+> public link → e-signed agreement → invoice with a Stripe payment link.
+> Each step is server-enforced; you can't invoice a contract that isn't
+> signed.
+>
+> This week it processed a real signature and a real payment end to end,
+> fully in production. Stack: Next.js, NestJS, PostgreSQL, deployed on
+> Vercel and Railway, integrated with Clerk, Stripe, and DocuSeal — 258
+> automated tests, webhook-verified at every step.
+>
+> Two things I'm looking for:
+>
+> 1️⃣ If you freelance, consult, or run client-facing work and deal with
+> quotes/contracts/invoices — I'd love for you to try it and tell me
+> what's confusing or broken. It's free: sealed.techtrendwire.com
+>
+> 2️⃣ I'm also exploring software development roles where this kind of
+> self-directed, full-stack, production experience is valued over a
+> traditional CV. If that's you or your team, I'd welcome the
+> conversation.
+>
+> Building this while working full-time taught me more about shipping
+> real software than anything else I've done. Happy to talk about any of
+> it.
+>
+> #buildinpublic #softwareengineering #saas #freelance #opentowork
+
+**Why this differs from the other posts:** LinkedIn's audience is
+professional, not casual — more detail (stack, test count) reads as
+credibility here rather than jargon. It deliberately does double duty as
+a Sealed distribution post AND a soft job-market signal, since this
+week's resume work aims the same direction — the same shipped-product
+story serves both goals on this specific platform.
+
 ---
 
 ## Mechanics
@@ -269,3 +311,4 @@ answer every comment same-day.
 - 2026-07-22 — Show HN — §1 title + link submitted, first-comment pitch posted, camping thread — no comments yet as of posting
 - 2026-07-22 — Engagement follow-up: FB post got 14 reactions + 1 (Darrell George Jr.); IG post got 1 like + 1 comment (misziggy: "making a name!"). Replied on both with a two-hop referral ask ("know anyone who freelances, send them my way") rather than treating passive engagement as dead-end. Personal network for direct DMs (slots 4-10) is thin — reframing plan: public posts (HN/Reddit/IG/FB) are the primary distribution channel, not more cold DMs; referral asks on existing engagement are the next-best lever
 - 2026-07-23 — HONEST READ after a full day: HN stalled at 1 point (own upvote, no traction — channel exhausted, no further action). Reddit mods never responded — 24h fallback triggered. FB/IG referral-ask replies got no further pickup. Drafted §6 (Reddit repost, link-in-comments variant) and §7 (Indie Hackers, first attempt at this channel) — sending today.
+- 2026-07-23 (later) — Reddit repost (§6) ALSO filtered — second strike, Reddit paused per its own guardrail (build karma via genuine comments before a third attempt). Indie Hackers (§7) confirmed BROKEN on their own end — JS SyntaxError in their bundle, not a Jason-side issue, revisit another day. Drafted §8 (LinkedIn) — new channel, doubles as job-market signal. Posting LinkedIn + X (§3, drafted 07-21, never sent) today.
