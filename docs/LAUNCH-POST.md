@@ -164,6 +164,90 @@ comments" in the body. Reply to every comment.
 - "Tag someone who freelances" is the honest viral mechanic here —
   friends tagging friends reaches freelancers you don't know.
 
+## 6. Reddit repost — r/SideProject fallback (link in comments, per 07-22 filter)
+
+_Use only after the original 07-22 post has sat unrestored ~24h. Don't
+delete the original — just post fresh with this variant. No URL
+anywhere in the post body; the link goes in your own first comment
+immediately after posting, which usually clears the sitewide filter that
+caught the first attempt._
+
+**Title:**
+
+> I sort mail at a law firm by day. At night I built a tool that chains proposal → signature → invoice into one flow. Looking for freelancers to break it (link in comments)
+
+**Body:**
+
+> Day job: law firm mailroom, NYC, noon–9pm. Building happens between
+> mail runs and after midnight.
+>
+> The itch: freelancers run deals across three disconnected tools — a doc
+> for the proposal, an e-sign app for the contract, an invoice app for
+> the money — and the deal's actual state lives in their head. Deals die
+> in those gaps.
+>
+> It chains them: send proposal → client accepts from a link (no account
+> needed) → e-signed agreement → invoice with a Stripe payment link. The
+> chain is enforced server-side — you literally cannot invoice an
+> unsigned contract.
+>
+> It's called Sealed, it's free, no card required. I'm looking for ~10
+> people who send proposals or invoices to try it and tell me where it's
+> confusing or broken. "This part sucks" is worth more to me than an
+> upvote. Link in the first comment below — I'll be around all day.
+
+**First comment (post immediately):**
+
+> https://sealed.techtrendwire.com
+
+**Mechanics:** if this ALSO gets filtered, stop trying r/SideProject —
+two filtered attempts on one account is a signal to build karma there
+first (comment genuinely on other posts for a few days) before a third
+try. Move on to Indie Hackers (§7) and r/freelance/r/Entrepreneur in the
+meantime rather than forcing a third Reddit attempt today.
+
+## 7. Indie Hackers (new channel — built for exactly this story)
+
+**Title:**
+
+> I sort mail at a law firm by day. Shipped my first SaaS at night — Sealed, proposal → e-signature → invoice in one enforced chain
+
+**Body:**
+
+> Day job: law firm mailroom in NYC, noon–9pm. Nights and weekends for
+> the past few months, I built Sealed.
+>
+> The problem: freelancers run client deals across three disconnected
+> tools — a doc for the proposal, an e-sign app for the contract, an
+> invoice app for the money — and the deal's actual state lives in your
+> head. Deals die in the gaps between tools.
+>
+> Sealed chains them into one enforced flow: send a proposal → client
+> accepts from a public link (no account needed) → it becomes an
+> e-signed agreement → that becomes an invoice with a Stripe payment
+> link. The chain is enforced server-side — you can't invoice an
+> unsigned contract, can't sign an unaccepted proposal.
+>
+> This week it did the whole thing for real for the first time: real
+> signature (via DocuSeal), real payment (via Stripe), both
+> webhook-verified. Watching that flip automatically without me touching
+> anything was the moment it felt real.
+>
+> Stack, for the curious: Turborepo, Next.js + NestJS + Prisma/Postgres,
+> deployed on Vercel + Railway. Provider-switched e-signature integration
+> so I'm not locked into one vendor.
+>
+> It's live and free: https://sealed.techtrendwire.com — I'm looking for
+> freelancers or anyone who quotes clients and chases payments to try it
+> and tell me what's confusing or broken. I'll answer everything in the
+> comments.
+
+**Mechanics:** Indie Hackers rewards founder-story detail and technical
+specifics more than HN's terseness — the longer, more personal version
+above is intentional, don't trim it to HN length. Cross-post the
+milestone to your IH "Product" page if the community responds well, and
+answer every comment same-day.
+
 ---
 
 ## Mechanics
@@ -184,3 +268,4 @@ comments" in the body. Reply to every comment.
 - 2026-07-22 — r/SideProject — §2 post REMOVED by Reddit sitewide spam filter (low-karma account + unknown domain link); mods messaged for manual approval; if not restored in 24h, repost with link in comments only. Meanwhile: build comment karma in the sub
 - 2026-07-22 — Show HN — §1 title + link submitted, first-comment pitch posted, camping thread — no comments yet as of posting
 - 2026-07-22 — Engagement follow-up: FB post got 14 reactions + 1 (Darrell George Jr.); IG post got 1 like + 1 comment (misziggy: "making a name!"). Replied on both with a two-hop referral ask ("know anyone who freelances, send them my way") rather than treating passive engagement as dead-end. Personal network for direct DMs (slots 4-10) is thin — reframing plan: public posts (HN/Reddit/IG/FB) are the primary distribution channel, not more cold DMs; referral asks on existing engagement are the next-best lever
+- 2026-07-23 — HONEST READ after a full day: HN stalled at 1 point (own upvote, no traction — channel exhausted, no further action). Reddit mods never responded — 24h fallback triggered. FB/IG referral-ask replies got no further pickup. Drafted §6 (Reddit repost, link-in-comments variant) and §7 (Indie Hackers, first attempt at this channel) — sending today.
