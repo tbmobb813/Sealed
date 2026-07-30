@@ -71,40 +71,17 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Static preview of the client-facing proposal page */}
-          <div aria-hidden="true" className="relative hidden lg:block">
-            <div className="rounded-lg bg-card p-8 shadow-lg ring-1 ring-border">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                Meridian Web Studio
-              </p>
-              <p className="mt-2 font-serif text-2xl font-medium tracking-tight">
-                Website redesign &amp; launch
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Prepared for Daniela Reyes
-              </p>
-              <div className="mt-6 space-y-2 border-t pt-4 text-sm">
-                <div className="flex justify-between">
-                  <span>Design system &amp; templates</span>
-                  <span className="tabular-nums">$2,400.00</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Build &amp; CMS setup</span>
-                  <span className="tabular-nums">$3,150.00</span>
-                </div>
-                <div className="flex justify-between border-t-2 border-foreground/80 pt-2 font-semibold">
-                  <span>Total</span>
-                  <span className="tabular-nums">$5,550.00</span>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-center">
-                <span className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground">
-                  Accept Proposal
-                </span>
-              </div>
-            </div>
+          {/* Animated walkthrough of the proposal-to-signature flow */}
+          <div className="relative hidden lg:block">
+            <img
+              src="/proposal-flow-demo.gif"
+              alt="Walkthrough of creating a proposal, sending it, the client accepting it, and the agreement going out for e-signature in Sealed"
+              width={960}
+              height={855}
+              className="w-full rounded-lg shadow-lg ring-1 ring-border"
+            />
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              What your client sees — no account required on their side.
+              Proposal to signed agreement, in one flow.
             </p>
           </div>
         </section>

@@ -162,3 +162,18 @@ Personalize the [bracket] in the first line or don't send it._
 ## Send log
 
 <!-- date — who/where — variant — response -->
+
+## Distribution post profile links (check these directly, don't re-search)
+
+- **X**: https://x.com/tbmobb813 — pinned post, posted 2026-07-23
+- **LinkedIn**: https://www.linkedin.com/in/jsn43/recent-activity/all/ — "Some personal news..." post, posted 2026-07-24 (5d as of 2026-07-29)
+- **Reddit**: https://www.reddit.com/user/tbmobb813/submitted/ — u/tbmobb813, posted 2026-07-22, removed by Reddit filters
+- **Hacker News**: https://news.ycombinator.com/submitted?id=tbmobb813 — Show HN, posted 2026-07-22, 1 point (self), 0 external comments
+- **Indie Hackers**: https://www.indiehackers.com/tbmobb813 — post never actually went live; site itself broken (JS error) as of 2026-07-23, still broken 2026-07-29
+
+**Checked 2026-07-29** — zero replies/comments across all five channels:
+- X: 18 views, 0 replies
+- LinkedIn: 73 impressions, 2 reactions, 0 comments
+- Reddit: removed by filter, 0 comments
+- HN: 1 point (own upvote), 0 external comments
+- IH: page still non-functional, post status unconfirmable

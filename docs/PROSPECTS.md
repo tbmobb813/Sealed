@@ -51,13 +51,13 @@ onboard NOW · `[x]` closed (onboarded or passed)
 | 1 | Mars | business operator | DM | warm | | [~] | 2026-07-21 | 1 | awaiting reply — follow up 07-25 if silent |
 | 2 | Filmmaker friend | video gigs | DM | warm | | [~] | 2026-07-21 | 1 | awaiting reply — follow up 07-25 if silent |
 | 3 | Sister | AI-training startup, B2B proposals | DM | warm | | [~] | 2026-07-21 | 1 | awaiting reply — follow up 07-25 if silent |
-| 4 | | | | | | [ ] | | | send by 07-24 |
-| 5 | | | | | | [ ] | | | send by 07-24 |
-| 6 | | | | | | [ ] | | | send by 07-24 |
-| 7 | | | | | | [ ] | | | send by 07-24 |
-| 8 | | | | | | [ ] | | | |
-| 9 | | | | | | [ ] | | | |
-| 10 | | | | | | [ ] | | | |
+| 4 | shotby_00 | NYC photographer/videographer | IG DM | cold | | [~] | 2026-07-29 | videographer | awaiting reply |
+| 5 | vtapeken (Kenneth J) | Video/photo creative | IG DM | cold | | [~] | 2026-07-29 | videographer | awaiting reply |
+| 6 | handymannewyork1 | NYC handyman | IG DM | cold | | [~] | 2026-07-29 | quote-trades | awaiting reply |
+| 7 | djinnocente (CS Productions) | Wedding/event DJ | IG DM | cold | | [~] | 2026-07-29 | quote-trades | awaiting reply |
+| 8 | birthingoutbosses (Brandy) | Business coach | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | awaiting reply |
+| 9 | mrs.k_20 (Angel Harper) | Social media consultant | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | awaiting reply |
+| 10 | the_best_fran (Francesca, Girl Please Creative) | Marketing/event consultant | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | awaiting reply |
 
 **On every reply:** onboard via `docs/GETTING-STARTED.md`, log friction in
 `docs/feedback.md`, and if they have a real client ready to sign → trigger
