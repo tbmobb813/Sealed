@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { InvoicesService } from "./invoices.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "./dto/create-invoice.dto";
 
@@ -32,6 +34,7 @@ export class InvoicesController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateInvoiceDto,
@@ -45,6 +48,7 @@ export class InvoicesController {
   }
 
   @Patch(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -61,6 +65,7 @@ export class InvoicesController {
 
   @Post(":id/send")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async send(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,

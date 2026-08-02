@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { AgreementsService } from "./agreements.service";
 import { CreateAgreementDto, UpdateAgreementDto } from "./dto/create-agreement.dto";
 
@@ -32,6 +34,7 @@ export class AgreementsController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateAgreementDto,
@@ -45,6 +48,7 @@ export class AgreementsController {
   }
 
   @Patch(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -61,6 +65,7 @@ export class AgreementsController {
 
   @Post(":id/send")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async sendForSignature(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -75,6 +80,7 @@ export class AgreementsController {
 
   @Post(":id/sign")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   async sign(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
