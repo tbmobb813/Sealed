@@ -31,7 +31,7 @@ export function EmailCaptureForm() {
 
   if (status === "done") {
     return (
-      <p className="text-sm font-medium text-primary">
+      <p aria-live="polite" className="text-sm font-medium text-primary">
         You&apos;re on the list — we&apos;ll be in touch.
       </p>
     );
@@ -54,6 +54,9 @@ export function EmailCaptureForm() {
       />
       <input
         type="email"
+        name="email"
+        autoComplete="email"
+        spellCheck={false}
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -64,11 +67,9 @@ export function EmailCaptureForm() {
       <Button type="submit" disabled={status === "loading"}>
         {status === "loading" ? "Joining…" : "Keep me posted"}
       </Button>
-      {status === "error" && (
-        <p className="text-sm text-destructive sm:self-center">
-          Something went wrong — try again.
-        </p>
-      )}
+      <p aria-live="polite" className="text-sm text-destructive sm:self-center">
+        {status === "error" ? "Something went wrong — try again." : null}
+      </p>
     </form>
   );
 }

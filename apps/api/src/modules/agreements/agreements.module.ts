@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
-import { DropboxSignModule } from "../../integrations/dropbox-sign/dropbox-sign.module";
+import { SignatureModule } from "../../integrations/signature/signature.module";
 import { AgreementsController } from "./agreements.controller";
 import { AgreementsService } from "./agreements.service";
 import { PrismaService } from "../../prisma/prisma.service";
 
 @Module({
-  imports: [DropboxSignModule],
+  imports: [SignatureModule],
   controllers: [AgreementsController],
   providers: [AgreementsService, PrismaService],
   exports: [AgreementsService],

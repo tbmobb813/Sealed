@@ -13,7 +13,7 @@ function ConfirmAcceptButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" disabled={pending}>
-      {pending ? "Accepting..." : "Confirm Acceptance"}
+      {pending ? "Accepting…" : "Confirm Acceptance"}
     </Button>
   );
 }
@@ -62,9 +62,10 @@ export function AcceptProposalButton({ token }: { token: string }) {
       <input
         id="acceptedBy"
         name="acceptedBy"
+        autoComplete="name"
         required
         maxLength={200}
-        placeholder="Your full name"
+        placeholder="Jane Smith"
         className="w-full rounded-md border bg-background px-3 py-2 text-sm"
       />
       <div className="flex gap-3">

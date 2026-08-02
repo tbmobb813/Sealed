@@ -17,7 +17,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Creating..." : "Create Agreement"}
+      {pending ? "Creating…" : "Create Agreement"}
     </Button>
   );
 }
@@ -67,13 +67,11 @@ export function AgreementForm({
           rows={12}
           required
           className={`${inputClassName} min-h-48 py-2`}
-          placeholder="Enter the full terms and conditions of this agreement..."
+          placeholder="Enter the full terms and conditions of this agreement…"
         />
       </div>
 
-      {state.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
-      )}
+      <p aria-live="polite" className="text-sm text-destructive">{state.error ?? null}</p>
 
       <div className="flex gap-3">
         <SubmitButton />

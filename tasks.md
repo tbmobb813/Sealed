@@ -15,17 +15,23 @@
 
 ## Go-Live Hardening (before real customers / real money)
 
-- [ ] Stripe live keys + live-mode webhook endpoint (webhooks don't carry over from sandbox)
-- [ ] Dropbox Sign paid API plan → DROPBOX_SIGN_TEST_MODE=false (test mode watermarks docs + only sends to own email)
-- [ ] Resend: verify a sending domain + set RESEND_FROM_EMAIL (onboarding@resend.dev only reaches own email)
-- [ ] Clerk production instance → swap keys in Vercel AND Railway together
-- [ ] Custom domain (optional): replace sealed-api.vercel.app → update CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL
+- [x] Stripe live keys + live-mode webhook DONE 2026-07-17; POSITIVE PATH VERIFIED 2026-07-21: JNix self-invoiced from the DocuSeal-signed test agreement, paid with a real card in live mode → invoice auto-flipped to PAID via webhook, payment record created, invoice email delivered. ALL SYSTEMS NOW VERIFIED IN PROD WITH REAL MONEY. Zero unproven subsystems remain — only distribution stands between here and shipped (stranger pays)
+- [~] Signature provider for launch — DocuSeal integration BUILT 2026-07-21 (env-switched via SIGNATURE_PROVIDER, Dropbox Sign remains default/fallback; 5 new integration tests, 258 total pass). Chosen over Dropbox Sign paid plan on cost: DocuSeal Pro $20/mo unlimited vs Dropbox Sign Essentials $100/mo for 100 requests. GO-LIVE 2026-07-21 (same day): JNix chose DocuSeal (open-source portability + cost), obtained API token, registered webhook https://sealedapi.techtrendwire.com/api/v1/webhooks/docuseal with X-Webhook-Secret custom header, set DOCUSEAL_API_KEY + DOCUSEAL_WEBHOOK_SECRET + SIGNATURE_PROVIDER=docuseal in Railway. Secret VERIFIED against prod: no header → 400, wrong secret → 400, correct secret → 200. VERIFIED END-TO-END 2026-07-21: real agreement sent via DocuSeal (payload fix 7d2b978: documents array), real signature, webhook → SIGNED automatically. Event names confirmed. Signature stack FULLY LIVE for real clients. Same session: emailed /p/ link verified working from Gmail (blank-page report was Resend dashboard preview sandbox); Gmail spam placement diagnosed as new-domain reputation (DNS auth all correct) — plain-text email parts added (288b133), testers should be told to check spam. Dropbox Sign remains env-switchable fallback
+- [x] Resend DONE 2026-07-10: techtrendwire.com verified (root domain — covers sealed@ + future senders on the single free slot); RESEND_FROM_EMAIL=sealed@techtrendwire.com set in Railway. Proposal/invoice emails can now reach any client address
+- [x] Clerk production instance DONE 2026-07-17 (verified: prod test event succeeded + real sign-in → dashboard 200s): pk_live on sign-in page, prod Frontend API live at clerk.sealed.techtrendwire.com (DNS verified), CLERK_SECRET_KEY swapped in Railway; prod-instance webhook re-registered (dev-instance hPRIXD doesn't carry over) at /api/v1/webhooks/clerk, new svix secret in Railway, unsigned POST correctly 400 "Missing svix headers". Remaining: (1) dashboard test event from prod instance to prove secret matches, (2) one real browser sign-in → dashboard to prove pk/sk are the same instance (dev-instance users don't carry over — fresh sign-up expected)
+- [x] Custom domains LIVE 2026-07-10: web https://sealed.techtrendwire.com (Vercel), API https://sealedapi.techtrendwire.com (Railway); Hostinger DNS (2 CNAME + railway-verify TXT); CORS_ORIGIN/WEB_URL/NEXT_PUBLIC_APP_URL + NEXT_PUBLIC_API_URL updated and redeployed; ALL 3 WEBHOOKS re-pointed to sealedapi.techtrendwire.com (Dropbox Sign test passed, Clerk + Stripe URLs edited, same signing secrets). Old vercel.app/railway.app domains still serve as fallback
 
 ## Launch Runway (mailroom downtime)
 
+- [x] Mobile responsiveness DONE 2026-07-17 (verified on device): sidebar → hamburger drawer below md (closes on nav/backdrop/Escape/route change), overflow-x-auto on all data tables, p-4 mobile padding, explicit viewport export (007dc68); Clerk popover transparency fixed by dropping @clerk/ui shadcn theme whose color vars were invalid HSL fragments (994183e)
+
 - [x] Landing page LIVE 2026-07-10 at / (9f83527): hero + propose/sign/get-paid steps + sign-up CTAs; dashboard moved to /dashboard
 - [x] Email capture LIVE 2026-07-10 (c8207e9 + 744c6d8): public POST /api/v1/marketing/subscribe → email_subscribers table (own Postgres), landing form with honeypot; verified in prod (200/400/CORS all correct); probe rows cleaned
-- [ ] First-10-users outreach
+- [~] First-10-users outreach — list started 2026-07-17: (1) Mars, (2) filmmaker friend (small-budget video gigs), (3) sister (AI-training startup, B2B proposals). All 3 messages SENT 2026-07-21 — first market contact. Next: follow up on replies, onboard each via docs/GETTING-STARTED.md. Trigger: first prospect with a real client ready to sign → buy Dropbox Sign paid plan
+
+## Post-Launch Backlog (do NOT build before first real users)
+
+- [ ] Proposal/agreement templates — deferred 2026-07-17: solves a repeat-volume problem that doesn't exist at 0 users; design from real user proposals post-launch. Cheaper first step if a prospect asks: "Duplicate proposal" action.
 
 ## Medium Priority
 
