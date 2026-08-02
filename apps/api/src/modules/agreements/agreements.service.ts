@@ -8,14 +8,14 @@ import {
 import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
-import { DropboxSignService } from "../../integrations/dropbox-sign/dropbox-sign.service";
+import { SignatureProviderService } from "../../integrations/signature/signature-provider.service";
 import { CreateAgreementDto, UpdateAgreementDto } from "./dto/create-agreement.dto";
 
 @Injectable()
 export class AgreementsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly dropboxSignService: DropboxSignService,
+    private readonly signatureProvider: SignatureProviderService,
   ) {}
 
   findAll(tenantId: string) {
@@ -161,14 +161,18 @@ export class AgreementsService {
       "agreement",
     );
 
-    // Capture the identity we send to Dropbox Sign — the transaction must
-    // confirm it is still current before we persist signatureRequestId.
+    // Capture the identity we send to the signature provider — the
+    // transaction must confirm it is still current before we persist
+    // signatureRequestId. Pin the provider too, so a mid-flight env
+    // change can't mismatch the stored provider and the request.
     const contactId = agreement.contactId;
     const signerEmail = agreement.contact.email;
+    const providerName = this.signatureProvider.providerName;
+    const providerDisplayName = this.signatureProvider.displayName;
 
     let signatureRequestId: string;
     try {
-      const result = await this.dropboxSignService.createSignatureRequest(
+      const result = await this.signatureProvider.createSignatureRequest(
         agreement.id,
         signerEmail,
         agreement.body,
@@ -180,7 +184,7 @@ export class AgreementsService {
       const message =
         body?.error?.errorMsg ??
         (error instanceof Error ? error.message : "Signature request failed");
-      throwIntegrationError("Dropbox Sign", message);
+      throwIntegrationError(providerDisplayName, message);
     }
 
     return this.prisma
@@ -198,7 +202,7 @@ export class AgreementsService {
 
         // Reject if the contact was reassigned or their email changed after we
         // already created the signature request — signerEmail must match what
-        // Dropbox Sign received.
+        // the signature provider received.
         assertPrecondition(
           current.contactId === contactId &&
             current.contact.email === signerEmail,
@@ -225,7 +229,7 @@ export class AgreementsService {
             signatureStatus: "SENT",
             sentAt: new Date(),
             signatureRequestId,
-            signatureProvider: "dropbox_sign",
+            signatureProvider: providerName,
             signerEmail,
           },
         });
@@ -254,8 +258,9 @@ export class AgreementsService {
         // Signature request was created before the tx — cancel so we do not
         // leave an orphaned request for an agreement that stayed DRAFT.
         try {
-          await this.dropboxSignService.cancelSignatureRequest(
+          await this.signatureProvider.cancelSignatureRequest(
             signatureRequestId,
+            providerName,
           );
         } catch {
           // Best-effort cleanup; surface the original failure.

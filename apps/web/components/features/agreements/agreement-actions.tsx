@@ -41,18 +41,14 @@ export function AgreementActions({
     <div className="flex items-center gap-3">
       {status === "DRAFT" && (
         <form action={sendAction}>
-          <ActionButton label="Send for Signature" pendingLabel="Sending..." />
-          {sendState.error && (
-            <p className="text-sm text-destructive mt-2">{sendState.error}</p>
-          )}
+          <ActionButton label="Send for Signature" pendingLabel="Sending…" />
+          <p aria-live="polite" className="text-sm text-destructive mt-2">{sendState.error ?? null}</p>
         </form>
       )}
       {status === "SENT" && (
         <form action={signAction}>
-          <ActionButton label="Mark as Signed" pendingLabel="Signing..." />
-          {signState.error && (
-            <p className="text-sm text-destructive mt-2">{signState.error}</p>
-          )}
+          <ActionButton label="Mark as Signed" pendingLabel="Signing…" />
+          <p aria-live="polite" className="text-sm text-destructive mt-2">{signState.error ?? null}</p>
         </form>
       )}
     </div>

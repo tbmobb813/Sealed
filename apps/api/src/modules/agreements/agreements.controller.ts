@@ -78,6 +78,10 @@ export class AgreementsController {
     return { data };
   }
 
+  // Manually declares an agreement signed without a counterparty signature
+  // (e.g. a wet-ink signature recorded outside the e-sign flow) — restricted
+  // to roles trusted to attest that, since it bypasses the DocuSeal/Dropbox
+  // Sign verification path entirely.
   @Post(":id/sign")
   @HttpCode(200)
   @Roles(UserRole.OWNER, UserRole.ADMIN)

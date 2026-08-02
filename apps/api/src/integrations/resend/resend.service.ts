@@ -93,6 +93,14 @@ export class ResendService {
   </body>
 </html>`;
 
+    // Plain-text alternative — HTML-only email scores worse with spam filters.
+    const text = `You have a new proposal
+
+${options.tenantName} has sent you a proposal: ${options.proposalTitle}
+
+View it here: ${proposalUrl}
+`;
+
     try {
       // The Resend SDK does not throw on API errors — it returns { data, error }.
       const { error } = await this.client.emails.send({
@@ -100,6 +108,7 @@ export class ResendService {
         to: options.toEmail,
         subject: `New proposal: ${options.proposalTitle}`,
         html,
+        text,
       });
       if (error) {
         this.logger.warn(
@@ -157,6 +166,14 @@ export class ResendService {
   </body>
 </html>`;
 
+    // Plain-text alternative — HTML-only email scores worse with spam filters.
+    const text = `Invoice ${options.invoiceNumber}
+
+${options.tenantName} has sent you an invoice for ${options.totalAmount}.
+
+Pay here: ${options.paymentUrl}
+`;
+
     try {
       // The Resend SDK does not throw on API errors — it returns { data, error }.
       const { error } = await this.client.emails.send({
@@ -164,6 +181,7 @@ export class ResendService {
         to: options.toEmail,
         subject: `Invoice ${options.invoiceNumber} from ${options.tenantName}`,
         html,
+        text,
       });
       if (error) {
         this.logger.warn(

@@ -17,7 +17,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Creating..." : "Create Invoice"}
+      {pending ? "Creating…" : "Create Invoice"}
     </Button>
   );
 }
@@ -88,9 +88,7 @@ export function InvoiceForm({
         />
       </div>
 
-      {state.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
-      )}
+      <p aria-live="polite" className="text-sm text-destructive">{state.error ?? null}</p>
 
       <div className="flex gap-3">
         <SubmitButton />

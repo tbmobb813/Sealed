@@ -82,7 +82,7 @@ export default async function ProposalDetailPage({
             </dd>
           </div>
         </dl>
-        <div className="rounded-lg border">
+        <div className="overflow-x-auto rounded-lg border">
           <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">

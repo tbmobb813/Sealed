@@ -8,6 +8,7 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/common/filters/all-exceptions.filter";
 import { createResendMockProvider } from "./resend-mock";
 import { createDropboxSignMockProvider } from "./dropbox-sign-mock";
+import { createDocuSealMockProvider } from "./docuseal-mock";
 
 export const AUTH_HEADER = { Authorization: "Bearer demo" };
 
@@ -19,6 +20,10 @@ export async function createTestApp(): Promise<INestApplication> {
   // are built from this env var, so a real key from .env must never win.
   process.env.DROPBOX_SIGN_API_KEY = "test_dropbox_sign_key";
   process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";
+  // Same forcing rationale for DocuSeal — the service is mocked and the
+  // webhook secret check reads this env var.
+  process.env.DOCUSEAL_API_KEY = "test_docuseal_key";
+  process.env.DOCUSEAL_WEBHOOK_SECRET = "test_docuseal_webhook_secret";
   // Use Stripe stub in tests — placeholder keys in .env would hit the real API and fail.
   delete process.env.STRIPE_SECRET_KEY;
   // Avoid live Resend calls in CI — assertions use resendMock instead.
@@ -26,6 +31,7 @@ export async function createTestApp(): Promise<INestApplication> {
 
   const resendProvider = createResendMockProvider();
   const dropboxSignProvider = createDropboxSignMockProvider();
+  const docuSealProvider = createDocuSealMockProvider();
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
@@ -34,6 +40,8 @@ export async function createTestApp(): Promise<INestApplication> {
     .useValue(resendProvider.useValue)
     .overrideProvider(dropboxSignProvider.provide)
     .useValue(dropboxSignProvider.useValue)
+    .overrideProvider(docuSealProvider.provide)
+    .useValue(docuSealProvider.useValue)
     .compile();
 
   const app = moduleRef.createNestApplication({ rawBody: true });

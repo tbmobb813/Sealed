@@ -18,7 +18,7 @@ const steps = [
   {
     icon: Handshake,
     title: "Sign",
-    body: "The accepted proposal becomes an agreement, e-signed through Dropbox Sign. Status updates land in your dashboard automatically.",
+    body: "The accepted proposal becomes an agreement, e-signed through DocuSeal. Status updates land in your dashboard automatically.",
   },
   {
     icon: Receipt,
@@ -35,6 +35,9 @@ export default function LandingPage() {
           <span className="text-xl font-bold text-primary">Sealed</span>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost">
+              <Link href="/pricing">Pricing</Link>
+            </Button>
+            <Button asChild variant="ghost">
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
@@ -44,38 +47,61 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main>
-        <section className="container mx-auto px-4 py-24 text-center">
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Proposal to payment, sealed in one flow.
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Sealed chains your client paperwork together — proposal, signed
-            agreement, paid invoice — so each step unlocks the next and nothing
-            falls through the cracks.
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <Button asChild size="lg">
-              <Link href="/sign-up">
-                Start free
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
+      <main id="main-content">
+        <section className="container mx-auto grid items-center gap-12 px-4 py-20 lg:grid-cols-2 lg:py-28">
+          <div>
+            <h1 className="max-w-xl font-serif text-4xl font-medium tracking-tight text-balance sm:text-5xl">
+              Proposal to payment, sealed in one flow.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-muted-foreground text-pretty">
+              Sealed chains your client paperwork together — proposal, signed
+              agreement, paid invoice — so each step unlocks the next and
+              nothing falls through the cracks.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <Button asChild size="lg">
+                <Link href="/sign-up">
+                  Start free
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="ghost">
+                <Link href="/sign-in">Sign in</Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Animated walkthrough of the proposal-to-signature flow */}
+          <div className="relative hidden lg:block">
+            <img
+              src="/proposal-flow-demo.gif"
+              alt="Walkthrough of creating a proposal, sending it, the client accepting it, and the agreement going out for e-signature in Sealed"
+              width={960}
+              height={855}
+              className="w-full rounded-lg shadow-lg ring-1 ring-border"
+            />
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Proposal to signed agreement, in one flow.
+            </p>
           </div>
         </section>
 
         <section className="border-t bg-muted/30">
-          <div className="container mx-auto grid gap-8 px-4 py-20 sm:grid-cols-3">
-            {steps.map((step) => {
+          <div className="container mx-auto grid gap-10 px-4 py-20 sm:grid-cols-3">
+            {steps.map((step, index) => {
               const Icon = step.icon;
               return (
                 <div key={step.title} className="space-y-3">
-                  <Icon className="h-8 w-8 text-primary" />
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif text-3xl text-primary/40">
+                      0{index + 1}
+                    </span>
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
                   <h2 className="text-lg font-semibold">{step.title}</h2>
-                  <p className="text-sm text-muted-foreground">{step.body}</p>
+                  <p className="text-sm text-muted-foreground text-pretty">
+                    {step.body}
+                  </p>
                 </div>
               );
             })}
@@ -83,7 +109,7 @@ export default function LandingPage() {
         </section>
 
         <section className="container mx-auto px-4 py-20 text-center">
-          <h2 className="text-2xl font-semibold">
+          <h2 className="font-serif text-2xl font-medium tracking-tight sm:text-3xl">
             Built for freelancers who bill for their work.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
@@ -115,6 +141,9 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} Sealed. Built by JNix.</span>
           <div className="flex gap-4">
+            <Link href="/pricing" className="hover:text-foreground">
+              Pricing
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>

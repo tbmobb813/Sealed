@@ -14,5 +14,5 @@ export function MoneyDisplay({
     currency,
   }).format(amount);
 
-  return <span className={className}>{formatted}</span>;
+  return <span className={`tabular-nums ${className}`}>{formatted}</span>;
 }

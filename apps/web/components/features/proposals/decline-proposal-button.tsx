@@ -13,7 +13,7 @@ function ConfirmDeclineButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="destructive" disabled={pending}>
-      {pending ? "Declining..." : "Confirm Decline"}
+      {pending ? "Declining…" : "Confirm Decline"}
     </Button>
   );
 }
@@ -46,8 +46,13 @@ export function DeclineProposalButton({ token }: { token: string }) {
 
   if (!confirming) {
     return (
-      <Button variant="outline" size="lg" onClick={() => setConfirming(true)}>
-        Decline
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground"
+        onClick={() => setConfirming(true)}
+      >
+        Decline this proposal
       </Button>
     );
   }
