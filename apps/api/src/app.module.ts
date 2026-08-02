@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { PrismaService } from "./prisma/prisma.service";
 import { ClerkAuthGuard } from "./common/guards/clerk-auth.guard";
 import { TenantGuard } from "./common/guards/tenant.guard";
+import { RolesGuard } from "./common/guards/roles.guard";
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { TenantsModule } from "./modules/tenants/tenants.module";
@@ -70,6 +71,10 @@ import { StatsModule } from "./stats/stats.module";
     {
       provide: APP_GUARD,
       useClass: TenantGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { AgreementsService } from "./agreements.service";
 import { CreateAgreementDto, UpdateAgreementDto } from "./dto/create-agreement.dto";
 
@@ -73,8 +75,13 @@ export class AgreementsController {
     return { data };
   }
 
+  // Manually declares an agreement signed without a counterparty signature
+  // (e.g. a wet-ink signature recorded outside the e-sign flow) — restricted
+  // to roles trusted to attest that, since it bypasses the DocuSeal/Dropbox
+  // Sign verification path entirely.
   @Post(":id/sign")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   async sign(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
