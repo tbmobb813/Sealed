@@ -34,6 +34,7 @@ export class AgreementsController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateAgreementDto,
@@ -47,6 +48,7 @@ export class AgreementsController {
   }
 
   @Patch(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -63,6 +65,7 @@ export class AgreementsController {
 
   @Post(":id/send")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async sendForSignature(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,

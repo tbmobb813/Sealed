@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { PaymentsService } from "./payments.service";
 import { CreatePaymentDto } from "./dto/create-payment.dto";
 
@@ -24,6 +26,7 @@ export class PaymentsController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreatePaymentDto,

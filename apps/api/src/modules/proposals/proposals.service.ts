@@ -192,7 +192,6 @@ export class ProposalsService {
     return this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findUnique({
         where: { publicToken: token },
-        include: { contact: true },
       });
 
       if (!proposal) {
@@ -228,14 +227,13 @@ export class ProposalsService {
 
       const updated = await tx.proposal.findUnique({
         where: { id: proposal.id },
-        include: { contact: true },
       });
 
       if (!updated) {
         throw new NotFoundException("Proposal not found");
       }
 
-      return updated;
+      return { status: updated.status, respondedAt: updated.respondedAt };
     });
   }
 
@@ -243,7 +241,6 @@ export class ProposalsService {
     return this.prisma.$transaction(async (tx) => {
       const proposal = await tx.proposal.findUnique({
         where: { publicToken: token },
-        include: { contact: true },
       });
 
       if (!proposal) {
@@ -285,14 +282,13 @@ export class ProposalsService {
 
       const updated = await tx.proposal.findUnique({
         where: { id: proposal.id },
-        include: { contact: true },
       });
 
       if (!updated) {
         throw new NotFoundException("Proposal not found");
       }
 
-      return updated;
+      return { status: updated.status, respondedAt: updated.respondedAt };
     });
   }
 

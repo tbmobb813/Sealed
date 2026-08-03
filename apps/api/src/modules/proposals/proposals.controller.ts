@@ -8,9 +8,11 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { Public } from "../../common/decorators/public.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { ProposalsService } from "./proposals.service";
 import { CreateProposalDto, UpdateProposalDto } from "./dto/create-proposal.dto";
 import { ProposalQueryDto } from "./dto/proposal-query.dto";
@@ -76,6 +78,7 @@ export class ProposalsController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateProposalDto,
@@ -89,6 +92,7 @@ export class ProposalsController {
   }
 
   @Patch(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -105,6 +109,7 @@ export class ProposalsController {
 
   @Post(":id/send")
   @HttpCode(200)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async send(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,

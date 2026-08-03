@@ -11,6 +11,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { verifyToken } from "@clerk/backend";
+import { UserRole } from "@sealed/database";
 import {
   DEMO_CLERK_USER_ID,
   DEMO_MODE_TOKEN,
@@ -130,7 +131,7 @@ export class ClerkAuthGuard implements CanActivate {
       email: string;
       name: string;
       tenantId: string;
-      role: string;
+      role: UserRole;
     };
   }): Promise<boolean> {
     const demoClerkUserId =

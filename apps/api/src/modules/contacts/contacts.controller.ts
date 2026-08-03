@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { UserRole } from "@sealed/database";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../common/decorators/current-user.decorator";
+import { Roles } from "../../common/decorators/roles.decorator";
 import { ContactsService } from "./contacts.service";
 import { CreateContactDto } from "./dto/create-contact.dto";
 import { UpdateContactDto } from "./dto/create-contact.dto";
@@ -33,6 +35,7 @@ export class ContactsController {
   }
 
   @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateContactDto,
@@ -46,6 +49,7 @@ export class ContactsController {
   }
 
   @Patch(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async update(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
@@ -61,6 +65,7 @@ export class ContactsController {
   }
 
   @Delete(":id")
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.COLLABORATOR)
   async remove(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id") id: string,
