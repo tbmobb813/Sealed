@@ -48,8 +48,8 @@ pnpm db:seed
 pnpm dev
 ```
 
-- API: http://localhost:3001
-- Web: http://localhost:3000
+- API: [http://localhost:3001]
+- Web: [http://localhost:3000]
 
 ### Demo mode (no Clerk)
 
@@ -72,7 +72,6 @@ For real authentication, set `DEMO_MODE=false` / `NEXT_PUBLIC_DEMO_MODE=false`, 
 
 ## Project Structure
 
-```
 sealed/
 ├── apps/
 │   ├── api/          # NestJS backend
@@ -85,12 +84,11 @@ sealed/
 │   └── ui/           # Shared React components
 ├── playwright.config.ts
 └── docker-compose.yml
-```
 
 ## Scripts
 
 | Script | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `pnpm dev` | Start API and web in parallel |
 | `pnpm build` | Build all packages and apps |
 | `pnpm lint` | Lint all packages |
