@@ -47,6 +47,12 @@ export class StripeWebhookService {
         return;
       }
 
+      // Serialize with any concurrent payment (manual or another Stripe
+      // event) against this invoice — amountPaid below is a
+      // read-modify-write and a race would silently drop one side's
+      // contribution. Same lock key as the manual-payment path.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${invoiceId}))`;
+
       const invoice = await tx.invoice.findFirst({
         where: { id: invoiceId },
       });
@@ -65,16 +71,19 @@ export class StripeWebhookService {
         return;
       }
 
-      assertTransition(
-        INVOICE_TRANSITIONS,
-        invoice.status,
-        "PAID",
-        "invoice",
-      );
-
-      const amountPaid = session.amount_total
+      const paidNow = session.amount_total
         ? new Prisma.Decimal(session.amount_total).div(100)
         : invoice.totalAmount;
+
+      // Accumulate onto whatever's already been recorded (e.g. a manual
+      // partial payment) rather than overwriting — mirrors the manual
+      // payment path so the two channels can't clobber each other.
+      const amountPaid = (invoice.amountPaid ?? new Prisma.Decimal(0)).add(paidNow);
+      const nextStatus = amountPaid.gte(invoice.totalAmount) ? "PAID" : "PARTIALLY_PAID";
+
+      if (invoice.status !== nextStatus) {
+        assertTransition(INVOICE_TRANSITIONS, invoice.status, nextStatus, "invoice");
+      }
 
       // Record the payment itself — invoice status and the payments table
       // must agree on where the money came from.
@@ -84,7 +93,7 @@ export class StripeWebhookService {
           invoiceId: invoice.id,
           provider: "STRIPE",
           providerPaymentId: session.id,
-          amount: amountPaid,
+          amount: paidNow,
           currency: session.currency?.toUpperCase() ?? invoice.currency,
           status: "SUCCEEDED",
           succeededAt: new Date(),
@@ -94,9 +103,9 @@ export class StripeWebhookService {
       await tx.invoice.update({
         where: { id: invoiceId },
         data: {
-          status: "PAID",
-          paidAt: new Date(),
+          status: nextStatus,
           amountPaid,
+          ...(nextStatus === "PAID" ? { paidAt: new Date() } : {}),
         },
       });
 
@@ -105,14 +114,14 @@ export class StripeWebhookService {
         actorId: invoice.createdByUserId,
         objectType: "invoice",
         objectId: invoiceId,
-        eventType: "invoice.paid",
+        eventType: nextStatus === "PAID" ? "invoice.paid" : "invoice.partially_paid",
         metadata: {
           number: invoice.number,
           amountPaid: amountPaid.toString(),
         },
       });
 
-      this.logger.log(`Invoice ${invoiceId} marked PAID via Stripe webhook`);
+      this.logger.log(`Invoice ${invoiceId} now ${nextStatus} via Stripe webhook`);
     });
   }
 }
