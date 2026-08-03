@@ -43,6 +43,11 @@ export class PaymentsService {
   // PARTIALLY_PAID or PAID accordingly.
   async create(tenantId: string, userId: string, dto: CreatePaymentDto) {
     return this.prisma.$transaction(async (tx) => {
+      // Serialize with any concurrent payment (manual or Stripe webhook)
+      // against this invoice — amountPaid below is a read-modify-write and
+      // a race would silently drop one side's contribution.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${dto.invoiceId}))`;
+
       const invoice = await tx.invoice.findFirst({
         where: { id: dto.invoiceId, tenantId },
       });
