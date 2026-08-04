@@ -37,6 +37,7 @@
 
 - [x] Audit state-transition POST endpoints — verified 2026-07-10: all transition endpoints (send/sign/accept/reject) already carry @HttpCode(200); item was stale
 - [x] Compiled-artifact audit — verified 2026-07-10: no compiled .js/.d.ts tracked (only eslint configs + next-env.d.ts); item was stale
+- [x] Doc cleanup for DocuSeal switch (2026-08-04, fe235b6): PRE_LAUNCH_GAPS.md, README.md, docs/architecture.md, docs/DEPLOYMENT.md, devnotes.md, and docs/OUTREACH.md still described Dropbox Sign as the active/pending signature integration or signatures as watermarked test-mode — both stale since the 2026-07-21 DocuSeal go-live. Updated all six to name DocuSeal as the live provider (SIGNATURE_PROVIDER=docuseal) with Dropbox Sign as the env-switchable fallback. Left docs/LAUNCH-POST.md, docs/GETTING-STARTED.md, and apps/web/app/page.tsx untouched (already correct); left design-plans/landing-signature-provider-copy.md untouched (completed plan record, not live docs).
 
 ## In Progress
 
