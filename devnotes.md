@@ -29,8 +29,11 @@ pnpm dev
 | `CLERK_SECRET_KEY` | `apps/api/.env` | Required when `DEMO_MODE=false` |
 | `CLERK_WEBHOOK_SECRET` | `apps/api/.env` | For `POST /api/v1/webhooks/clerk` |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `apps/web/.env` | Required when demo mode off |
-| `DROPBOX_SIGN_API_KEY` | `apps/api/.env` | Live Dropbox Sign integration |
-| `DROPBOX_SIGN_WEBHOOK_SECRET` | `apps/api/.env` | HMAC verification for webhooks |
+| `SIGNATURE_PROVIDER` | `apps/api/.env` | `docuseal` (live default) or `dropbox_sign` (fallback) |
+| `DOCUSEAL_API_KEY` | `apps/api/.env` | Live DocuSeal integration |
+| `DOCUSEAL_WEBHOOK_SECRET` | `apps/api/.env` | Shared secret, sent as `X-Webhook-Secret` header |
+| `DROPBOX_SIGN_API_KEY` | `apps/api/.env` | Fallback Dropbox Sign integration (only used if `SIGNATURE_PROVIDER=dropbox_sign`) |
+| `DROPBOX_SIGN_WEBHOOK_SECRET` | `apps/api/.env` | HMAC verification for Dropbox Sign webhooks |
 | `STRIPE_SECRET_KEY` | `apps/api/.env` | Enables real Stripe payment links |
 
 ## Key Architecture Notes

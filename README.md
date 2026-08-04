@@ -6,7 +6,7 @@ Multi-tenant proposal-to-payment platform built as a Turborepo monorepo.
 
 - **API:** NestJS + Prisma + PostgreSQL + Redis
 - **Web:** Next.js 14 (App Router) + Clerk + shadcn/ui
-- **Integrations:** Stripe, Dropbox Sign, Resend
+- **Integrations:** Stripe, DocuSeal (Dropbox Sign fallback), Resend
 
 ## Core flow
 

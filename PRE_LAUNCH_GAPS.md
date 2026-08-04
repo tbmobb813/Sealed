@@ -14,12 +14,21 @@ to fix today, but blockers before money or signatures touch the system.
   `PRECONDITION_NOT_MET` with structured details.
 
 ### 2. Agreement send does not call signature provider
-- **Status:** ✅ Resolved (stub wired; real Dropbox Sign API still TODO).
+- **Status:** ✅ Resolved and verified end-to-end in prod (2026-07-21).
 - **File:** `apps/api/src/modules/agreements/agreements.service.ts`
 - **Method:** `sendForSignature()`
-- **Fix:** Calls `DropboxSignService.createSignatureRequest()`, stores
+- **Fix:** Calls `SignatureProviderService.createSignatureRequest()`, which
+  routes to the active provider (`SIGNATURE_PROVIDER` env), and stores
   `signatureRequestId` and `signatureProvider` before transitioning to SENT.
-- **Remaining:** Replace stub with real Dropbox Sign API integration before production.
+- **Provider:** DocuSeal is the live default (`apps/api/src/integrations/docuseal/`)
+  — chosen over Dropbox Sign on cost ($20/mo unlimited vs $100/mo for 100
+  requests). Real agreement sent, real signature, webhook auto-flipped
+  agreement to SIGNED, verified against prod 2026-07-21.
+- **Dropbox Sign:** remains registered as an env-switchable fallback
+  (`apps/api/src/integrations/dropbox-sign/`) so in-flight requests created
+  before the switch keep working. Its real API integration is still a stub —
+  not a blocker since it is not the active provider, but do not switch
+  `SIGNATURE_PROVIDER` back to `dropbox_sign` without finishing it first.
 
 ## High (User-Facing Bugs)
 
@@ -91,10 +100,18 @@ to fix today, but blockers before money or signatures touch the system.
 
 ## Workflow API (added during pre-launch remediation)
 
-### Public proposal accept + Dropbox Sign webhook
-- **Status:** ✅ Implemented.
+### Public proposal accept + signature webhook
+- **Status:** ✅ Implemented and verified live in prod (2026-07-21).
 - **Endpoints:**
   - `GET /proposals/public/:token` — auto-advances SENT → VIEWED
   - `POST /proposals/public/:token/accept` — VIEWED → ACCEPTED
-  - `POST /webhooks/dropbox-sign` — handles `signature_request_signed` → SIGNED
-- **Remaining before production:** Real Dropbox Sign HMAC verification and API calls.
+  - `POST /webhooks/docuseal` — active provider webhook; shared-secret
+    `X-Webhook-Secret` header (`DOCUSEAL_WEBHOOK_SECRET`), status always
+    reconfirmed via `GET /submissions/{id}` before mutating, handles signed
+    submission → SIGNED. Verified against prod: no header → 400, wrong
+    secret → 400, correct secret → 200.
+  - `POST /webhooks/dropbox-sign` — fallback provider webhook (HMAC-verified),
+    kept registered for in-flight requests created before the DocuSeal switch.
+- **Remaining before production:** none for the active (DocuSeal) path. Real
+  Dropbox Sign API calls are still stubbed — only relevant if
+  `SIGNATURE_PROVIDER` is switched back.

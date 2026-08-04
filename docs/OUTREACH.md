@@ -4,13 +4,14 @@ _Drafted 2026-07-10. Goal: 10 freelancers trying Sealed and reporting where it
 breaks. The ask is feedback, not sign-ups — at n=10 a reply beats a
 registration._
 
-**Constraint to stay honest about (updated 2026-07-21):** Resend domain and
-Clerk production are DONE — proposal/invoice emails now deliver to any client
-address. The one remaining limit is the e-signature step: it runs in test
-mode (watermarked, delivers only to the account owner) until the signature
-provider is purchased — now DocuSeal Pro $20/mo, triggered by the first
-tester with a real client ready to sign (see tasks.md). Pitch accordingly:
-everything works for real except the signature is watermarked until then.
+**Status (updated 2026-07-21):** Resend domain and Clerk production are
+DONE — proposal/invoice emails now deliver to any client address. Signatures
+are also DONE and FULLY LIVE: DocuSeal Pro ($20/mo) is purchased and active
+(`SIGNATURE_PROVIDER=docuseal`), verified end-to-end with a real signature
+flipping an agreement to SIGNED via webhook. No watermarking, no test-mode
+hedging needed — variant 1 and the community post below predate this and
+still describe the old test-mode limit; treat 2b's framing as current when
+sending.
 
 ---
 
@@ -45,7 +46,7 @@ learn from the response, then adapt for the next._
 > lives in your head. Deals die in the gaps between them.
 >
 > Sealed chains them: proposal → client accepts via link → e-signed
-> agreement (Dropbox Sign) → invoice with a Stripe payment link. The chain
+> agreement (DocuSeal) → invoice with a Stripe payment link. The chain
 > is enforced — you literally can't invoice an unsigned contract.
 >
 > It's free and early. I'm looking for ~10 freelancers to try it and tell
