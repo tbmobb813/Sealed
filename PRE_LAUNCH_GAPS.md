@@ -26,9 +26,13 @@ to fix today, but blockers before money or signatures touch the system.
   agreement to SIGNED, verified against prod 2026-07-21.
 - **Dropbox Sign:** remains registered as an env-switchable fallback
   (`apps/api/src/integrations/dropbox-sign/`) so in-flight requests created
-  before the switch keep working. Its real API integration is still a stub —
-  not a blocker since it is not the active provider, but do not switch
-  `SIGNATURE_PROVIDER` back to `dropbox_sign` without finishing it first.
+  before the switch keep working. Its real API integration is fully built
+  (real `@dropbox/sign` SDK calls, HMAC-verified webhook) and was itself
+  verified end-to-end in production on 2026-07-10, before the DocuSeal
+  switch — not a stub. `DropboxSignService.isStubMode` only short-circuits
+  to a fake response in dev/CI (`DROPBOX_SIGN_STUB=true` or the test API
+  key), matching the same dev-only pattern Stripe and DocuSeal use. Safe to
+  switch `SIGNATURE_PROVIDER` back to `dropbox_sign` if needed.
 
 ## High (User-Facing Bugs)
 
@@ -56,19 +60,15 @@ to fix today, but blockers before money or signatures touch the system.
 ## Medium (Cleanup)
 
 ### 5. Compiled .js and .d.ts files committed to repo
-- **Files:** Throughout `apps/api/src/`
-- **Issue:** Build artifacts checked into source control.
-- **Fix:** Add to `.gitignore`, remove from history, ensure
-  `pnpm build` only outputs to `dist/`.
-- **Severity:** Low (cosmetic), but affects diff quality and
-  build reproducibility.
+- **Status:** ✅ Resolved — verified 2026-07-10: no compiled `.js`/`.d.ts`
+  tracked under `apps/api/src/` (only eslint configs and `next-env.d.ts`
+  intentionally live outside `dist/`).
 
 ### 6. Send endpoints used to return 201 (now fixed for /send routes,
     but not validated across all endpoints)
-- **Status:** Resolved for proposal, agreement, invoice `/send` routes
-  via `@HttpCode(200)`.
-- **Remaining:** Audit other state-transition POST endpoints
-  (e.g., `/accept`, `/reject`, `/void`) for the same issue.
+- **Status:** ✅ Resolved — verified 2026-07-10: every state-transition
+  POST endpoint (`send`, `sign`, `accept`, `reject`) already carries
+  `@HttpCode(200)`; this item was stale by the time it was checked.
 
 ### 10. StateTransitionFilter orphaned dead code
 - **Status:** N/A — file never existed in current tree; only
@@ -98,6 +98,47 @@ to fix today, but blockers before money or signatures touch the system.
   in multiple places (read in guards, written in transitions).
 - **Caught by:** Step 10 of immutability smoke test returning 200 instead of 409.
 
+## Security Test Coverage
+
+### 11. Zero test coverage on auth/webhook security paths
+- **Status:** ✅ Resolved 2026-08-07.
+- **Issue:** `ClerkAuthGuard`, `TenantGuard`, `RolesGuard`, and the HMAC/
+  shared-secret verification for all three webhooks (Stripe, Dropbox Sign,
+  DocuSeal) had no tests at all — the exact paths where an untested edge
+  case becomes an unauthorized read/write or a forged payment/signature
+  event, not a visible bug. Flagged before any paid-vertical push, since a
+  trust failure here (e.g. a client's deposit) is not recoverable the way a
+  UI bug is.
+- **Fix:** Added unit test coverage (78 tests total) against the real
+  crypto/logic, not mocks of it:
+  - `stripe.service.spec.ts`, `dropbox-sign.service.spec.ts`,
+    `docuseal.service.spec.ts` — signature/secret verification: valid
+    signature, tampered payload, wrong key/secret, replay/staleness
+    (Dropbox Sign), malformed input handled without throwing, unconfigured
+    secret.
+  - `stripe.webhook.controller.spec.ts` — bad signature short-circuits to
+    400 before the event handler runs.
+  - `dropbox-sign.webhook.service.spec.ts`, `docuseal.webhook.service.spec.ts`
+    — status re-confirmed against the provider API rather than trusting the
+    webhook body, idempotent handling of duplicate/out-of-order deliveries,
+    invalid state transitions rejected.
+  - `tenant.guard.spec.ts` — tenant resolved strictly from
+    `request.user.tenantId`, never from client-supplied body/params; only
+    `{id, slug, name}` attached to `request.tenant`.
+  - `roles.guard.spec.ts`, `clerk-auth.guard.spec.ts` — role enforcement,
+    demo-mode token/user checks, disabled-user rejection, and the
+    concurrent-provisioning race (a losing request re-checks for a
+    sibling's already-provisioned user before failing).
+  - `stripe.webhook.service.spec.ts` — also covers the ACH-specific
+    idempotency fix from the same date (see git history): a
+    `checkout.session.completed` with `payment_status !== "paid"` no longer
+    marks the invoice PAID before the debit settles.
+- **Remaining:** these are unit tests against mocked Prisma; no DB is
+  reachable in this environment to run the existing e2e suite
+  (`tests/integration/*.e2e-spec.ts`) as a cross-check. Run
+  `pnpm test:integration` locally/in CI before relying on this as the only
+  signal.
+
 ## Workflow API (added during pre-launch remediation)
 
 ### Public proposal accept + signature webhook
@@ -112,6 +153,6 @@ to fix today, but blockers before money or signatures touch the system.
     secret → 400, correct secret → 200.
   - `POST /webhooks/dropbox-sign` — fallback provider webhook (HMAC-verified),
     kept registered for in-flight requests created before the DocuSeal switch.
-- **Remaining before production:** none for the active (DocuSeal) path. Real
-  Dropbox Sign API calls are still stubbed — only relevant if
-  `SIGNATURE_PROVIDER` is switched back.
+- **Remaining before production:** none. Both providers' real API calls are
+  live and verified in prod (DocuSeal 2026-07-21, Dropbox Sign 2026-07-10);
+  `SIGNATURE_PROVIDER` can be switched between them freely.
