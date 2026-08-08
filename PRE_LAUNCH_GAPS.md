@@ -133,11 +133,10 @@ to fix today, but blockers before money or signatures touch the system.
     idempotency fix from the same date (see git history): a
     `checkout.session.completed` with `payment_status !== "paid"` no longer
     marks the invoice PAID before the debit settles.
-- **Remaining:** these are unit tests against mocked Prisma; no DB is
-  reachable in this environment to run the existing e2e suite
-  (`tests/integration/*.e2e-spec.ts`) as a cross-check. Run
-  `pnpm test:integration` locally/in CI before relying on this as the only
-  signal.
+- **Cross-checked 2026-08-07:** ran the existing e2e suite
+  (`tests/integration/*.e2e-spec.ts`) against a real local Postgres —
+  336/336 tests pass (324 unit + 12 integration), no regressions from the
+  ACH fix or the new security tests above.
 
 ## Workflow API (added during pre-launch remediation)
 
