@@ -17,22 +17,20 @@ to fix today, but blockers before money or signatures touch the system.
 - **Status:** ✅ Resolved and verified end-to-end in prod (2026-07-21).
 - **File:** `apps/api/src/modules/agreements/agreements.service.ts`
 - **Method:** `sendForSignature()`
-- **Fix:** Calls `SignatureProviderService.createSignatureRequest()`, which
-  routes to the active provider (`SIGNATURE_PROVIDER` env), and stores
-  `signatureRequestId` and `signatureProvider` before transitioning to SENT.
-- **Provider:** DocuSeal is the live default (`apps/api/src/integrations/docuseal/`)
-  — chosen over Dropbox Sign on cost ($20/mo unlimited vs $100/mo for 100
-  requests). Real agreement sent, real signature, webhook auto-flipped
-  agreement to SIGNED, verified against prod 2026-07-21.
-- **Dropbox Sign:** remains registered as an env-switchable fallback
-  (`apps/api/src/integrations/dropbox-sign/`) so in-flight requests created
-  before the switch keep working. Its real API integration is fully built
-  (real `@dropbox/sign` SDK calls, HMAC-verified webhook) and was itself
-  verified end-to-end in production on 2026-07-10, before the DocuSeal
-  switch — not a stub. `DropboxSignService.isStubMode` only short-circuits
-  to a fake response in dev/CI (`DROPBOX_SIGN_STUB=true` or the test API
-  key), matching the same dev-only pattern Stripe and DocuSeal use. Safe to
-  switch `SIGNATURE_PROVIDER` back to `dropbox_sign` if needed.
+- **Fix:** Calls `SignatureProviderService.createSignatureRequest()`, and
+  stores `signatureRequestId` and `signatureProvider` before transitioning
+  to SENT.
+- **Provider:** DocuSeal (`apps/api/src/integrations/docuseal/`) — chosen
+  over Dropbox Sign on cost ($20/mo unlimited vs $100/mo for 100 requests).
+  Real agreement sent, real signature, webhook auto-flipped agreement to
+  SIGNED, verified against prod 2026-07-21.
+- **Dropbox Sign:** fully removed 2026-08-08 (`apps/api/src/integrations/dropbox-sign/`,
+  the `SIGNATURE_PROVIDER` env switch, `@dropbox/sign` SDK dependency, and
+  the unused `Tenant.signatureProvider` column all deleted) — confirmed no
+  in-flight signature requests depended on it before removal, and it had
+  no lingering value as a fallback once DocuSeal was the only provider
+  ever used in production. `SignatureProviderService` now talks to
+  DocuSeal unconditionally.
 
 ## High (User-Facing Bugs)
 
@@ -103,25 +101,28 @@ to fix today, but blockers before money or signatures touch the system.
 ### 11. Zero test coverage on auth/webhook security paths
 - **Status:** ✅ Resolved 2026-08-07.
 - **Issue:** `ClerkAuthGuard`, `TenantGuard`, `RolesGuard`, and the HMAC/
-  shared-secret verification for all three webhooks (Stripe, Dropbox Sign,
-  DocuSeal) had no tests at all — the exact paths where an untested edge
+  shared-secret verification for all webhooks (Stripe, Dropbox Sign,
+  DocuSeal — Dropbox Sign since removed, see item 2) had no tests at
+  all — the exact paths where an untested edge
   case becomes an unauthorized read/write or a forged payment/signature
   event, not a visible bug. Flagged before any paid-vertical push, since a
   trust failure here (e.g. a client's deposit) is not recoverable the way a
   UI bug is.
 - **Fix:** Added unit test coverage (78 tests total) against the real
   crypto/logic, not mocks of it:
-  - `stripe.service.spec.ts`, `dropbox-sign.service.spec.ts`,
-    `docuseal.service.spec.ts` — signature/secret verification: valid
-    signature, tampered payload, wrong key/secret, replay/staleness
-    (Dropbox Sign), malformed input handled without throwing, unconfigured
-    secret.
+  - `stripe.service.spec.ts`, `docuseal.service.spec.ts` — signature/secret
+    verification: valid signature, tampered payload, wrong key/secret,
+    malformed input handled without throwing, unconfigured secret.
+    (`dropbox-sign.service.spec.ts` covered the equivalent for Dropbox
+    Sign — including replay/staleness rejection — until that integration
+    was fully removed 2026-08-08; see item 2.)
   - `stripe.webhook.controller.spec.ts` — bad signature short-circuits to
     400 before the event handler runs.
-  - `dropbox-sign.webhook.service.spec.ts`, `docuseal.webhook.service.spec.ts`
-    — status re-confirmed against the provider API rather than trusting the
-    webhook body, idempotent handling of duplicate/out-of-order deliveries,
-    invalid state transitions rejected.
+  - `docuseal.webhook.service.spec.ts` — status re-confirmed against the
+    provider API rather than trusting the webhook body, idempotent
+    handling of duplicate/out-of-order deliveries, invalid state
+    transitions rejected. (`dropbox-sign.webhook.service.spec.ts` covered
+    the same for Dropbox Sign until removal.)
   - `tenant.guard.spec.ts` — tenant resolved strictly from
     `request.user.tenantId`, never from client-supplied body/params; only
     `{id, slug, name}` attached to `request.tenant`.
@@ -145,13 +146,12 @@ to fix today, but blockers before money or signatures touch the system.
 - **Endpoints:**
   - `GET /proposals/public/:token` — auto-advances SENT → VIEWED
   - `POST /proposals/public/:token/accept` — VIEWED → ACCEPTED
-  - `POST /webhooks/docuseal` — active provider webhook; shared-secret
-    `X-Webhook-Secret` header (`DOCUSEAL_WEBHOOK_SECRET`), status always
-    reconfirmed via `GET /submissions/{id}` before mutating, handles signed
-    submission → SIGNED. Verified against prod: no header → 400, wrong
-    secret → 400, correct secret → 200.
-  - `POST /webhooks/dropbox-sign` — fallback provider webhook (HMAC-verified),
-    kept registered for in-flight requests created before the DocuSeal switch.
-- **Remaining before production:** none. Both providers' real API calls are
-  live and verified in prod (DocuSeal 2026-07-21, Dropbox Sign 2026-07-10);
-  `SIGNATURE_PROVIDER` can be switched between them freely.
+  - `POST /webhooks/docuseal` — the only signature provider webhook;
+    shared-secret `X-Webhook-Secret` header (`DOCUSEAL_WEBHOOK_SECRET`),
+    status always reconfirmed via `GET /submissions/{id}` before mutating,
+    handles signed submission → SIGNED. Verified against prod: no header →
+    400, wrong secret → 400, correct secret → 200.
+  - `POST /webhooks/dropbox-sign` — removed 2026-08-08 along with the rest
+    of the Dropbox Sign integration (see item 2); route now 404s.
+- **Remaining before production:** none. DocuSeal's real API calls are
+  live and verified in prod (2026-07-21).

@@ -100,7 +100,7 @@ export const ErrorCodes = {
   // ============================================================
 
   /**
-   * An external integration (Stripe, Dropbox Sign, etc.) returned
+   * An external integration (Stripe, DocuSeal, etc.) returned
    * an error or could not be reached.
    */
   INTEGRATION_ERROR: "INTEGRATION_ERROR",

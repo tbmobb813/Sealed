@@ -7,6 +7,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { Request, Response } from "express";
+import { MulterError } from "multer";
 import { Prisma } from "@sealed/database";
 import { ErrorCodes, ErrorCode } from "../constants/error-codes";
 
@@ -87,6 +88,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // 2. Prisma known request errors (e.g., P2002 unique constraint)
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       return this.normalizePrismaError(exception);
+    }
+
+    // 2b. Multer upload-limit errors — these fire during interceptor/parse
+    // time (before any route handler try/catch could see them) and are a
+    // plain Error, not an HttpException, so they'd otherwise fall through
+    // to the generic 500 branch below. They're always a client input
+    // problem (oversized/malformed upload), never a server fault.
+    if (exception instanceof MulterError) {
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: exception.message,
+        details: { limitCode: exception.code },
+      };
     }
 
     // 3. Prisma validation errors (invalid query, bad data shape)

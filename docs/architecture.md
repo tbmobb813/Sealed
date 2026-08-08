@@ -8,7 +8,7 @@
 | Backend | NestJS |
 | Database | PostgreSQL via Prisma |
 | Auth | Clerk (demo mode available) |
-| E-Signatures | DocuSeal (live, provider-switched; Dropbox Sign fallback) |
+| E-Signatures | DocuSeal (live) |
 | Payments | Stripe |
 | Monorepo | Turborepo + pnpm workspaces |
 
@@ -27,13 +27,11 @@ State gates are enforced via `assertPrecondition()` — no skipping steps.
 - `invoices` — created from signed agreement; sent with Stripe payment link
 - `clients` — tenant-scoped client records
 - `activity` — append-only event log for every mutation
-- `signature` — `SignatureProviderService` facade; routes to the active provider via `SIGNATURE_PROVIDER` env
-- `docuseal` — e-signature provider integration (live default)
-- `dropbox-sign` — e-signature provider integration (fallback, kept registered for in-flight requests)
+- `signature` — `SignatureProviderService` facade in front of the DocuSeal integration
+- `docuseal` — e-signature provider integration (the only provider)
 - `stripe` — payment link provider integration
 - `webhooks/clerk` — user provisioning
-- `webhooks/docuseal` — signature completion callback (active provider)
-- `webhooks/dropbox-sign` — signature completion callback (fallback provider)
+- `webhooks/docuseal` — signature completion callback
 
 ## Authentication Modes
 

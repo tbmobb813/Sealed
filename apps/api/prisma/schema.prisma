@@ -27,8 +27,7 @@ model Tenant {
   
   // Integration settings
   stripeAccountId      String? @map("stripe_account_id")
-  signatureProvider    String? @default("dropbox_sign") @map("signature_provider")
-  
+
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
