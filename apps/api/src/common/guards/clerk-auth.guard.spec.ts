@@ -199,6 +199,42 @@ describe("ClerkAuthGuard", () => {
       });
     });
 
+    it("verifies the token's authorized-party claim against CORS_ORIGIN, guarding against subdomain cookie leaking", async () => {
+      config.get.mockImplementation((key: string) => {
+        if (key === "DEMO_MODE") return undefined;
+        if (key === "CLERK_SECRET_KEY") return "sk_test_clerk";
+        if (key === "CORS_ORIGIN") return "https://app.sealed.test";
+        return undefined;
+      });
+      mockedVerifyToken.mockResolvedValue({ sub: "clerk_abc" });
+      prisma.user.findFirst.mockResolvedValue(ACTIVE_USER);
+      const request: Record<string, unknown> = {
+        headers: { authorization: "Bearer valid" },
+      };
+
+      await guard.canActivate(contextWith(request));
+
+      expect(mockedVerifyToken).toHaveBeenCalledWith("valid", {
+        secretKey: "sk_test_clerk",
+        authorizedParties: ["https://app.sealed.test"],
+      });
+    });
+
+    it("falls back to the localhost dev origin for authorizedParties when CORS_ORIGIN is unset", async () => {
+      mockedVerifyToken.mockResolvedValue({ sub: "clerk_abc" });
+      prisma.user.findFirst.mockResolvedValue(ACTIVE_USER);
+      const request: Record<string, unknown> = {
+        headers: { authorization: "Bearer valid" },
+      };
+
+      await guard.canActivate(contextWith(request));
+
+      expect(mockedVerifyToken).toHaveBeenCalledWith("valid", {
+        secretKey: "sk_test_clerk",
+        authorizedParties: ["http://localhost:3000"],
+      });
+    });
+
     it("rejects a disabled (non-ACTIVE) user even with a valid token", async () => {
       mockedVerifyToken.mockResolvedValue({ sub: "clerk_abc" });
       prisma.user.findFirst.mockResolvedValue({ ...ACTIVE_USER, status: "DISABLED" });
