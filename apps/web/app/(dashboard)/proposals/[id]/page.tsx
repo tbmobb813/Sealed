@@ -11,11 +11,12 @@ type ProposalDetail = Proposal & { contact?: { name: string; email: string } };
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default async function ProposalDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ProposalDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   let proposal: ProposalDetail;
 
   try {

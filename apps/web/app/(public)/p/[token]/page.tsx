@@ -5,11 +5,12 @@ import { AcceptProposalButton } from "@/components/features/proposals/accept-pro
 import { DeclineProposalButton } from "@/components/features/proposals/decline-proposal-button";
 import type { PublicProposalView } from "@sealed/types";
 
-export default async function PublicProposalPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function PublicProposalPage(
+  props: {
+    params: Promise<{ token: string }>;
+  }
+) {
+  const params = await props.params;
   let proposal: PublicProposalView | null = null;
 
   try {

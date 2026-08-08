@@ -3,11 +3,12 @@ import { PageHeader } from "@/components/features/shared/page-header";
 import { apiClient } from "@/lib/api-client";
 import type { Contact } from "@sealed/types";
 
-export default async function ContactDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ContactDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   let contact: Contact;
 
   try {

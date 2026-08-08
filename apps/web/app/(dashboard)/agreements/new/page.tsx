@@ -4,11 +4,12 @@ import { AgreementForm } from "@/components/features/agreements/agreement-form";
 import { apiClient } from "@/lib/api-client";
 import type { Proposal } from "@sealed/types";
 
-export default async function NewAgreementPage({
-  searchParams,
-}: {
-  searchParams: { proposalId?: string };
-}) {
+export default async function NewAgreementPage(
+  props: {
+    searchParams: Promise<{ proposalId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const proposalId = searchParams.proposalId;
 
   if (!proposalId) {

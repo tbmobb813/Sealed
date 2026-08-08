@@ -1,11 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 
-export default function InvoicePaidPage({
-  searchParams,
-}: {
-  searchParams: { invoiceId?: string };
-}) {
+export default async function InvoicePaidPage(
+  props: {
+    searchParams: Promise<{ invoiceId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const invoiceId = searchParams.invoiceId;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   sendAgreement,
@@ -28,11 +29,11 @@ export function AgreementActions({
   const sendWithId = sendAgreement.bind(null, agreementId);
   const signWithId = signAgreement.bind(null, agreementId);
 
-  const [sendState, sendAction] = useFormState<AgreementActionState, FormData>(
+  const [sendState, sendAction] = useActionState<AgreementActionState, FormData>(
     sendWithId,
     {},
   );
-  const [signState, signAction] = useFormState<AgreementActionState, FormData>(
+  const [signState, signAction] = useActionState<AgreementActionState, FormData>(
     signWithId,
     {},
   );

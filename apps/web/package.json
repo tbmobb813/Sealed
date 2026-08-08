@@ -11,16 +11,15 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.0",
-    "@clerk/ui": "^1.20.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@sealed/types": "workspace:*",
     "@sealed/ui": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
-    "next": "^14.2.29",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "svix": "^1.66.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7"
@@ -28,12 +27,18 @@
   "devDependencies": {
     "@sealed/config": "workspace:*",
     "@types/node": "^22.15.29",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.27.0",
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.18",
+      "@types/react-dom": "19.2.4"
+    }
   }
 }

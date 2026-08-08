@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   sendInvoice,
@@ -18,7 +19,7 @@ function SendButton() {
 
 export function InvoiceActions({ invoiceId }: { invoiceId: string }) {
   const sendWithId = sendInvoice.bind(null, invoiceId);
-  const [state, formAction] = useFormState<InvoiceActionState, FormData>(
+  const [state, formAction] = useActionState<InvoiceActionState, FormData>(
     sendWithId,
     {},
   );
