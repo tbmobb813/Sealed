@@ -18,6 +18,16 @@ export default function PublicLayout({
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">{children}</main>
+      <footer className="border-t bg-background py-6">
+        <div className="container mx-auto px-4 text-center">
+          <Link
+            href="/?ref=powered-by"
+            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Powered by <span className="font-semibold">Sealed</span>
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
