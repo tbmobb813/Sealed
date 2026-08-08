@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { sendProposal, type ProposalActionState } from "@/app/(dashboard)/proposals/[id]/actions";
 
@@ -15,7 +16,7 @@ function SendButton() {
 
 export function ProposalActions({ proposalId }: { proposalId: string }) {
   const sendWithId = sendProposal.bind(null, proposalId);
-  const [state, formAction] = useFormState<ProposalActionState, FormData>(
+  const [state, formAction] = useActionState<ProposalActionState, FormData>(
     sendWithId,
     {},
   );

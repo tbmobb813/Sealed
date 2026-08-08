@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useMemo, useState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MoneyDisplay } from "@sealed/ui";
@@ -39,7 +39,7 @@ function SubmitButton() {
 }
 
 export function ProposalForm({ contacts }: { contacts: Contact[] }) {
-  const [state, formAction] = useFormState<ProposalFormState, FormData>(
+  const [state, formAction] = useActionState<ProposalFormState, FormData>(
     createProposal,
     {},
   );

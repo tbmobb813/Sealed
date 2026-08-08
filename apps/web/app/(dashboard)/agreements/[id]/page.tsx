@@ -7,11 +7,12 @@ import { AgreementActions } from "@/components/features/agreements";
 import { apiClient } from "@/lib/api-client";
 import type { Agreement } from "@sealed/types";
 
-export default async function AgreementDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function AgreementDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   let agreement: Agreement;
 
   try {
