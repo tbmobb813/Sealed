@@ -13,8 +13,11 @@ async function bootstrap() {
   });
   app.use(helmet());
   if (process.env.NODE_ENV === "production" && !process.env.CORS_ORIGIN) {
-    console.warn(
-      "WARNING: CORS_ORIGIN is not set in production — browsers will only be allowed from http://localhost:3000",
+    // Fail loudly rather than silently booting with a localhost-only
+    // default — a misconfigured prod deploy should refuse to start, not
+    // come up quietly unreachable from the real frontend.
+    throw new Error(
+      "CORS_ORIGIN must be set in production — refusing to start with a localhost-only default",
     );
   }
   const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
