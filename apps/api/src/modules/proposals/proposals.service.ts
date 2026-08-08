@@ -6,6 +6,7 @@ import {
   PROPOSAL_TRANSITIONS,
 } from "../../common/constants/state-transitions";
 import { assertMutable } from "../../common/constants/mutability";
+import { assertMoneyInRange } from "../../common/helpers/assert-money-in-range";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { ResendService } from "../../integrations/resend/resend.service";
 import { CreateProposalDto, UpdateProposalDto } from "./dto/create-proposal.dto";
@@ -39,6 +40,10 @@ export class ProposalsService {
       new Prisma.Decimal(0),
     );
     const total = subtotal.add(taxAmount);
+    // Reject before hitting the DB — a Decimal(12,2) overflow at insert time
+    // surfaces as an uncaught 500, not a clean validation error.
+    assertMoneyInRange(subtotal, "subtotal");
+    assertMoneyInRange(total, "totalAmount");
     return { subtotal, taxAmount, totalAmount: total };
   }
 
@@ -372,6 +377,12 @@ export class ProposalsService {
         taxAmount = totals.taxAmount;
         totalAmount = totals.totalAmount;
         lineItems = this.buildLineItems(dto.lineItems);
+      } else if (dto.taxAmount !== undefined) {
+        // lineItems unchanged, but a new taxAmount alone can still push the
+        // total past what Decimal(12,2) can store — calcTotals isn't called
+        // on this branch, so check explicitly.
+        totalAmount = subtotal.add(taxAmount);
+        assertMoneyInRange(totalAmount, "totalAmount");
       }
 
       await tx.proposal.updateMany({

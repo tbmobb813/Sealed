@@ -48,7 +48,16 @@ export class DropboxSignWebhookController {
         fileSize: 1024 * 1024,
         fields: 20,
         fieldSize: 1024 * 1024,
-      },
+        // Dropbox Sign's payload is a single flat `json` field — it never
+        // uses bracket-notation field names. Without this, multer defaults
+        // to unlimited nesting depth (GHSA-72gw-mp4g-v24j): a single small
+        // request with a deeply nested field name (`a[a][a]...`) can exhaust
+        // CPU/memory building the resulting object. @nestjs/platform-express
+        // 11.1.27's MulterOptions type predates this multer 2.2.0 option —
+        // the `as` cast below is for the stale type only, multer's runtime
+        // (verified in its source) honors the option regardless.
+        fieldNestingDepth: 0,
+      } as { files: number; fileSize: number; fields: number; fieldSize: number; fieldNestingDepth: number },
     }),
   )
   async handleWebhook(@Req() req: Request) {
@@ -58,16 +67,22 @@ export class DropboxSignWebhookController {
 
     if (typeof body.json === "string") {
       rawJson = body.json;
-      try {
-        payload = JSON.parse(rawJson);
-      } catch {
-        // Malformed payload — acknowledge so Dropbox Sign doesn't retry/disable the callback URL.
-        return WEBHOOK_ACK;
-      }
+      try {
+        payload = JSON.parse(rawJson);
+      } catch {
+        // Malformed payload — acknowledge so Dropbox Sign doesn't retry/disable the callback URL.
+        return WEBHOOK_ACK;
+      }
     } else {
       // Fallback for integration tests sending application/json
       payload = body;
-      rawJson = JSON.stringify(body);
+      try {
+        rawJson = JSON.stringify(body);
+      } catch {
+        // A pathological body (e.g. deeply nested, or otherwise
+        // unstringifiable) — ack rather than let this throw uncaught.
+        return WEBHOOK_ACK;
+      }
     }
 
     return this.dropboxSignWebhookService.handleWebhook(payload, rawJson);

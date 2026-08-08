@@ -2,6 +2,13 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# Force every transitive copy (e.g. @nestjs/platform-express's own nested
+# multer@2.1.1, vulnerable to GHSA-72gw-mp4g-v24j DoS via deeply nested
+# multipart field names) up to the patched version, not just apps/api's
+# direct dependency declaration.
+overrides:
+  multer: "^2.2.0"
+
 # pnpm 11 blocks dependency build scripts unless explicitly allowed.
 allowBuilds:
   "@clerk/shared": true

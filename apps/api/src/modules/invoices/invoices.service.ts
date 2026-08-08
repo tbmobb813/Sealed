@@ -6,6 +6,7 @@ import {
   assertTransition,
   INVOICE_TRANSITIONS,
 } from "../../common/constants/state-transitions";
+import { assertMoneyInRange } from "../../common/helpers/assert-money-in-range";
 import { assertPrecondition } from "../../common/helpers/assert-precondition";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import { throwIntegrationError } from "../../common/helpers/throw-integration-error";
@@ -80,6 +81,10 @@ export class InvoicesService {
       const subtotalDecimal = new Prisma.Decimal(dto.subtotal);
       const taxAmountDecimal = new Prisma.Decimal(dto.taxAmount ?? 0);
       const totalAmount = subtotalDecimal.add(taxAmountDecimal);
+      // Reject before hitting the DB — a Decimal(12,2) overflow at insert
+      // time surfaces as an uncaught 500, not a clean validation error.
+      assertMoneyInRange(subtotalDecimal, "subtotal");
+      assertMoneyInRange(totalAmount, "totalAmount");
 
       const invoice = await tx.invoice.create({
         data: {
@@ -140,6 +145,8 @@ export class InvoicesService {
           ? new Prisma.Decimal(dto.taxAmount)
           : existing.taxAmount;
       const totalAmount = subtotal.add(taxAmount);
+      assertMoneyInRange(subtotal, "subtotal");
+      assertMoneyInRange(totalAmount, "totalAmount");
 
       await tx.invoice.updateMany({
         where: { id, tenantId },
