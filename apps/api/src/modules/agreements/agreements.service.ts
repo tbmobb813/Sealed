@@ -139,7 +139,7 @@ export class AgreementsService {
   }
 
   async sendForSignature(tenantId: string, userId: string, id: string) {
-    // External call happens outside the transaction: Dropbox Sign latency
+    // External call happens outside the transaction: DocuSeal latency
     // would otherwise hold a DB connection and can exceed the interactive
     // transaction timeout, aborting the commit after the signature request
     // was already created (orphaning it and duplicating on retry).
@@ -260,7 +260,6 @@ export class AgreementsService {
         try {
           await this.signatureProvider.cancelSignatureRequest(
             signatureRequestId,
-            providerName,
           );
         } catch {
           // Best-effort cleanup; surface the original failure.

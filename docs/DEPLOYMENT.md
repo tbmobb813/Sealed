@@ -39,8 +39,7 @@ Migrations run automatically before each API deploy via `preDeployCommand`
 | Provider | URL | Secret env var |
 |---|---|---|
 | Stripe | `https://<api-domain>/api/v1/webhooks/stripe` | `STRIPE_WEBHOOK_SECRET` |
-| DocuSeal (active) | `https://<api-domain>/api/v1/webhooks/docuseal` | `X-Webhook-Secret` header = `DOCUSEAL_WEBHOOK_SECRET` |
-| Dropbox Sign (fallback) | `https://<api-domain>/api/v1/webhooks/dropbox-sign` | verified via `DROPBOX_SIGN_API_KEY` HMAC |
+| DocuSeal | `https://<api-domain>/api/v1/webhooks/docuseal` | `X-Webhook-Secret` header = `DOCUSEAL_WEBHOOK_SECRET` |
 | Clerk | `https://<api-domain>/api/v1/webhooks/clerk` | `CLERK_WEBHOOK_SECRET` |
 
 Register each in the provider dashboard, then copy the signing secret into
@@ -58,11 +57,8 @@ the Railway service variables.
 | `CLERK_WEBHOOK_SECRET` | Clerk webhook endpoint signing secret |
 | `STRIPE_SECRET_KEY` | Live key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | From the registered Stripe endpoint |
-| `SIGNATURE_PROVIDER` | `docuseal` |
 | `DOCUSEAL_API_KEY` | Production API key |
 | `DOCUSEAL_WEBHOOK_SECRET` | Shared secret sent as `X-Webhook-Secret` |
-| `DROPBOX_SIGN_API_KEY` | Production API key (fallback provider, only used if `SIGNATURE_PROVIDER=dropbox_sign`) |
-| `DROPBOX_SIGN_TEST_MODE` | `false` |
 | `RESEND_API_KEY` | Production key |
 | `CORS_ORIGIN` | Web app origin, e.g. `https://app.example.com` |
 | `WEB_URL` | Same as `CORS_ORIGIN` |

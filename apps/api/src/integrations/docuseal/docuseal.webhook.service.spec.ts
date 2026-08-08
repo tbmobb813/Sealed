@@ -135,7 +135,9 @@ describe("DocuSealWebhookService", () => {
     expect(result).toBe(WEBHOOK_ACK);
   });
 
-  it("scopes the agreement lookup to signatureProvider=docuseal so a Dropbox Sign agreement with the same numeric id can't be hit", async () => {
+  it("scopes the agreement lookup to signatureProvider=docuseal so a legacy non-DocuSeal agreement with the same numeric id can't be hit", async () => {
+    // Protects historical rows from a since-removed provider integration —
+    // signatureProvider is free text on the Agreement model, not an enum.
     agreements[0].signatureProvider = "dropbox_sign";
 
     const result = await service.handleWebhook(makePayload(), SECRET);
