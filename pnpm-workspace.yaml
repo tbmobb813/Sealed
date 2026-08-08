@@ -8,6 +8,10 @@ packages:
 # direct dependency declaration.
 overrides:
   multer: "^2.2.0"
+  # next@14.2.35 bundles its own postcss@8.4.31 internally (build-time only,
+  # never processes attacker input in this app) — force the patched line.
+  postcss: "^8.5.23"
+  nanoid: "^3.3.17"
 
 # pnpm 11 blocks dependency build scripts unless explicitly allowed.
 allowBuilds:
