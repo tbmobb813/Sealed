@@ -18,8 +18,9 @@ export async function createTestApp(): Promise<INestApplication> {
   process.env.DEMO_MODE = "true";
   // Force the test key (not ??=): the service is mocked and webhook HMACs
   // are built from this env var, so a real key from .env must never win.
+  // Dropbox Sign has no separate webhook secret — verifyWebhook signs with
+  // DROPBOX_SIGN_API_KEY itself.
   process.env.DROPBOX_SIGN_API_KEY = "test_dropbox_sign_key";
-  process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";
   // Same forcing rationale for DocuSeal — the service is mocked and the
   // webhook secret check reads this env var.
   process.env.DOCUSEAL_API_KEY = "test_docuseal_key";
