@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
 export function ClerkAuthControls() {
   return (
     <div className="space-y-3">
-      <SignedOut>
+      <Show when="signed-out">
         <div className="flex flex-col gap-2">
           <SignInButton mode="redirect">
             <button
@@ -30,10 +24,10 @@ export function ClerkAuthControls() {
             </button>
           </SignUpButton>
         </div>
-      </SignedOut>
-      <SignedIn>
-        <UserButton afterSignOutUrl="/sign-in" />
-      </SignedIn>
+      </Show>
+      <Show when="signed-in">
+        <UserButton signOutForceRedirectUrl="/sign-in" />
+      </Show>
     </div>
   );
 }
