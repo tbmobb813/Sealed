@@ -1,4 +1,4 @@
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
 import { Request } from "express";
 import { StripeWebhookController } from "./stripe.webhook.controller";
 import { StripeService } from "./stripe.service";
@@ -47,10 +47,12 @@ describe("StripeWebhookController", () => {
     expect(result).toEqual({ received: true, type: event.type });
   });
 
-  it("still acks 200 if the verified event's handler throws (avoids infinite Stripe retries)", async () => {
+  it("acks 200 without rethrowing when the handler rejects with ConflictException (a permanent, retry-can't-fix-it failure)", async () => {
     const event = { type: "checkout.session.completed", data: { object: {} } };
     stripeService.constructEvent.mockReturnValue(event);
-    webhookService.handleEvent.mockRejectedValue(new Error("boom"));
+    webhookService.handleEvent.mockRejectedValue(
+      new ConflictException("Cannot transition invoice from PAID to PAID"),
+    );
 
     const result = await controller.handleWebhook(
       req(Buffer.from("{}")),
@@ -58,6 +60,20 @@ describe("StripeWebhookController", () => {
     );
 
     expect(result).toEqual({ received: true, type: event.type });
+  });
+
+  it("rethrows (so Stripe retries) when the handler rejects with anything other than ConflictException", async () => {
+    // A dropped DB connection or any other unexpected failure must NOT be
+    // acked 200 — that would silently drop the event with no path to
+    // reconciliation. Only a genuinely permanent business-rule rejection
+    // (ConflictException) should stop Stripe from retrying.
+    const event = { type: "checkout.session.completed", data: { object: {} } };
+    stripeService.constructEvent.mockReturnValue(event);
+    webhookService.handleEvent.mockRejectedValue(new Error("connection terminated"));
+
+    await expect(
+      controller.handleWebhook(req(Buffer.from("{}")), "good-signature"),
+    ).rejects.toThrow("connection terminated");
   });
 
   it("passes an empty buffer to signature verification when rawBody is missing, so it fails closed rather than skipping verification", async () => {
