@@ -31,7 +31,7 @@
     "helmet": "^8.2.0",
     "multer": "^2.2.0",
     "reflect-metadata": "^0.2.2",
-    "resend": "^4.8.0",
+    "resend": "^6.18.1",
     "rxjs": "^7.8.2",
     "stripe": "^18.5.0",
     "svix": "^1.66.0",
