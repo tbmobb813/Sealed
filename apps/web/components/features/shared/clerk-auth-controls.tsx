@@ -26,7 +26,16 @@ export function ClerkAuthControls() {
         </div>
       </Show>
       <Show when="signed-in">
-        <UserButton signOutForceRedirectUrl="/sign-in" />
+        {/*
+          No declarative post-sign-out redirect prop exists on UserButton in
+          this Clerk version (confirmed against the installed @clerk/shared
+          types — the old afterSignOutUrl/signOutForceRedirectUrl props are
+          gone; redirect is now only settable imperatively via
+          useClerk().signOut({ redirectUrl })). Dropping it is safe: proxy.ts
+          already redirects unauthenticated users to /sign-in on their next
+          navigation.
+        */}
+        <UserButton />
       </Show>
     </div>
   );
