@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import { Instrument_Sans, Lora } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { canInitializeClerk } from "@/lib/demo";
 import "./globals.css";
 
@@ -48,6 +49,7 @@ export default function RootLayout({
         ) : (
           children
         )}
+        <Analytics />
       </body>
     </html>
   );
