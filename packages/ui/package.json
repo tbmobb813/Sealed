@@ -15,9 +15,9 @@
   },
   "devDependencies": {
     "@sealed/config": "workspace:*",
-    "@types/react": "^18.3.23",
+    "@types/react": "^19.2.18",
     "eslint": "^10.8.0",
-    "react": "^18.3.1",
+    "react": "^19.2.8",
     "typescript": "^5.8.3"
   }
 }
