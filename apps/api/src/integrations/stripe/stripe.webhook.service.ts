@@ -161,6 +161,14 @@ export class StripeWebhookService {
         return;
       }
 
+      const sessionCurrency = session.currency?.toUpperCase();
+      if (sessionCurrency && sessionCurrency !== invoice.currency) {
+        this.logger.error(
+          `Stripe session ${session.id} currency ${sessionCurrency} does not match invoice ${invoiceId} currency ${invoice.currency} — skipping`,
+        );
+        return;
+      }
+
       const amount = session.amount_total
         ? new Prisma.Decimal(session.amount_total).div(100)
         : invoice.totalAmount;
@@ -172,7 +180,7 @@ export class StripeWebhookService {
           provider: "STRIPE",
           providerPaymentId: session.id,
           amount,
-          currency: session.currency?.toUpperCase() ?? invoice.currency,
+          currency: sessionCurrency ?? invoice.currency,
           status: "PENDING",
         },
       });
@@ -222,6 +230,14 @@ export class StripeWebhookService {
         return;
       }
 
+      const sessionCurrency = session.currency?.toUpperCase();
+      if (sessionCurrency && sessionCurrency !== invoice.currency) {
+        this.logger.error(
+          `Stripe session ${session.id} currency ${sessionCurrency} does not match invoice ${invoiceId} currency ${invoice.currency} — skipping`,
+        );
+        return;
+      }
+
       const paidNow = session.amount_total
         ? new Prisma.Decimal(session.amount_total).div(100)
         : invoice.totalAmount;
@@ -252,7 +268,7 @@ export class StripeWebhookService {
             provider: "STRIPE",
             providerPaymentId: session.id,
             amount: paidNow,
-            currency: session.currency?.toUpperCase() ?? invoice.currency,
+            currency: sessionCurrency ?? invoice.currency,
             status: "SUCCEEDED",
             succeededAt: new Date(),
           },
