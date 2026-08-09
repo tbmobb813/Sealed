@@ -20,7 +20,7 @@
     "@sealed/database": "workspace:*",
     "pg": "^8.22.0",
     "turbo": "^2.10.8",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@11.9.0",
   "engines": {
