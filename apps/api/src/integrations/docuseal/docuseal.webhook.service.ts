@@ -5,6 +5,7 @@ import {
   AGREEMENT_TRANSITIONS,
 } from "../../common/constants/state-transitions";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { claimWebhookEvent } from "../../common/helpers/claim-webhook-event";
 import { DocuSealService } from "./docuseal.service";
 
 type DocuSealWebhookPayload = {
@@ -67,13 +68,13 @@ export class DocuSealWebhookService {
     }
 
     if (expected === "signed") {
-      return this.handleSigned(signatureRequestId);
+      return this.handleSigned(signatureRequestId, eventType);
     }
 
-    return this.handleDeclined(signatureRequestId);
+    return this.handleDeclined(signatureRequestId, eventType);
   }
 
-  private async handleSigned(signatureRequestId: string) {
+  private async handleSigned(signatureRequestId: string, eventType: string) {
     return this.prisma.$transaction(async (tx) => {
       const agreement = await tx.agreement.findFirst({
         where: { signatureRequestId, signatureProvider: "docuseal" },
@@ -84,6 +85,24 @@ export class DocuSealWebhookService {
       if (!agreement) {
         this.logger.warn(
           `Signed event for unknown submission ${signatureRequestId}`,
+        );
+        return WEBHOOK_ACK;
+      }
+
+      // No provider-guaranteed unique delivery id exists for DocuSeal;
+      // key on (submission, event type). Claimed after resolving the
+      // agreement (for tenantId) but before the status-check dedup below,
+      // which remains the primary correctness mechanism — this is
+      // defense-in-depth/observability, not a replacement for it.
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "DOCUSEAL",
+        externalEventId: `${signatureRequestId}:${eventType}`,
+        eventType,
+        tenantId: agreement.tenantId,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `DocuSeal event ${signatureRequestId}:${eventType} already processed — skipping (inbox dedup)`,
         );
         return WEBHOOK_ACK;
       }
@@ -123,7 +142,7 @@ export class DocuSealWebhookService {
     });
   }
 
-  private async handleDeclined(signatureRequestId: string) {
+  private async handleDeclined(signatureRequestId: string, eventType: string) {
     return this.prisma.$transaction(async (tx) => {
       const agreement = await tx.agreement.findFirst({
         where: { signatureRequestId, signatureProvider: "docuseal" },
@@ -132,6 +151,19 @@ export class DocuSealWebhookService {
       if (!agreement) {
         this.logger.warn(
           `Declined event for unknown submission ${signatureRequestId}`,
+        );
+        return WEBHOOK_ACK;
+      }
+
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "DOCUSEAL",
+        externalEventId: `${signatureRequestId}:${eventType}`,
+        eventType,
+        tenantId: agreement.tenantId,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `DocuSeal event ${signatureRequestId}:${eventType} already processed — skipping (inbox dedup)`,
         );
         return WEBHOOK_ACK;
       }

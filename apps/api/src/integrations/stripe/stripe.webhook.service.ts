@@ -6,6 +6,7 @@ import {
   INVOICE_TRANSITIONS,
 } from "../../common/constants/state-transitions";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { claimWebhookEvent } from "../../common/helpers/claim-webhook-event";
 import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
@@ -19,16 +20,22 @@ export class StripeWebhookService {
       case "checkout.session.completed":
         await this.handleCheckoutSessionCompleted(
           event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
         );
         return;
       case "checkout.session.async_payment_succeeded":
         await this.handleAsyncPaymentSucceeded(
           event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
         );
         return;
       case "checkout.session.async_payment_failed":
         await this.handleAsyncPaymentFailed(
           event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
         );
         return;
     }
@@ -38,6 +45,8 @@ export class StripeWebhookService {
 
   private async handleCheckoutSessionCompleted(
     session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     const invoiceId = session.metadata?.invoiceId;
     if (!invoiceId) {
@@ -54,15 +63,17 @@ export class StripeWebhookService {
     // "paid" status means money has actually landed. Anything else is
     // resolved later by async_payment_succeeded/async_payment_failed.
     if (session.payment_status !== "paid") {
-      await this.recordPendingPayment(session, invoiceId);
+      await this.recordPendingPayment(session, invoiceId, eventId, eventType);
       return;
     }
 
-    await this.applySuccessfulPayment(session, invoiceId);
+    await this.applySuccessfulPayment(session, invoiceId, eventId, eventType);
   }
 
   private async handleAsyncPaymentSucceeded(
     session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     const invoiceId = session.metadata?.invoiceId;
     if (!invoiceId) {
@@ -72,11 +83,13 @@ export class StripeWebhookService {
       return;
     }
 
-    await this.applySuccessfulPayment(session, invoiceId);
+    await this.applySuccessfulPayment(session, invoiceId, eventId, eventType);
   }
 
   private async handleAsyncPaymentFailed(
     session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     const invoiceId = session.metadata?.invoiceId;
     if (!invoiceId) {
@@ -87,6 +100,18 @@ export class StripeWebhookService {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
       const payment = await tx.payment.findUnique({
         where: { providerPaymentId: session.id },
       });
@@ -144,8 +169,22 @@ export class StripeWebhookService {
   private async recordPendingPayment(
     session: Stripe.Checkout.Session,
     invoiceId: string,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
       const alreadyRecorded = await tx.payment.findUnique({
         where: { providerPaymentId: session.id },
       });
@@ -194,8 +233,22 @@ export class StripeWebhookService {
   private async applySuccessfulPayment(
     session: Stripe.Checkout.Session,
     invoiceId: string,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
       // providerPaymentId is unique — an already-succeeded session means this
       // event was processed; ack the retry without double-applying it.
       const existingPayment = await tx.payment.findUnique({

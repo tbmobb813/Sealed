@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException } from "@nestjs/common";
+import { Prisma } from "@sealed/database";
 import { PrismaService } from "../../prisma/prisma.service";
 import { DocuSealService } from "./docuseal.service";
 import { DocuSealWebhookService } from "./docuseal.webhook.service";
@@ -17,9 +18,11 @@ function makePayload(overrides: Record<string, unknown> = {}) {
 describe("DocuSealWebhookService", () => {
   let agreements: Record<string, unknown>[];
   let activityEvents: Record<string, unknown>[];
+  let inboxEvents: Array<{ provider: string; externalEventId: string }>;
   let tx: {
     agreement: { findFirst: jest.Mock; update: jest.Mock };
     activityEvent: { create: jest.Mock };
+    webhookInboxEvent: { create: jest.Mock };
   };
   let prisma: { $transaction: jest.Mock };
   let docuSealService: {
@@ -41,8 +44,29 @@ describe("DocuSealWebhookService", () => {
       },
     ];
     activityEvents = [];
+    inboxEvents = [];
 
     tx = {
+      webhookInboxEvent: {
+        create: jest.fn(({ data }) => {
+          const conflict = inboxEvents.some(
+            (e) =>
+              e.provider === data.provider &&
+              e.externalEventId === data.externalEventId,
+          );
+          if (conflict) {
+            throw new Prisma.PrismaClientKnownRequestError(
+              "Unique constraint failed",
+              { code: "P2002", clientVersion: "5.0.0" },
+            );
+          }
+          inboxEvents.push({
+            provider: data.provider,
+            externalEventId: data.externalEventId,
+          });
+          return Promise.resolve({ id: `inbox-${inboxEvents.length}` });
+        }),
+      },
       agreement: {
         findFirst: jest.fn(({ where: { signatureRequestId, signatureProvider } }) =>
           Promise.resolve(
@@ -187,6 +211,22 @@ describe("DocuSealWebhookService", () => {
 
     expect(agreements[0]).toMatchObject({ status: "DECLINED", signatureStatus: "DECLINED" });
     expect(activityEvents[0]).toMatchObject({ eventType: "agreement.declined" });
+  });
+
+  it("claims the inbox for the completed event and short-circuits a redelivery before re-updating the agreement", async () => {
+    await service.handleWebhook(makePayload(), SECRET);
+    tx.agreement.update.mockClear();
+
+    const result = await service.handleWebhook(makePayload(), SECRET);
+
+    expect(result).toBe(WEBHOOK_ACK);
+    // confirmSignatureRequestStatus is called before the inbox claim (it
+    // resolves signatureRequestId's real status ahead of opening the
+    // transaction) so it still runs on redelivery — only the mutation
+    // inside the transaction is short-circuited.
+    expect(docuSealService.confirmSignatureRequestStatus).toHaveBeenCalledTimes(2);
+    expect(tx.agreement.update).not.toHaveBeenCalled();
+    expect(inboxEvents).toEqual([{ provider: "DOCUSEAL", externalEventId: "42:submission.completed" }]);
   });
 
   it("is idempotent on a duplicate declined webhook", async () => {

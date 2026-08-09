@@ -12,14 +12,19 @@ const CLERK_FRONTEND_API_DOMAINS =
 // 'unsafe-eval' is only needed in dev (HMR/eval-based source maps) — see
 // "Development environments require adding 'unsafe-eval' to script-src".
 //
-// Shipped as Content-Security-Policy-Report-Only rather than enforcing:
-// this sandbox runs in demo mode, which never initializes Clerk's JS SDK
-// (see shouldUseClerk()/canInitializeClerk() in lib/demo.ts), so the
-// Clerk-specific directives below are transcribed from their docs, not
-// verified against a real Clerk session here. Report-only means it can't
-// break login even if a directive is off — check the browser console (or
-// wire up a report-to endpoint) after deploying with real Clerk keys, then
-// promote to Content-Security-Policy once confirmed violation-free.
+// Promoted to enforcing 2026-08-09 after a real-browser pass against the
+// live prod Clerk session (pk_live, clerk.sealed.techtrendwire.com):
+// sign-in, dashboard, contacts, proposals (incl. an accepted one),
+// agreements (incl. a signed one), invoices (incl. a paid one), and the
+// public /invoices/paid confirmation page all loaded with zero CSP
+// violations in the console under the (then) Report-Only policy. Had
+// been shipped Report-Only since this sandbox runs in demo mode, which
+// never initializes Clerk's JS SDK (see shouldUseClerk()/
+// canInitializeClerk() in lib/demo.ts), so the Clerk-specific directives
+// were originally transcribed from Clerk's docs, unverified. The
+// `report-uri` below (added same day) keeps collecting evidence going
+// forward — if a real violation shows up in enforcing mode, check there
+// or the browser console before loosening a directive.
 function buildContentSecurityPolicy() {
   const isProd = process.env.NODE_ENV === "production";
   const scriptSrc = [
@@ -30,6 +35,12 @@ function buildContentSecurityPolicy() {
     "https://*.protect.clerk.com",
     CLERK_FRONTEND_API_DOMAINS,
   ].join(" ");
+
+  // Diagnostic-only sink for Report-Only violations — see
+  // apps/api/src/modules/csp-report/csp-report.controller.ts. Feeds the
+  // manual promotion check below rather than gating it automatically.
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+  const reportUri = `${apiUrl}/api/v1/csp-report`;
 
   return [
     `default-src 'self'`,
@@ -43,6 +54,7 @@ function buildContentSecurityPolicy() {
     `base-uri 'self'`,
     `form-action 'self'`,
     `frame-ancestors 'self'`,
+    `report-uri ${reportUri}`,
   ].join("; ");
 }
 
@@ -77,7 +89,7 @@ const nextConfig = {
             value: "max-age=63072000; includeSubDomains; preload",
           },
           {
-            key: "Content-Security-Policy-Report-Only",
+            key: "Content-Security-Policy",
             value: buildContentSecurityPolicy(),
           },
         ],
