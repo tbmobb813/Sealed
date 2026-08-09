@@ -15,9 +15,9 @@
     "db:studio": "pnpm --filter @sealed/api db:studio"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.62.1",
     "@sealed/database": "workspace:*",
-    "turbo": "^2.5.4",
+    "turbo": "^2.10.8",
     "typescript": "^5.8.3"
   },
   "packageManager": "pnpm@11.9.0",
