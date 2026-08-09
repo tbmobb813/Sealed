@@ -20,6 +20,12 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # typescript-eslint doesn't support TS 7.0 yet (closed #42 as
+      # unmergeable for this reason). Re-enable once upstream catches up:
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
     commit-message:
       prefix: "chore(deps)"
 
