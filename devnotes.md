@@ -32,6 +32,7 @@ pnpm dev
 | `DOCUSEAL_API_KEY` | `apps/api/.env` | Live DocuSeal integration (the only signature provider — Dropbox Sign removed 2026-08-08) |
 | `DOCUSEAL_WEBHOOK_SECRET` | `apps/api/.env` | Shared secret, sent as `X-Webhook-Secret` header |
 | `STRIPE_SECRET_KEY` | `apps/api/.env` | Enables real Stripe payment links |
+| `CORS_ORIGIN` | `apps/api/.env` | Required in production. Dual purpose: CORS allowlist AND Clerk's `authorizedParties` (guards `verifyToken` against the subdomain cookie-leaking attack) — must exactly match `WEB_URL` |
 
 ## Key Architecture Notes
 
