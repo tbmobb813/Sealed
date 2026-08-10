@@ -11,6 +11,15 @@ const isPublicRoute = createRouteMatcher([
   "/p/(.*)",
   "/invoices/paid(.*)",
   "/api/webhooks/(.*)",
+  // Metadata routes Next.js generates from app/robots.ts, sitemap.ts,
+  // icon.tsx, opengraph-image.tsx — the middleware's static-file matcher
+  // below excludes common extensions (.png, .ico, etc.) but not .txt/.xml,
+  // and /icon and /opengraph-image have no extension in the URL at all,
+  // so all four need an explicit exemption or auth.protect() blocks them.
+  "/robots.txt",
+  "/sitemap.xml",
+  "/icon",
+  "/opengraph-image",
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, request) => {
