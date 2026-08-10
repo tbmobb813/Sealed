@@ -6,6 +6,7 @@ import { shouldUseClerk } from "@/lib/demo";
 const isPublicRoute = createRouteMatcher([
   "/",
   "/pricing(.*)",
+  "/vs/(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/p/(.*)",
