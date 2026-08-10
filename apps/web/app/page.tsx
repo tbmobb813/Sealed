@@ -4,6 +4,17 @@ import { FileText, Handshake, Receipt, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmailCaptureForm } from "@/components/features/marketing/email-capture-form";
 import { TrackedCtaLink } from "@/components/features/marketing/tracked-cta-link";
+import { RotatingWord } from "@/components/features/marketing/rotating-word";
+
+const professions = [
+  "freelancers",
+  "consultants",
+  "designers",
+  "developers",
+  "videographers",
+  "photographers",
+  "coaches",
+];
 
 export const metadata = {
   title: { absolute: "Sealed — Proposals, contracts, and invoices in one flow" },
@@ -116,7 +127,8 @@ export default function LandingPage() {
 
         <section className="container mx-auto px-4 py-20 text-center">
           <h2 className="font-serif text-2xl font-medium tracking-tight sm:text-3xl">
-            Built for freelancers who bill for their work.
+            Built for <RotatingWord words={professions} /> who bill for their
+            work.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             One place to see every open proposal, pending signature, and
