@@ -4,27 +4,27 @@ import { Button } from "@/components/ui/button";
 import { TrackedCtaLink } from "@/components/features/marketing/tracked-cta-link";
 
 export const metadata = {
-  title: { absolute: "Sealed vs Dubsado — Comparison" },
+  title: { absolute: "Sealed vs HoneyBook — Comparison" },
   description:
-    "How Sealed compares to Dubsado for proposals, e-signatures, and invoicing. Free to start, no setup week, no workflow builder to learn first.",
+    "How Sealed compares to HoneyBook for proposals, e-signatures, and invoicing. Free to start, no card fees baked into every plan, no automation builder to learn first.",
 };
 
 const rows: Array<{
   label: string;
   sealed: string | boolean;
-  dubsado: string | boolean;
+  honeybook: string | boolean;
 }> = [
-  { label: "Starting price", sealed: "Free", dubsado: "~$20–35/mo (Starter)" },
-  { label: "Free tier (not just a trial)", sealed: true, dubsado: false },
-  { label: "Send a proposal client can accept via link", sealed: true, dubsado: "Premier plan only" },
-  { label: "E-signed agreements", sealed: true, dubsado: true },
-  { label: "Invoicing with a card payment link", sealed: true, dubsado: true },
-  { label: "Enforced order (can't invoice an unsigned contract)", sealed: true, dubsado: false },
-  { label: "Visual workflow builder with conditional logic", sealed: false, dubsado: true },
-  { label: "Typical setup time", sealed: "Minutes", dubsado: "Often cited as a multi-day/week setup project" },
+  { label: "Starting price", sealed: "Free", honeybook: "$36/mo (Starter), billed monthly" },
+  { label: "Free tier (not just a trial)", sealed: true, honeybook: false },
+  { label: "Send a proposal client can accept via link", sealed: true, honeybook: true },
+  { label: "E-signed agreements", sealed: true, honeybook: true },
+  { label: "Invoicing with a card payment link", sealed: true, honeybook: true },
+  { label: "Enforced order (can't invoice an unsigned contract)", sealed: true, honeybook: false },
+  { label: "Automation/workflow builder for onboarding sequences", sealed: false, honeybook: true },
+  { label: "Card payment fees", sealed: "Standard Stripe rate", honeybook: "2.9% + 25¢ on every plan" },
 ];
 
-export default function VsDubsadoPage() {
+export default function VsHoneyBookPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -40,7 +40,7 @@ export default function VsDubsadoPage() {
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
-              <TrackedCtaLink href="/sign-up" location="vs_dubsado_nav">
+              <TrackedCtaLink href="/sign-up" location="vs_honeybook_nav">
                 Get started
               </TrackedCtaLink>
             </Button>
@@ -51,14 +51,14 @@ export default function VsDubsadoPage() {
       <main id="main-content">
         <section className="container mx-auto px-4 py-16 text-center lg:py-24">
           <h1 className="font-serif text-4xl font-medium tracking-tight text-balance sm:text-5xl">
-            Sealed vs Dubsado
+            Sealed vs HoneyBook
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground text-pretty">
-            Dubsado has forty things you don&apos;t need yet — a visual workflow
-            builder, conditional logic, lead capture forms, scheduling.
-            Sealed has the four that matter for getting one deal from
-            proposal to paid: propose, sign, invoice, get paid — enforced,
-            in that order, for free.
+            HoneyBook bundles a full automation builder, scheduling, and lead
+            capture into every plan — starting at $36/mo before card fees.
+            Sealed does the four things that get a deal from proposal to
+            paid: propose, sign, invoice, get paid — enforced, in that order,
+            for free.
           </p>
         </section>
 
@@ -70,7 +70,7 @@ export default function VsDubsadoPage() {
                   <th className="p-4 font-medium">&nbsp;</th>
                   <th className="p-4 font-medium text-primary">Sealed</th>
                   <th className="p-4 font-medium text-muted-foreground">
-                    Dubsado
+                    HoneyBook
                   </th>
                 </tr>
               </thead>
@@ -90,14 +90,14 @@ export default function VsDubsadoPage() {
                       )}
                     </td>
                     <td className="p-4">
-                      {typeof row.dubsado === "boolean" ? (
-                        row.dubsado ? (
+                      {typeof row.honeybook === "boolean" ? (
+                        row.honeybook ? (
                           <Check className="h-4 w-4 text-muted-foreground" />
                         ) : (
                           <X className="h-4 w-4 text-muted-foreground" />
                         )
                       ) : (
-                        row.dubsado
+                        row.honeybook
                       )}
                     </td>
                   </tr>
@@ -106,29 +106,29 @@ export default function VsDubsadoPage() {
             </table>
           </div>
           <p className="mx-auto mt-4 max-w-3xl text-xs text-muted-foreground">
-            Dubsado pricing and feature placement change over time — figures
+            HoneyBook pricing and feature placement change over time — figures
             above reflect published pricing pages as of this writing; check
-            Dubsado&apos;s own site for current numbers.
+            HoneyBook&apos;s own site for current numbers.
           </p>
         </section>
 
         <section className="container mx-auto grid max-w-4xl gap-8 px-4 pb-20 sm:grid-cols-2">
           <div className="rounded-lg bg-card p-8 ring-1 ring-border">
             <h2 className="text-lg font-semibold">
-              Dubsado is the better fit if...
+              HoneyBook is the better fit if...
             </h2>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li>
-                You need a visual workflow builder with branching logic for
-                complex client onboarding sequences.
+                You want lead capture forms, scheduling, and automated
+                follow-up sequences in the same tool as your proposals.
               </li>
               <li>
-                You run lead-capture forms and scheduling through the same
-                tool as your proposals.
+                You&apos;re comfortable paying a monthly fee plus card
+                processing fees from day one.
               </li>
               <li>
-                You have the time to invest in a longer setup process to get
-                full value from the customization.
+                You have the time to build out automations and want them
+                to run your onboarding end to end.
               </li>
             </ul>
           </div>
@@ -139,7 +139,7 @@ export default function VsDubsadoPage() {
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li>
                 You want proposal → signed agreement → paid invoice working
-                today, not after a setup project.
+                today, not after building automations.
               </li>
               <li>
                 You want the chain enforced — you can&apos;t accidentally
@@ -147,7 +147,7 @@ export default function VsDubsadoPage() {
               </li>
               <li>
                 You want to start free and see if it fits before paying
-                anything.
+                a monthly fee on top of card processing costs.
               </li>
             </ul>
           </div>
@@ -162,7 +162,7 @@ export default function VsDubsadoPage() {
               Free to start. No credit card, no setup week.
             </p>
             <Button asChild size="lg" className="mt-6">
-              <TrackedCtaLink href="/sign-up" location="vs_dubsado_cta_band">
+              <TrackedCtaLink href="/sign-up" location="vs_honeybook_cta_band">
                 Create your account
                 <ArrowRight className="ml-2 h-4 w-4" />
               </TrackedCtaLink>
@@ -178,8 +178,8 @@ export default function VsDubsadoPage() {
             <Link href="/pricing" className="hover:text-foreground">
               Pricing
             </Link>
-            <Link href="/vs/honeybook" className="hover:text-foreground">
-              vs HoneyBook
+            <Link href="/vs/dubsado" className="hover:text-foreground">
+              vs Dubsado
             </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in

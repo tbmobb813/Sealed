@@ -150,6 +150,9 @@ export default function PricingPage() {
             <Link href="/vs/dubsado" className="hover:text-foreground">
               vs Dubsado
             </Link>
+            <Link href="/vs/honeybook" className="hover:text-foreground">
+              vs HoneyBook
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>
