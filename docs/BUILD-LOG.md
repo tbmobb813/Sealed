@@ -74,38 +74,17 @@ Delete or check off each one once posted, log it under "Posted" below._
 
 ## Ready to post (LinkedIn — lower frequency, more reflective)
 
-- [ ] **This week: comparison pages, and the bug that keeps finding me:**
-  > I shipped three comparison pages for my SaaS this week — Sealed vs
-  > Dubsado, HoneyBook, and Bonsai — plus a hub page rounding them up.
-  > The reasoning that mattered: three focused pages beat one page that
-  > tries to cover everyone. Someone searching "sealed vs dubsado" wants
-  > that specific answer, not a page that also pitches two other tools.
-  > A separate hub page catches the broader "what are my options"
-  > searches without diluting the focused ones. Small distinction,
-  > easy to get backwards.
-  >
-  > The less flattering part: twice now, a new public page has gone
-  > live and then quietly returned nothing to search engines and social
-  > previews, because my own auth middleware treats "not explicitly
-  > listed as public" as "protected" by default — which is the right
-  > default for a client-data app, but it means every new marketing
-  > page needs an explicit exception or it's invisible to the exact
-  > audience it's built for. Same root cause, second time it's bitten
-  > me. I've stopped trusting a green build and started checking the
-  > live URL every time — that habit is doing more for me than any
-  > single fix has.
-
-  _(Note: this rolls up the posted X item on the comparison pages with
-  the middleware-exemption pattern from the raw material log below,
-  since that item hasn't been posted to X on its own yet — nothing here
-  is invented, just combined and given more room to breathe for a
-  slower-scrolling audience.)_
+- [ ] _Roll up 2–3 X items into one reflective post once there are a
+  few new ones out — draft here when that day comes rather than
+  pre-writing now, since the exact rollup should reflect what actually
+  got posted._
 
 ## Posted
 
 <!-- date — channel — which post — any reaction -->
 
 - 2026-08-10 — X — Comparison pages (3-pages-not-1 SEO reasoning)
+- 2026-08-10 — LinkedIn — Comparison pages + repeat middleware-exemption bug (rollup)
 
 ## Raw material (unshaped — drop notes here the moment something ships)
 
