@@ -34,5 +34,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: "https://sealed.techtrendwire.com/alternatives",
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
 }
