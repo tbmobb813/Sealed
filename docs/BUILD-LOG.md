@@ -65,15 +65,6 @@ Delete or check off each one once posted, log it under "Posted" below._
   > "who is this for" is doing a lot of unpaid work in a page nobody reads
   > past the first ten seconds.
 
-- [ ] **Comparison pages (strong one — grounded in real reasoning):**
-  > Built three comparison pages this week (Sealed vs Dubsado, HoneyBook,
-  > Bonsai) instead of one big "Sealed vs everyone" page. Each targets a
-  > specific search — someone typing "sealed vs dubsado" wants that
-  > answer, not a page that also talks about two other tools. Added an
-  > /alternatives hub afterward for the broader "what are my options"
-  > searches, without diluting the head-to-head pages. Small SEO lesson,
-  > obvious in hindsight, easy to get wrong.
-
 - [ ] **Zoom-out / slow-week filler:**
   > Two weeks into building Sealed at night around a full-time job. This
   > week: found and closed a handful of real security gaps, fixed a
@@ -90,6 +81,8 @@ Delete or check off each one once posted, log it under "Posted" below._
 ## Posted
 
 <!-- date — channel — which post — any reaction -->
+
+- 2026-08-10 — X — Comparison pages (3-pages-not-1 SEO reasoning)
 
 ## Raw material (unshaped — drop notes here the moment something ships)
 
