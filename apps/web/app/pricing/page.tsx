@@ -147,6 +147,9 @@ export default function PricingPage() {
             <Link href="/pricing" className="hover:text-foreground">
               Pricing
             </Link>
+            <Link href="/vs/dubsado" className="hover:text-foreground">
+              vs Dubsado
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>
