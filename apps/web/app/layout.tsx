@@ -21,7 +21,7 @@ const ClerkRootLayout = dynamic(
 );
 
 const description =
-  "Sealed chains a freelancer's client paperwork into one enforced flow — proposal, signed agreement, and paid invoice — so nothing falls through the cracks.";
+  "Sealed chains your client paperwork into one enforced flow — proposal, signed agreement, and paid invoice — so nothing falls through the cracks.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sealed.techtrendwire.com"),

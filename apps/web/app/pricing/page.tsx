@@ -6,7 +6,7 @@ import { TrackedCtaLink } from "@/components/features/marketing/tracked-cta-link
 export const metadata = {
   title: { absolute: "Pricing — Sealed" },
   description:
-    "Start free. Upgrade when your client work does. Simple flat pricing for freelancers who bill for their work.",
+    "Start free. Upgrade when your client work does. Simple flat pricing for anyone who bills clients for their work.",
 };
 
 const tiers = [
@@ -29,7 +29,7 @@ const tiers = [
     name: "Pro",
     price: "$19",
     cadence: "per month",
-    blurb: "For freelancers running their whole client pipeline through Sealed.",
+    blurb: "For anyone running their whole client pipeline through Sealed.",
     cta: "Get started",
     highlighted: true,
     features: [
