@@ -65,6 +65,15 @@ Delete or check off each one once posted, log it under "Posted" below._
   > "who is this for" is doing a lot of unpaid work in a page nobody reads
   > past the first ten seconds.
 
+- [ ] **Comparison pages (strong one — grounded in real reasoning):**
+  > Built three comparison pages this week (Sealed vs Dubsado, HoneyBook,
+  > Bonsai) instead of one big "Sealed vs everyone" page. Each targets a
+  > specific search — someone typing "sealed vs dubsado" wants that
+  > answer, not a page that also talks about two other tools. Added an
+  > /alternatives hub afterward for the broader "what are my options"
+  > searches, without diluting the head-to-head pages. Small SEO lesson,
+  > obvious in hindsight, easy to get wrong.
+
 - [ ] **Zoom-out / slow-week filler:**
   > Two weeks into building Sealed at night around a full-time job. This
   > week: found and closed a handful of real security gaps, fixed a
@@ -85,3 +94,6 @@ Delete or check off each one once posted, log it under "Posted" below._
 ## Raw material (unshaped — drop notes here the moment something ships)
 
 <!-- one line is fine: what happened, why it's interesting, don't polish it here -->
+
+- 2026-08-10 — Shipped three "Sealed vs X" comparison pages (Dubsado, HoneyBook, Bonsai) plus an /alternatives hub page that rounds them up. Each vs/ page targets a specific head-to-head search query; the hub targets broader "alternatives to X" searches without diluting the individual pages. First real SEO/pull-intent play distinct from the direct-outreach push — worth a post on why comparison pages instead of one big page (the "why 3 pages not 1" reasoning is itself decent content).
+- 2026-08-10 — Twice caught the new pages 404ing for search engines/crawlers right after deploy (Clerk middleware blocks anything not explicitly listed as public) before verifying live — same root cause as the earlier robots.txt/OG image bug from launch week. Consistent enough now to be a pattern worth naming: every new public route needs an explicit middleware exemption or it's invisible to the exact audience it's for.
