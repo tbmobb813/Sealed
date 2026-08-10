@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { track } from "@vercel/analytics";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 
 type TrackedCtaLinkProps = ComponentProps<typeof Link> & {
   location: string;
@@ -18,7 +18,7 @@ export function TrackedCtaLink({
   return (
     <Link
       {...props}
-      onClick={(e) => {
+      onClick={(e: MouseEvent<HTMLAnchorElement>) => {
         track("cta_click", tier ? { location, tier } : { location });
         onClick?.(e);
       }}
