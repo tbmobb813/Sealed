@@ -153,6 +153,9 @@ export default function PricingPage() {
             <Link href="/vs/honeybook" className="hover:text-foreground">
               vs HoneyBook
             </Link>
+            <Link href="/vs/bonsai" className="hover:text-foreground">
+              vs Bonsai
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>
