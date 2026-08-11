@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +25,7 @@ function SubmitButton() {
 }
 
 export function ContactForm() {
-  const [state, formAction] = useFormState<ContactFormState, FormData>(
+  const [state, formAction] = useActionState<ContactFormState, FormData>(
     createContact,
     {},
   );

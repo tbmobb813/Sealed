@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString, Matches, Min } from "class-validator";
 import { PaymentProvider } from "@sealed/database";
 
 export class CreatePaymentDto {
@@ -11,6 +11,7 @@ export class CreatePaymentDto {
 
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Z]{3}$/, { message: "currency must be a 3-letter ISO 4217 code" })
   currency?: string;
 
   @IsOptional()

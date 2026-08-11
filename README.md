@@ -34,8 +34,8 @@ Built as a Turborepo monorepo.
 ## Stack
 
 - **API:** NestJS + Prisma + PostgreSQL + Redis (shared rate-limit storage for public endpoints across replicas)
-- **Web:** Next.js 14 (App Router) + Clerk + shadcn/ui
-- **Integrations:** DocuSeal for e-signatures (live default; Dropbox Sign kept registered as an env-switchable fallback for in-flight requests), Stripe for payment links, Resend for transactional email
+- **Web:** Next.js 16 (App Router) + Clerk + shadcn/ui
+- **Integrations:** DocuSeal for e-signatures, Stripe for payment links, Resend for transactional email
 
 ## Core flow
 
@@ -79,8 +79,8 @@ pnpm db:seed
 pnpm dev
 ```
 
-- API: http://localhost:3001
-- Web: http://localhost:3000
+- API: [http://localhost:3001]
+- Web: [http://localhost:3000]
 
 ### Demo mode (no Clerk)
 
@@ -103,7 +103,6 @@ For real authentication, set `DEMO_MODE=false` / `NEXT_PUBLIC_DEMO_MODE=false`, 
 
 ## Project Structure
 
-```
 sealed/
 ├── apps/
 │   ├── api/          # NestJS backend
@@ -118,12 +117,11 @@ sealed/
 ├── PRE_LAUNCH_GAPS.md  # Pre-launch blockers found during dev/pentest, with resolution status
 ├── playwright.config.ts
 └── docker-compose.yml
-```
 
 ## Scripts
 
 | Script | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `pnpm dev` | Start API and web in parallel |
 | `pnpm build` | Build all packages and apps |
 | `pnpm lint` | Lint all packages |

@@ -37,6 +37,6 @@ export class ClerkWebhookController {
       svixSignature,
     });
 
-    return this.clerkService.handleEvent(event);
+    return this.clerkService.handleEvent(event, svixId);
   }
 }

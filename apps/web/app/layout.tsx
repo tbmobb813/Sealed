@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import { Instrument_Sans, Lora } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { canInitializeClerk } from "@/lib/demo";
 import "./globals.css";
 
@@ -19,9 +20,28 @@ const ClerkRootLayout = dynamic(
   { ssr: true },
 );
 
+const description =
+  "Sealed chains your client paperwork into one enforced flow — proposal, signed agreement, and paid invoice — so nothing falls through the cracks.";
+
 export const metadata: Metadata = {
-  title: "Sealed",
-  description: "Proposal-to-payment platform",
+  metadataBase: new URL("https://sealed.techtrendwire.com"),
+  title: {
+    default: "Sealed — Proposals, contracts, and invoices in one flow",
+    template: "%s | Sealed",
+  },
+  description,
+  openGraph: {
+    title: "Sealed — Proposals, contracts, and invoices in one flow",
+    description,
+    url: "https://sealed.techtrendwire.com",
+    siteName: "Sealed",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sealed — Proposals, contracts, and invoices in one flow",
+    description,
+  },
 };
 
 export const viewport: Viewport = {
@@ -48,6 +68,7 @@ export default function RootLayout({
         ) : (
           children
         )}
+        <Analytics />
       </body>
     </html>
   );

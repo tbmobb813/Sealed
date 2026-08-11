@@ -1,0 +1,42 @@
+version: 2
+
+updates:
+  # pnpm workspace monorepo (apps/*, packages/*) — Dependabot's "npm"
+  # ecosystem covers pnpm via pnpm-lock.yaml and understands workspaces
+  # natively from a single root directory entry.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      # Batch low-risk patch/minor bumps into one PR to cut through the
+      # per-dependency PR noise a monorepo this size would otherwise
+      # generate. Major bumps are deliberately left ungrouped — this repo's
+      # practice is to review those one at a time (see the Next.js 14->16
+      # migration), not fold them into a batched auto-PR.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # typescript-eslint doesn't support TS 7.0 yet (closed #42 as
+      # unmergeable for this reason). Re-enable once upstream catches up:
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(ci)"

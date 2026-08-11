@@ -1,10 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FileText, Handshake, Receipt, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmailCaptureForm } from "@/components/features/marketing/email-capture-form";
+import { TrackedCtaLink } from "@/components/features/marketing/tracked-cta-link";
+import { RotatingWord } from "@/components/features/marketing/rotating-word";
+
+const professions = [
+  "freelancers",
+  "consultants",
+  "designers",
+  "developers",
+  "videographers",
+  "photographers",
+  "coaches",
+];
 
 export const metadata = {
-  title: "Sealed — Proposals, contracts, and invoices in one flow",
+  title: { absolute: "Sealed — Proposals, contracts, and invoices in one flow" },
   description:
     "Send a proposal, get it signed, get paid. Sealed chains the client paperwork together so nothing falls through the cracks.",
 };
@@ -41,7 +54,9 @@ export default function LandingPage() {
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
-              <Link href="/sign-up">Get started</Link>
+              <TrackedCtaLink href="/sign-up" location="nav">
+                Get started
+              </TrackedCtaLink>
             </Button>
           </nav>
         </div>
@@ -60,10 +75,10 @@ export default function LandingPage() {
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Button asChild size="lg">
-                <Link href="/sign-up">
+                <TrackedCtaLink href="/sign-up" location="hero">
                   Start free
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                </TrackedCtaLink>
               </Button>
               <Button asChild size="lg" variant="ghost">
                 <Link href="/sign-in">Sign in</Link>
@@ -73,11 +88,13 @@ export default function LandingPage() {
 
           {/* Animated walkthrough of the proposal-to-signature flow */}
           <div className="relative hidden lg:block">
-            <img
+            <Image
               src="/proposal-flow-demo.gif"
               alt="Walkthrough of creating a proposal, sending it, the client accepting it, and the agreement going out for e-signature in Sealed"
               width={960}
               height={855}
+              unoptimized
+              priority
               className="w-full rounded-lg shadow-lg ring-1 ring-border"
             />
             <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -110,7 +127,8 @@ export default function LandingPage() {
 
         <section className="container mx-auto px-4 py-20 text-center">
           <h2 className="font-serif text-2xl font-medium tracking-tight sm:text-3xl">
-            Built for freelancers who bill for their work.
+            Built for <RotatingWord words={professions} /> who bill for their
+            work.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             One place to see every open proposal, pending signature, and
@@ -118,10 +136,10 @@ export default function LandingPage() {
             contract can&apos;t be invoiced before it&apos;s signed.
           </p>
           <Button asChild size="lg" className="mt-8">
-            <Link href="/sign-up">
+            <TrackedCtaLink href="/sign-up" location="cta_band">
               Create your account
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+            </TrackedCtaLink>
           </Button>
         </section>
 
@@ -143,6 +161,9 @@ export default function LandingPage() {
           <div className="flex gap-4">
             <Link href="/pricing" className="hover:text-foreground">
               Pricing
+            </Link>
+            <Link href="/alternatives" className="hover:text-foreground">
+              Alternatives
             </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in

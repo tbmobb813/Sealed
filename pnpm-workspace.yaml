@@ -2,6 +2,28 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# Force every transitive copy (e.g. @nestjs/platform-express's own nested
+# multer@2.1.1, vulnerable to GHSA-72gw-mp4g-v24j DoS via deeply nested
+# multipart field names) up to the patched version, not just apps/api's
+# direct dependency declaration.
+overrides:
+  multer: "^2.2.0"
+  # next@14.2.35 bundles its own postcss@8.4.31 internally (build-time only,
+  # never processes attacker input in this app) — force the patched line.
+  postcss: "^8.5.23"
+  nanoid: "^3.3.17"
+  # Dev-tooling-only CVEs (@nestjs/cli's Angular devkit chain, jest's
+  # istanbul coverage tooling, eslint) — same-line patch bumps, no API
+  # surface change expected.
+  fast-uri: "^3.1.3"
+  js-yaml: "^3.15.1"
+  # Three major lines of brace-expansion coexist in the tree (pulled in by
+  # different tools' own minimatch versions) — each needs its own patched
+  # floor for the same ReDoS/OOM family of advisories.
+  "brace-expansion@1": "^1.1.18"
+  "brace-expansion@2": "^2.1.4"
+  "brace-expansion@5": "^5.0.9"
+
 # pnpm 11 blocks dependency build scripts unless explicitly allowed.
 allowBuilds:
   "@clerk/shared": true

@@ -4,11 +4,12 @@ import { InvoiceForm } from "@/components/features/invoices/invoice-form";
 import { apiClient } from "@/lib/api-client";
 import type { Agreement, Proposal } from "@sealed/types";
 
-export default async function NewInvoicePage({
-  searchParams,
-}: {
-  searchParams: { agreementId?: string };
-}) {
+export default async function NewInvoicePage(
+  props: {
+    searchParams: Promise<{ agreementId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const agreementId = searchParams.agreementId;
 
   if (!agreementId) {

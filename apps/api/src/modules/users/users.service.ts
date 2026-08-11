@@ -4,12 +4,15 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { createClerkClient } from "@clerk/backend";
+import { Prisma } from "@sealed/database";
 import { PrismaService } from "../../prisma/prisma.service";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
 import {
   slugifyFromEmail,
   uniqueTenantSlug,
 } from "../../common/helpers/slugify";
+
+type PrismaClientOrTx = PrismaService | Prisma.TransactionClient;
 
 export type ProvisionClerkUserInput = {
   clerkUserId: string;
@@ -37,8 +40,13 @@ export class UsersService {
     return this.prisma.user.findMany({ where: { tenantId } });
   }
 
-  async provisionFromClerk(input: ProvisionClerkUserInput) {
-    const existing = await this.prisma.user.findUnique({
+  async provisionFromClerk(
+    input: ProvisionClerkUserInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client: PrismaClientOrTx = tx ?? this.prisma;
+
+    const existing = await client.user.findUnique({
       where: { clerkUserId: input.clerkUserId },
       include: { tenant: true },
     });
@@ -48,12 +56,12 @@ export class UsersService {
     }
 
     try {
-      return await this.createUserWithTenant(input);
+      return await this.createUserWithTenant(input, tx);
     } catch (error) {
       // Two concurrent first requests can both miss the existing-user check;
       // the loser hits the clerkUserId unique constraint — return the winner.
       if ((error as { code?: string }).code === "P2002") {
-        const winner = await this.prisma.user.findUnique({
+        const winner = await client.user.findUnique({
           where: { clerkUserId: input.clerkUserId },
           include: { tenant: true },
         });
@@ -65,44 +73,30 @@ export class UsersService {
     }
   }
 
-  private createUserWithTenant(input: ProvisionClerkUserInput) {
-    return this.prisma.$transaction(async (tx) => {
+  private createUserWithTenant(
+    input: ProvisionClerkUserInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const run = async (tx: Prisma.TransactionClient) => {
       const tenant = await (async () => {
-
         while (true) {
-
           const slug = await uniqueTenantSlug(tx, slugifyFromEmail(input.email));
 
           try {
-
             return await tx.tenant.create({
-
               data: {
-
                 name: input.name,
-
                 slug,
-
               },
-
             });
-
           } catch (error: unknown) {
-
             const prismaError = error as { code?: string };
-
             // Tenant.slug is @unique; handle possible concurrent creates.
-
             if (prismaError.code === "P2002") continue;
-
             throw error;
-
           }
-
         }
-
       })();
-
 
       const user = await tx.user.create({
         data: {
@@ -133,19 +127,33 @@ export class UsersService {
       });
 
       return { ...user, tenant };
-    });
+    };
+
+    // When called from within an existing transaction (e.g. the Clerk
+    // webhook inbox claim), reuse it — opening a second, nested
+    // `$transaction` here would run on a different connection and break
+    // atomicity with the caller's inbox claim.
+    if (tx) {
+      return run(tx);
+    }
+    return this.prisma.$transaction(run);
   }
 
-  async syncFromClerk(input: ProvisionClerkUserInput) {
-    const existing = await this.prisma.user.findUnique({
+  async syncFromClerk(
+    input: ProvisionClerkUserInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client: PrismaClientOrTx = tx ?? this.prisma;
+
+    const existing = await client.user.findUnique({
       where: { clerkUserId: input.clerkUserId },
     });
 
     if (!existing) {
-      return this.provisionFromClerk(input);
+      return this.provisionFromClerk(input, tx);
     }
 
-    return this.prisma.user.update({
+    return client.user.update({
       where: { id: existing.id },
       data: {
         email: input.email,
@@ -155,8 +163,10 @@ export class UsersService {
     });
   }
 
-  async deactivateByClerkId(clerkUserId: string) {
-    const existing = await this.prisma.user.findUnique({
+  async deactivateByClerkId(clerkUserId: string, tx?: Prisma.TransactionClient) {
+    const client: PrismaClientOrTx = tx ?? this.prisma;
+
+    const existing = await client.user.findUnique({
       where: { clerkUserId },
     });
 
@@ -164,7 +174,7 @@ export class UsersService {
       return null;
     }
 
-    return this.prisma.user.update({
+    return client.user.update({
       where: { id: existing.id },
       data: { status: "DISABLED" },
     });

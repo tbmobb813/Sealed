@@ -68,7 +68,16 @@ export class ClerkAuthGuard implements CanActivate {
 
     let clerkUserId: string;
     try {
-      const payload = await verifyToken(token, { secretKey });
+      const payload = await verifyToken(token, {
+        secretKey,
+        // Per https://clerk.com/docs/references/backend/verify-token —
+        // without this, the token's `azp` claim is never checked, which
+        // opens the subdomain cookie-leaking attack (a session token
+        // captured on an unauthorized origin would otherwise still verify).
+        authorizedParties: [
+          this.config.get<string>("CORS_ORIGIN") ?? "http://localhost:3000",
+        ],
+      });
       clerkUserId = payload.sub;
     } catch {
       throw new UnauthorizedException("Invalid token");

@@ -13,9 +13,6 @@ describe("DocuSeal signature chain (integration)", () => {
   let contactId: string;
 
   beforeAll(async () => {
-    // Suites run with --runInBand in one process — restore in afterAll so
-    // the provider switch cannot leak into other suites.
-    process.env.SIGNATURE_PROVIDER = "docuseal";
     app = await createTestApp();
     prisma = app.get(PrismaService);
   });
@@ -28,7 +25,6 @@ describe("DocuSeal signature chain (integration)", () => {
   });
 
   afterAll(async () => {
-    delete process.env.SIGNATURE_PROVIDER;
     await app.close();
   });
 

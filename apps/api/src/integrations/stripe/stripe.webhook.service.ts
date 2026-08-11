@@ -6,6 +6,7 @@ import {
   INVOICE_TRANSITIONS,
 } from "../../common/constants/state-transitions";
 import { emitActivityEvent } from "../../common/helpers/emit-activity-event";
+import { claimWebhookEvent } from "../../common/helpers/claim-webhook-event";
 import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
@@ -15,11 +16,28 @@ export class StripeWebhookService {
   constructor(private readonly prisma: PrismaService) {}
 
   async handleEvent(event: Stripe.Event): Promise<void> {
-    if (event.type === "checkout.session.completed") {
-      await this.handleCheckoutSessionCompleted(
-        event.data.object as Stripe.Checkout.Session,
-      );
-      return;
+    switch (event.type) {
+      case "checkout.session.completed":
+        await this.handleCheckoutSessionCompleted(
+          event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
+        );
+        return;
+      case "checkout.session.async_payment_succeeded":
+        await this.handleAsyncPaymentSucceeded(
+          event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
+        );
+        return;
+      case "checkout.session.async_payment_failed":
+        await this.handleAsyncPaymentFailed(
+          event.data.object as Stripe.Checkout.Session,
+          event.id,
+          event.type,
+        );
+        return;
     }
 
     this.logger.log(`Unhandled Stripe event: ${event.type}`);
@@ -27,6 +45,8 @@ export class StripeWebhookService {
 
   private async handleCheckoutSessionCompleted(
     session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
   ): Promise<void> {
     const invoiceId = session.metadata?.invoiceId;
     if (!invoiceId) {
@@ -36,13 +56,205 @@ export class StripeWebhookService {
       return;
     }
 
+    // Delayed payment methods (e.g. ACH direct debit via us_bank_account)
+    // complete checkout immediately but the debit itself settles days
+    // later and can still fail (insufficient funds, closed account, ...).
+    // Stripe reflects that with payment_status "unpaid" here — only a
+    // "paid" status means money has actually landed. Anything else is
+    // resolved later by async_payment_succeeded/async_payment_failed.
+    if (session.payment_status !== "paid") {
+      await this.recordPendingPayment(session, invoiceId, eventId, eventType);
+      return;
+    }
+
+    await this.applySuccessfulPayment(session, invoiceId, eventId, eventType);
+  }
+
+  private async handleAsyncPaymentSucceeded(
+    session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
+  ): Promise<void> {
+    const invoiceId = session.metadata?.invoiceId;
+    if (!invoiceId) {
+      this.logger.warn(
+        `checkout.session.async_payment_succeeded missing invoiceId in metadata: ${session.id}`,
+      );
+      return;
+    }
+
+    await this.applySuccessfulPayment(session, invoiceId, eventId, eventType);
+  }
+
+  private async handleAsyncPaymentFailed(
+    session: Stripe.Checkout.Session,
+    eventId: string,
+    eventType: string,
+  ): Promise<void> {
+    const invoiceId = session.metadata?.invoiceId;
+    if (!invoiceId) {
+      this.logger.warn(
+        `checkout.session.async_payment_failed missing invoiceId in metadata: ${session.id}`,
+      );
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
-      // providerPaymentId is unique — an already-recorded session means this
-      // event was processed; ack the retry without double-applying it.
-      const alreadyProcessed = await tx.payment.findUnique({
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
+      const payment = await tx.payment.findUnique({
         where: { providerPaymentId: session.id },
       });
-      if (alreadyProcessed) {
+
+      if (!payment) {
+        this.logger.warn(
+          `checkout.session.async_payment_failed for unrecorded session ${session.id} (invoice ${invoiceId})`,
+        );
+        return;
+      }
+
+      if (payment.status !== "PENDING") {
+        this.logger.log(
+          `Stripe session ${session.id} already resolved as ${payment.status} — skipping failure`,
+        );
+        return;
+      }
+
+      const invoice = await tx.invoice.findFirst({ where: { id: invoiceId } });
+      if (!invoice) {
+        this.logger.warn(
+          `checkout.session.async_payment_failed for unknown invoice ${invoiceId} (session ${session.id})`,
+        );
+        return;
+      }
+
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: { status: "FAILED", failedAt: new Date() },
+      });
+
+      await emitActivityEvent(tx, {
+        tenantId: invoice.tenantId,
+        actorId: invoice.createdByUserId,
+        objectType: "invoice",
+        objectId: invoiceId,
+        eventType: "invoice.payment_failed",
+        metadata: {
+          number: invoice.number,
+          amount: payment.amount.toString(),
+        },
+      });
+
+      this.logger.warn(
+        `Stripe payment failed to settle for invoice ${invoiceId} (session ${session.id})`,
+      );
+    });
+  }
+
+  /**
+   * Records a checkout session whose payment hasn't settled yet
+   * (payment_status !== "paid") as a PENDING payment, without touching the
+   * invoice. async_payment_succeeded/async_payment_failed resolve it later.
+   */
+  private async recordPendingPayment(
+    session: Stripe.Checkout.Session,
+    invoiceId: string,
+    eventId: string,
+    eventType: string,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
+      const alreadyRecorded = await tx.payment.findUnique({
+        where: { providerPaymentId: session.id },
+      });
+      if (alreadyRecorded) {
+        return;
+      }
+
+      const invoice = await tx.invoice.findFirst({ where: { id: invoiceId } });
+      if (!invoice) {
+        this.logger.warn(
+          `checkout.session.completed for unknown invoice ${invoiceId} (session ${session.id})`,
+        );
+        return;
+      }
+
+      const sessionCurrency = session.currency?.toUpperCase();
+      if (sessionCurrency && sessionCurrency !== invoice.currency) {
+        this.logger.error(
+          `Stripe session ${session.id} currency ${sessionCurrency} does not match invoice ${invoiceId} currency ${invoice.currency} — skipping`,
+        );
+        return;
+      }
+
+      const amount = session.amount_total
+        ? new Prisma.Decimal(session.amount_total).div(100)
+        : invoice.totalAmount;
+
+      await tx.payment.create({
+        data: {
+          tenantId: invoice.tenantId,
+          invoiceId: invoice.id,
+          provider: "STRIPE",
+          providerPaymentId: session.id,
+          amount,
+          currency: sessionCurrency ?? invoice.currency,
+          status: "PENDING",
+        },
+      });
+
+      this.logger.log(
+        `Invoice ${invoiceId} payment pending settlement (session ${session.id}, payment_status=${session.payment_status})`,
+      );
+    });
+  }
+
+  private async applySuccessfulPayment(
+    session: Stripe.Checkout.Session,
+    invoiceId: string,
+    eventId: string,
+    eventType: string,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const isNew = await claimWebhookEvent(tx, {
+        provider: "STRIPE",
+        externalEventId: eventId,
+        eventType,
+      });
+      if (!isNew) {
+        this.logger.log(
+          `Stripe event ${eventId} already processed — skipping (inbox dedup)`,
+        );
+        return;
+      }
+
+      // providerPaymentId is unique — an already-succeeded session means this
+      // event was processed; ack the retry without double-applying it.
+      const existingPayment = await tx.payment.findUnique({
+        where: { providerPaymentId: session.id },
+      });
+      if (existingPayment?.status === "SUCCEEDED") {
         this.logger.log(`Stripe session ${session.id} already processed — skipping`);
         return;
       }
@@ -61,13 +273,21 @@ export class StripeWebhookService {
         // Ack unknown IDs: a non-2xx makes Stripe retry and eventually
         // disable the webhook endpoint, and a 404 is an enumeration side-channel.
         this.logger.warn(
-          `checkout.session.completed for unknown invoice ${invoiceId} (session ${session.id})`,
+          `Stripe payment success for unknown invoice ${invoiceId} (session ${session.id})`,
         );
         return;
       }
 
       if (invoice.status === "PAID") {
         this.logger.log(`Invoice ${invoiceId} already marked PAID — skipping`);
+        return;
+      }
+
+      const sessionCurrency = session.currency?.toUpperCase();
+      if (sessionCurrency && sessionCurrency !== invoice.currency) {
+        this.logger.error(
+          `Stripe session ${session.id} currency ${sessionCurrency} does not match invoice ${invoiceId} currency ${invoice.currency} — skipping`,
+        );
         return;
       }
 
@@ -86,19 +306,27 @@ export class StripeWebhookService {
       }
 
       // Record the payment itself — invoice status and the payments table
-      // must agree on where the money came from.
-      await tx.payment.create({
-        data: {
-          tenantId: invoice.tenantId,
-          invoiceId: invoice.id,
-          provider: "STRIPE",
-          providerPaymentId: session.id,
-          amount: paidNow,
-          currency: session.currency?.toUpperCase() ?? invoice.currency,
-          status: "SUCCEEDED",
-          succeededAt: new Date(),
-        },
-      });
+      // must agree on where the money came from. A pending ACH record
+      // created earlier is resolved in place rather than duplicated.
+      if (existingPayment) {
+        await tx.payment.update({
+          where: { id: existingPayment.id },
+          data: { status: "SUCCEEDED", succeededAt: new Date() },
+        });
+      } else {
+        await tx.payment.create({
+          data: {
+            tenantId: invoice.tenantId,
+            invoiceId: invoice.id,
+            provider: "STRIPE",
+            providerPaymentId: session.id,
+            amount: paidNow,
+            currency: sessionCurrency ?? invoice.currency,
+            status: "SUCCEEDED",
+            succeededAt: new Date(),
+          },
+        });
+      }
 
       await tx.invoice.update({
         where: { id: invoiceId },

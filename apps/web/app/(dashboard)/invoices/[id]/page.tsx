@@ -8,11 +8,12 @@ import type { Invoice } from "@sealed/types";
 
 type InvoiceDetail = Invoice & { contact?: { name: string; email: string } };
 
-export default async function InvoiceDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function InvoiceDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   let invoice: InvoiceDetail;
 
   try {

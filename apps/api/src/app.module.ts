@@ -19,8 +19,8 @@ import { InvoicesModule } from "./modules/invoices/invoices.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { ActivityModule } from "./modules/activity/activity.module";
 import { MarketingModule } from "./modules/marketing/marketing.module";
+import { CspReportModule } from "./modules/csp-report/csp-report.module";
 import { StripeModule } from "./integrations/stripe/stripe.module";
-import { DropboxSignModule } from "./integrations/dropbox-sign/dropbox-sign.module";
 import { DocuSealModule } from "./integrations/docuseal/docuseal.module";
 import { ResendModule } from "./integrations/resend/resend.module";
 import { ClerkModule } from "./integrations/clerk/clerk.module";
@@ -60,8 +60,8 @@ import { StatsModule } from "./stats/stats.module";
     PaymentsModule,
     ActivityModule,
     MarketingModule,
+    CspReportModule,
     StripeModule,
-    DropboxSignModule,
     DocuSealModule,
     ResendModule,
     ClerkModule,

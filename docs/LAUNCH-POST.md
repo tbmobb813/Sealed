@@ -51,8 +51,8 @@ section is the product demo.
 > invoice app; the whole product is closing those gaps.
 >
 > Stack: Turborepo, NestJS + Prisma + Postgres on Railway, Next.js on
-> Vercel, Clerk, Stripe, e-signatures via provider-switched integration
-> (Dropbox Sign / DocuSeal). Every mutation is tenant-scoped and emits an
+> Vercel, Clerk, Stripe, e-signatures via DocuSeal. Every mutation is
+> tenant-scoped and emits an
 > activity event in the same transaction; state transitions are asserted
 > server-side. Watching the signed webhook flip an agreement without me
 > touching anything was the moment it felt real.

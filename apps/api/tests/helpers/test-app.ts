@@ -7,7 +7,6 @@ import { Test } from "@nestjs/testing";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/common/filters/all-exceptions.filter";
 import { createResendMockProvider } from "./resend-mock";
-import { createDropboxSignMockProvider } from "./dropbox-sign-mock";
 import { createDocuSealMockProvider } from "./docuseal-mock";
 
 export const AUTH_HEADER = { Authorization: "Bearer demo" };
@@ -16,12 +15,8 @@ export async function createTestApp(): Promise<INestApplication> {
   process.env.INTEGRATION_TEST = "true";
   // Force demo auth in tests (not ??=): a real .env DEMO_MODE=false must not win.
   process.env.DEMO_MODE = "true";
-  // Force the test key (not ??=): the service is mocked and webhook HMACs
-  // are built from this env var, so a real key from .env must never win.
-  process.env.DROPBOX_SIGN_API_KEY = "test_dropbox_sign_key";
-  process.env.DROPBOX_SIGN_WEBHOOK_SECRET ??= "test_dropbox_sign_webhook_secret";
-  // Same forcing rationale for DocuSeal — the service is mocked and the
-  // webhook secret check reads this env var.
+  // Force the test key (not ??=): the service is mocked and the webhook
+  // secret check reads this env var, so a real key from .env must never win.
   process.env.DOCUSEAL_API_KEY = "test_docuseal_key";
   process.env.DOCUSEAL_WEBHOOK_SECRET = "test_docuseal_webhook_secret";
   // Use Stripe stub in tests — placeholder keys in .env would hit the real API and fail.
@@ -30,7 +25,6 @@ export async function createTestApp(): Promise<INestApplication> {
   delete process.env.RESEND_API_KEY;
 
   const resendProvider = createResendMockProvider();
-  const dropboxSignProvider = createDropboxSignMockProvider();
   const docuSealProvider = createDocuSealMockProvider();
 
   const moduleRef = await Test.createTestingModule({
@@ -38,8 +32,6 @@ export async function createTestApp(): Promise<INestApplication> {
   })
     .overrideProvider(resendProvider.provide)
     .useValue(resendProvider.useValue)
-    .overrideProvider(dropboxSignProvider.provide)
-    .useValue(dropboxSignProvider.useValue)
     .overrideProvider(docuSealProvider.provide)
     .useValue(docuSealProvider.useValue)
     .compile();

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TrackedCtaLink } from "@/components/features/marketing/tracked-cta-link";
 
 export const metadata = {
-  title: "Pricing — Sealed",
+  title: { absolute: "Pricing — Sealed" },
   description:
-    "Start free. Upgrade when your client work does. Simple flat pricing for freelancers who bill for their work.",
+    "Start free. Upgrade when your client work does. Simple flat pricing for anyone who bills clients for their work.",
 };
 
 const tiers = [
@@ -28,7 +29,7 @@ const tiers = [
     name: "Pro",
     price: "$19",
     cadence: "per month",
-    blurb: "For freelancers running their whole client pipeline through Sealed.",
+    blurb: "For anyone running their whole client pipeline through Sealed.",
     cta: "Get started",
     highlighted: true,
     features: [
@@ -54,7 +55,9 @@ export default function PricingPage() {
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button asChild>
-              <Link href="/sign-up">Get started</Link>
+              <TrackedCtaLink href="/sign-up" location="pricing_nav">
+                Get started
+              </TrackedCtaLink>
             </Button>
           </nav>
         </div>
@@ -107,10 +110,14 @@ export default function PricingPage() {
                 variant={tier.highlighted ? "default" : "outline"}
                 className="mt-8"
               >
-                <Link href="/sign-up">
+                <TrackedCtaLink
+                  href="/sign-up"
+                  location="pricing"
+                  tier={tier.name.toLowerCase()}
+                >
                   {tier.cta}
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                </TrackedCtaLink>
               </Button>
             </div>
           ))}
@@ -124,10 +131,10 @@ export default function PricingPage() {
               your feedback is the price.
             </p>
             <Button asChild size="lg" className="mt-6">
-              <Link href="/sign-up">
+              <TrackedCtaLink href="/sign-up" location="pricing_cta_band">
                 Create your account
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </TrackedCtaLink>
             </Button>
           </div>
         </section>
@@ -139,6 +146,9 @@ export default function PricingPage() {
           <div className="flex gap-4">
             <Link href="/pricing" className="hover:text-foreground">
               Pricing
+            </Link>
+            <Link href="/alternatives" className="hover:text-foreground">
+              Alternatives
             </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in

@@ -1,4 +1,5 @@
 import { PrismaClient } from "@sealed/database";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const DEMO_CLERK_USER_ID = "user_demo_001";
 
@@ -47,7 +48,9 @@ export default async function globalSetup() {
   process.env.DATABASE_URL ??=
     "postgresql://sealed:sealed_dev@localhost:5432/sealed";
 
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg(process.env.DATABASE_URL),
+  });
   try {
     await resetDatabase(prisma);
     await seedFixtures(prisma);

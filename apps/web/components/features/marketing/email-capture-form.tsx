@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "loading" | "done" | "error";
@@ -23,8 +24,10 @@ export function EmailCaptureForm() {
           body: JSON.stringify({ email, source: "landing" }),
         },
       );
+      track("email_capture_submit", { success: res.ok });
       setStatus(res.ok ? "done" : "error");
     } catch {
+      track("email_capture_submit", { success: false });
       setStatus("error");
     }
   }

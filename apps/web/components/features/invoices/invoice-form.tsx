@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +36,7 @@ export function InvoiceForm({
   defaultSubtotal,
   defaultTaxAmount,
 }: InvoiceFormProps) {
-  const [state, formAction] = useFormState<InvoiceFormState, FormData>(
+  const [state, formAction] = useActionState<InvoiceFormState, FormData>(
     createInvoice,
     {},
   );

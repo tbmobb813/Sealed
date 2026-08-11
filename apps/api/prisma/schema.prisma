@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================================
@@ -27,8 +26,7 @@ model Tenant {
   
   // Integration settings
   stripeAccountId      String? @map("stripe_account_id")
-  signatureProvider    String? @default("dropbox_sign") @map("signature_provider")
-  
+
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -390,6 +388,36 @@ model ActivityEvent {
   @@index([tenantId, eventType])
   @@map("activity_events")
 }
+
+// Dedup ledger for inbound provider webhooks (Stripe/DocuSeal/Clerk).
+// Written atomically in the same transaction as the business mutation it
+// guards, so a duplicate delivery short-circuits at the DB level before
+// any handler logic runs. tenantId is nullable and this has no relation
+// to Tenant: webhooks can arrive before a tenant is resolvable (e.g.
+// Clerk provisioning a brand-new tenant), and this is an audit/dedup
+// ledger, not tenant business data, so it must not cascade-delete with
+// a tenant and isn't TenantGuard-scoped.
+model WebhookInboxEvent {
+  id              String          @id @default(uuid())
+  provider        WebhookProvider
+  externalEventId String          @map("external_event_id")
+  eventType       String          @map("event_type")
+  tenantId        String?         @map("tenant_id")
+  receivedAt      DateTime        @default(now()) @map("received_at")
+  processedAt     DateTime?       @map("processed_at")
+
+  @@unique([provider, externalEventId])
+  @@index([tenantId])
+  @@index([provider, receivedAt])
+  @@map("webhook_inbox_events")
+}
+
+enum WebhookProvider {
+  STRIPE
+  DOCUSEAL
+  CLERK
+}
+
 // Marketing email capture from the public landing page (no tenant)
 model EmailSubscriber {
   id        String   @id @default(uuid())

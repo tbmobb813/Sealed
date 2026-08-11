@@ -37,11 +37,10 @@ pnpm dev           # web :3000 + API :3001
 
 ## External Integrations
 
-### E-Signatures (provider-switched)
-- Active provider chosen by `SIGNATURE_PROVIDER` env (`dropbox_sign` default | `docuseal`); `SignatureProviderService` at `apps/api/src/integrations/signature/` is the only entry point services should use
-- Both providers stay registered so webhooks keep working for in-flight requests created before a switch; agreements store `signatureProvider` per request
-- Dropbox Sign: `apps/api/src/integrations/dropbox-sign/`, webhook `POST /api/v1/webhooks/dropbox-sign` (HMAC-verified, status confirmed via API)
-- DocuSeal: `apps/api/src/integrations/docuseal/`, webhook `POST /api/v1/webhooks/docuseal` (shared-secret `X-Webhook-Secret` header = `DOCUSEAL_WEBHOOK_SECRET`, status always confirmed via `GET /submissions/{id}` before mutating). Env: `DOCUSEAL_API_KEY`, `DOCUSEAL_WEBHOOK_SECRET`, optional `DOCUSEAL_API_URL`
+### E-Signatures
+- DocuSeal is the only provider; `SignatureProviderService` at `apps/api/src/integrations/signature/` is the only entry point services should use
+- `apps/api/src/integrations/docuseal/`, webhook `POST /api/v1/webhooks/docuseal` (shared-secret `X-Webhook-Secret` header = `DOCUSEAL_WEBHOOK_SECRET`, status always confirmed via `GET /submissions/{id}` before mutating). Env: `DOCUSEAL_API_KEY`, `DOCUSEAL_WEBHOOK_SECRET`, optional `DOCUSEAL_API_URL`
+- Dropbox Sign (the original provider) was fully removed 2026-08-08 — no in-flight signature requests depended on it at removal time
 ### Stripe
 - Payment links on invoice send
 - `StripeService` at `apps/api/src/integrations/stripe/`

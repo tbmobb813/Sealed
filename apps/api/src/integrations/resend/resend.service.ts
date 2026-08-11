@@ -67,6 +67,7 @@ export class ResendService {
     }
 
     const proposalUrl = `${this.appUrl}/p/${encodeURIComponent(options.publicToken)}`;
+    const poweredByUrl = `${this.appUrl}/?ref=powered-by`;
     const tenantName = escapeHtml(options.tenantName);
     const proposalTitle = escapeHtml(options.proposalTitle);
 
@@ -90,6 +91,9 @@ export class ResendService {
       Or copy this link into your browser:<br />
       <a href="${proposalUrl}" style="color: #0ea5e9;">${proposalUrl}</a>
     </p>
+    <p style="color: #aaa; font-size: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+      Powered by <a href="${poweredByUrl}" style="color: #aaa;">Sealed</a>
+    </p>
   </body>
 </html>`;
 
@@ -99,6 +103,9 @@ export class ResendService {
 ${options.tenantName} has sent you a proposal: ${options.proposalTitle}
 
 View it here: ${proposalUrl}
+
+---
+Powered by Sealed — ${poweredByUrl}
 `;
 
     try {
@@ -140,6 +147,7 @@ View it here: ${proposalUrl}
     const invoiceNumber = escapeHtml(options.invoiceNumber);
     const totalAmount = escapeHtml(options.totalAmount);
     const paymentUrl = escapeHtml(options.paymentUrl);
+    const poweredByUrl = `${this.appUrl}/?ref=powered-by`;
     const html = `
 <!DOCTYPE html>
 <html>
@@ -163,6 +171,9 @@ View it here: ${proposalUrl}
       Or copy this link into your browser:<br />
       <a href="${paymentUrl}" style="color: #0ea5e9;">${paymentUrl}</a>
     </p>
+    <p style="color: #aaa; font-size: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+      Powered by <a href="${poweredByUrl}" style="color: #aaa;">Sealed</a>
+    </p>
   </body>
 </html>`;
 
@@ -172,6 +183,9 @@ View it here: ${proposalUrl}
 ${options.tenantName} has sent you an invoice for ${options.totalAmount}.
 
 Pay here: ${options.paymentUrl}
+
+---
+Powered by Sealed — ${poweredByUrl}
 `;
 
     try {

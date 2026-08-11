@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Controller,
   Headers,
   HttpCode,
@@ -38,16 +39,30 @@ export class StripeWebhookController {
       throw new BadRequestException("Invalid Stripe webhook signature");
     }
 
-    // Always ack a verified event with 200 — a non-2xx makes Stripe retry
-    // and eventually disable the endpoint. Permanent failures (e.g. invalid
-    // state transition) would retry forever without ever succeeding.
     try {
       await this.stripeWebhookService.handleEvent(event);
     } catch (err: unknown) {
+      // ConflictException (INVALID_STATE_TRANSITION) is the one error this
+      // handler can throw for a reason retrying will never fix — e.g. the
+      // invoice already moved on through some other path. Ack it so Stripe
+      // doesn't retry forever and eventually disable the endpoint.
+      //
+      // Anything else (a dropped DB connection, an unexpected exception) is
+      // exactly what SHOULD make Stripe retry — swallowing those here would
+      // silently drop the event with no path to reconciliation. Let them
+      // propagate to the global exception filter, which defaults to 500.
+      if (err instanceof ConflictException) {
+        this.logger.warn(
+          `Stripe webhook handler rejected ${event.type} as an invalid state transition — acking without retry: ${err.message}`,
+        );
+        return { received: true, type: event.type };
+      }
+
       const message = err instanceof Error ? err.message : String(err);
       this.logger.error(
         `Stripe webhook handler failed for ${event.type}: ${message}`,
       );
+      throw err;
     }
 
     return { received: true, type: event.type };

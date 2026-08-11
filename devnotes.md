@@ -29,12 +29,10 @@ pnpm dev
 | `CLERK_SECRET_KEY` | `apps/api/.env` | Required when `DEMO_MODE=false` |
 | `CLERK_WEBHOOK_SECRET` | `apps/api/.env` | For `POST /api/v1/webhooks/clerk` |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `apps/web/.env` | Required when demo mode off |
-| `SIGNATURE_PROVIDER` | `apps/api/.env` | `docuseal` (live default) or `dropbox_sign` (fallback) |
-| `DOCUSEAL_API_KEY` | `apps/api/.env` | Live DocuSeal integration |
+| `DOCUSEAL_API_KEY` | `apps/api/.env` | Live DocuSeal integration (the only signature provider — Dropbox Sign removed 2026-08-08) |
 | `DOCUSEAL_WEBHOOK_SECRET` | `apps/api/.env` | Shared secret, sent as `X-Webhook-Secret` header |
-| `DROPBOX_SIGN_API_KEY` | `apps/api/.env` | Fallback Dropbox Sign integration (only used if `SIGNATURE_PROVIDER=dropbox_sign`) |
-| `DROPBOX_SIGN_WEBHOOK_SECRET` | `apps/api/.env` | HMAC verification for Dropbox Sign webhooks |
 | `STRIPE_SECRET_KEY` | `apps/api/.env` | Enables real Stripe payment links |
+| `CORS_ORIGIN` | `apps/api/.env` | Required in production. Dual purpose: CORS allowlist AND Clerk's `authorizedParties` (guards `verifyToken` against the subdomain cookie-leaking attack) — must exactly match `WEB_URL` |
 
 ## Key Architecture Notes
 

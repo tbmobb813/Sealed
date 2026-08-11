@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   acceptProposal,
@@ -22,7 +22,7 @@ export function AcceptProposalButton({ token }: { token: string }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const acceptWithToken = acceptProposal.bind(null, token);
-  const [state, formAction] = useFormState<AcceptProposalState, FormData>(
+  const [state, formAction] = useActionState<AcceptProposalState, FormData>(
     acceptWithToken,
     {},
   );

@@ -49,41 +49,49 @@ Estimated runtime: **2:30–3:30** depending on pacing. Don't rush the
 accept/sign/pay moments — those are the proof, not the filler.
 
 ### Scene 1 — Landing page (0:00)
-*Screen: sealed.techtrendwire.com, logged out*
+
+**Screen:** sealed.techtrendwire.com, logged out
+
 > "This is Sealed — it takes a client from proposal to signed agreement to
 > paid invoice in one flow, one link. I built it because those three things
 > always live in three different tools, and deals die in the gaps between
 > them. Let me show you the whole thing, start to finish."
 
 ### Scene 2 — Sign up (0:10)
-*Click "Get started" → sign up with email/Google*
+
+**Click "Get started" → sign up with email/Google*
 > "Signing up takes about two minutes — email or Google, that's it. No
 > onboarding form, no setup wizard. Your workspace is just... there."
 
 ### Scene 3 — Dashboard, first look (0:25)
-*Land on empty/near-empty dashboard*
+
+**Land on empty/near-empty dashboard*
 > "This is the dashboard. Open proposals, pending agreements, outstanding
 > invoices — everything's status-tracked from here. Right now it's empty
 > because we haven't done anything yet, so let's fix that."
 
 ### Scene 4 — Add a contact (0:35)
-*Contacts → Add Contact*
+
+**Contacts → Add Contact*
 > "First, the client. Name and email — that's the only thing that matters,
 > because the email is where their proposal actually goes."
 
 ### Scene 5 — Create a proposal (0:50)
-*Proposals → Create Proposal → fill title, line items, price*
+
+**Proposals → Create Proposal → fill title, line items, price*
 > "Now the proposal. Title, line items, price per item — totals calculate
 > themselves. You can set an expiration if you want to create urgency, but
 > that's optional."
 
 ### Scene 6 — Send it (1:10)
-*Hit Send*
+
+**Hit Send*
 > "Hit send, and that's it on my end. The client gets an email with a
 > private link — no login, no account, nothing to install."
 
 ### Scene 7 — Client-side view and accept (1:20)
-*Switch to the client link — a second browser/incognito window*
+
+**Switch to the client link — a second browser/incognito window*
 > "This is what they see. Clean, no clutter — the proposal, the price, and
 > two buttons: accept or decline. To accept, they just type their name —
 > that's the consent, that's it."
@@ -92,38 +100,45 @@ accept/sign/pay moments — those are the proof, not the filler.
 > live, not something I have to go check on."
 
 ### Scene 8 — Turn it into an agreement (1:45)
-*Back on internal dashboard → Agreements → Create from the accepted proposal*
+
+**Back on internal dashboard → Agreements → Create from the accepted proposal*
 > "Once it's accepted, I can turn it into an agreement — the actual signed
 > contract. Sealed won't even let me skip ahead to this until the proposal's
 > accepted. That's on purpose."
 
 ### Scene 9 — Send for signature (2:00)
-*Fill agreement terms → Send for Signature*
+
+**Fill agreement terms → Send for Signature*
 > "I add the terms, hit send for signature, and it goes out through
 > DocuSeal — legally binding e-signature, not a scanned PDF."
 
 ### Scene 10 — Client signs (2:15)
-*Client-side signature flow*
+
+**Client-side signature flow*
 > "On their end, they sign right in the browser. No printing, no scanning,
 > no 'sign and send it back.'"
 
 ### Scene 11 — SIGNED, automatically (2:30)
-*Back on dashboard — status flips to SIGNED*
+
+**Back on dashboard — status flips to SIGNED*
 > "The moment they sign, it flips to SIGNED on my side automatically. I'm
 > not refreshing my inbox wondering if it came back yet."
 
 ### Scene 12 — Create the invoice (2:40)
-*Invoices → Create from the signed agreement*
+
+**Invoices → Create from the signed agreement*
 > "Signed work becomes an invoice — again, only unlockable once the
 > agreement's actually signed. The amount's already pulled in from the
 > agreement, so there's no retyping numbers."
 
 ### Scene 13 — Send the invoice (2:55)
-*Hit Send*
+
+**Hit Send*
 > "Send it, and the client gets an invoice email with a real Stripe payment
 > link attached — they pay by card, right there."
 
 ### Scene 14 — Client pays → PAID (3:05)
+
 *Client clicks payment link, completes checkout (Stripe test mode is fine
 for a demo — say so on camera if using test card numbers)*
 > "They pay, and it flips to PAID on its own. No marking it paid manually,
@@ -131,7 +146,8 @@ for a demo — say so on camera if using test card numbers)*
 > one thread, and I never had to leave the app or open a second tool."
 
 ### Closing (3:25)
-*Back on dashboard, showing the completed record*
+
+**Back on dashboard, showing the completed record*
 > "That's Sealed. It's live and free right now at
 > sealed.techtrendwire.com — if you send proposals or quotes for a living,
 > I'd genuinely like to know where this breaks for you."

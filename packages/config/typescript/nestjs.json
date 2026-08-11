@@ -2,10 +2,24 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./base.json",
   "compilerOptions": {
+    // TS 6.0 turns using moduleResolution=node10 (the "Node" alias) without
+    // acknowledgment into a hard error — it's slated for removal in 7.0.
+    // NestJS's CommonJS + decorator-metadata output still needs classic
+    // resolution today; ignoreDeprecations silences the warning without
+    // changing behavior. Revisit if/when NestJS supports NodeNext/Bundler
+    // resolution with decorators.
+    "ignoreDeprecations": "6.0",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    // TS 6.0 changed the default "types" from auto-including every package
+    // under node_modules/@types to an empty array. Spec files rely on
+    // Jest's ambient globals (describe/it/expect/jest) with no explicit
+    // import, so they need "jest" listed explicitly now; "node" is listed
+    // too since Node's own ambient globals (process, Buffer, ...) rely on
+    // the same mechanism.
+    "types": ["node", "jest"]
   }
 }
