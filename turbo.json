@@ -2,6 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
     "DATABASE_URL",
+    "REDIS_URL",
     "DEMO_MODE",
     "NEXT_PUBLIC_DEMO_MODE",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
