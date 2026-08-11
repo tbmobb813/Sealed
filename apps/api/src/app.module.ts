@@ -1,8 +1,9 @@
 import { join } from "node:path";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { PrismaService } from "./prisma/prisma.service";
 import { ClerkAuthGuard } from "./common/guards/clerk-auth.guard";
 import { TenantGuard } from "./common/guards/tenant.guard";
@@ -40,7 +41,16 @@ import { StatsModule } from "./stats/stats.module";
     }),
     // Baseline abuse protection, mainly for the public proposal/webhook
     // endpoints. Generous enough that normal dashboard usage never trips it.
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 300 }]),
+    // Redis-backed so the limit is shared across all API instances (in-memory
+    // storage resets per-instance, which defeats the point on Railway once
+    // there's more than one replica).
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [{ ttl: 60_000, limit: 300 }],
+        storage: new ThrottlerStorageRedisService(config.get<string>("REDIS_URL")),
+      }),
+    }),
     TenantsModule,
     UsersModule,
     ContactsModule,

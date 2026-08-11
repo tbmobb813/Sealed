@@ -1,30 +1,61 @@
 # Sealed
 
-Multi-tenant proposal-to-payment platform built as a Turborepo monorepo.
+**Live:** [sealed.techtrendwire.com](https://sealed.techtrendwire.com) — free during early access.
+
+**Sealed turns "I'll send over a proposal" into a signed, paid deal —
+one link, no spreadsheet of who-signed-what, no manually chasing anyone.**
+
+Right now, a freelancer or small studio runs one deal through three
+disconnected tools: the proposal is a Google Doc, the contract lives in a
+separate e-sign app, the invoice lives in yet another. Nothing connects
+them, so nothing stops a client from getting invoiced for work they never
+actually signed off on, and nothing tells the freelancer when a "sent"
+proposal just quietly went nowhere.
+
+Sealed replaces all three tools with one flow the client experiences as a
+single link, and each step is *mechanically* gated behind the one before
+it:
+
+**Proposal → client accepts → signs the agreement → pays the invoice.**
+
+Concretely: you can't create an agreement until the proposal shows
+ACCEPTED, and you can't create an invoice until the agreement shows
+SIGNED — the API rejects the attempt. The client never makes an account;
+they open a link, and every action they take (viewed it, accepted it,
+signed it, paid it) updates the freelancer's dashboard automatically,
+in real time, via webhook — not by anyone refreshing their inbox.
+
+**What changes for the person using it:** no more "did they ever sign
+that?" three weeks later, no more invoicing work that was never actually
+agreed to, and no more three separate tools to keep in sync by hand.
+
+Built as a Turborepo monorepo.
 
 ## Stack
 
-- **API:** NestJS + Prisma + PostgreSQL + Redis
+- **API:** NestJS + Prisma + PostgreSQL + Redis (shared rate-limit storage for public endpoints across replicas)
 - **Web:** Next.js 14 (App Router) + Clerk + shadcn/ui
-- **Integrations:** Stripe, DocuSeal (Dropbox Sign fallback), Resend
+- **Integrations:** DocuSeal for e-signatures (live default; Dropbox Sign kept registered as an env-switchable fallback for in-flight requests), Stripe for payment links, Resend for transactional email
 
 ## Core flow
 
-The primary domain chain:
+The primary domain chain, state-machine enforced end to end:
 
 1. **Proposal** — create in the dashboard, send to the client
-2. **Public review** — client opens `/p/:token`, views line items, accepts
-3. **Agreement** — create from an accepted proposal, send for signature
-4. **Invoice** — bill after the agreement is signed
+2. **Public review** — client opens `/p/:token` (no login), views line items, accepts or declines
+3. **Agreement** — can only be created from an ACCEPTED proposal; sent for e-signature via DocuSeal, flips to SIGNED automatically on webhook
+4. **Invoice** — can only be created from a SIGNED agreement; sent with a live Stripe payment link, flips to PAID automatically on webhook
 
-State transitions and immutability rules are enforced in the API service layer. Every mutation emits an activity event in the same database transaction.
+Every mutation emits an activity event in the same database transaction, so the dashboard's status is never a guess — it's driven by real webhook events (view, accept, sign, pay), not something a freelancer has to manually update.
+
+See [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) for the user-facing walkthrough of this same flow.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- pnpm 11+ (see `packageManager` in root `package.json`)
 - Docker (for Postgres + Redis)
 
 ### Setup
@@ -77,12 +108,14 @@ sealed/
 ├── apps/
 │   ├── api/          # NestJS backend
 │   └── web/          # Next.js frontend
+├── docs/             # Getting-started guide, deployment/architecture notes, outreach material
 ├── e2e/              # Playwright end-to-end tests
 ├── packages/
 │   ├── config/       # Shared ESLint & TypeScript configs
 │   ├── types/        # Shared domain types
 │   ├── database/     # Prisma client re-export
 │   └── ui/           # Shared React components
+├── PRE_LAUNCH_GAPS.md  # Pre-launch blockers found during dev/pentest, with resolution status
 ├── playwright.config.ts
 └── docker-compose.yml
 ```
