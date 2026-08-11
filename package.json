@@ -18,7 +18,7 @@
     "@playwright/test": "^1.62.1",
     "@prisma/adapter-pg": "^7.9.1",
     "@sealed/database": "workspace:*",
-    "pg": "^8.22.0",
+    "pg": "^8.23.0",
     "turbo": "^2.10.8",
     "typescript": "^6.0.3"
   },
