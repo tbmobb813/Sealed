@@ -53,6 +53,12 @@ jobs:
       REDIS_URL: redis://localhost:6379
       DEMO_MODE: "true"
       TURBO_TELEMETRY_DISABLED: "1"
+      # prisma generate phones home to Prisma's checkpoint/telemetry service
+      # by default; a slow/blocked outbound call there hangs the whole step
+      # with no log output. turbo.json's test task reruns db:generate a
+      # second time (cache: false) right after the explicit step below, so
+      # this needs to be disabled, not just fast on a lucky network day.
+      CHECKPOINT_DISABLE: "1"
     steps:
       - uses: actions/checkout@v7
 
