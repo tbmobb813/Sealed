@@ -145,7 +145,21 @@ that produced *some* reaction (positive or negative) to react to.
 
 ---
 
-## 5. Success Metrics
+## 5. Analytics — do this now
+
+The one concrete gap in this report: there is currently zero visibility into
+what happens to the small trickle of traffic already hitting the site —
+LinkedIn post clicks, DM link opens, the handful of people who did look.
+Install **Plausible or PostHog** this week. It's free or near-free at this
+volume and doesn't require the funnel to be "ready" first — the data starts
+being useful the moment it's collecting, including retroactively explaining
+things like the LinkedIn post's 73 impressions (did any of them actually
+click through to the site, or did 0 comments mean 0 clicks too?).
+
+This isn't a paid-channel prerequisite (skip pixel/retargeting setup per §3)
+— it's baseline instrumentation that should exist regardless of stage.
+
+## 6. Success Metrics
 
 **North star for this phase: conversations, not signups.** MRR/signups are
 the wrong north star while `feedback.md` is empty — you cannot optimize a
@@ -161,7 +175,7 @@ many of the ICP have actually looked at Sealed and reacted.
 
 ---
 
-## 6. Founder Advantage
+## 7. Founder Advantage
 
 You have it and you're already using it — the mailroom story is genuinely
 rare and it's the reason to lead every conversation with it, not bury it
@@ -171,7 +185,7 @@ instead of the story. Every message variant in `docs/OUTREACH.md` should
 open with a version of "I built this at night around a full-time mailroom
 job" before it says anything about proposals or invoices.
 
-## 7. Biggest Risk
+## 8. Biggest Risk
 
 Not "the product doesn't work" — it's fully verified end-to-end with real
 signatures and real money. The actual risk is **mistaking channel-mechanics
@@ -183,7 +197,7 @@ verdict.
 
 ---
 
-## 8. Psychological Principles Applied to Sealed
+## 9. Psychological Principles Applied to Sealed
 
 Only the ones with real leverage at this stage — no padding for the sake of
 covering all nine generically.
@@ -217,6 +231,38 @@ bottleneck. Trying to apply them now would be optimizing a stage you haven't
 reached.
 
 ---
+
+## 10. Later — once you have signal (backlog, do NOT build now)
+
+Four ideas worth keeping in the back pocket, surfaced while reviewing an
+older draft GTM report. None of them are wrong on their own merits — they're
+wrong for *right now*, the same way templates and premature pricing tiers
+already in the Post-Launch Backlog are wrong for right now. Revisit once
+`docs/feedback.md` has real entries to build from.
+
+- **SEO / comparison content** ("Dubsado alternative," "HoneyBook
+  alternative," "how to get clients to sign contracts faster"). A real
+  3–6 month channel with commercial-intent search traffic. Writing it now
+  means guessing at what resonates instead of building it from actual
+  conversations — wait for the first 5 real reactions in `feedback.md`.
+- **Product Hunt launch.** Legitimate channel, but it performs on
+  pre-existing momentum — hunters, upvote commitments, testimonials to lead
+  with. Launching cold right now would likely repeat the Show HN outcome.
+  Queue it once the DM push produces a real user or quotable reaction.
+- **Pricing tiers (Rule of 3 structure).** Anchor-high, middle-tier-is-the-
+  target thinking is sound for whenever monetization starts. Not urgent —
+  Sealed is intentionally free right now to gather feedback; designing tiers
+  before that phase ends is the same premature-optimization trap as the
+  templates item already in the Post-Launch Backlog above.
+- **Onboarding / IKEA-effect tactics** ("build your first proposal
+  together" wizard, setup progress bar). Correctly out of scope per §9 above
+  until there are active users with real setup history to design around.
+
+**Explicitly not carried forward, even later:** any specific competitor
+pricing claims from that draft ("89% price hike," "acquired by Zoom") —
+unverified, don't repeat as fact. Same for its $39/mo price point and its
+KPI targets (NPS>40, >4% visitor→trial, 0% Month-1 churn) — arbitrary
+numbers with no basis in Sealed's actual funnel data.
 
 ## What this report is not
 
