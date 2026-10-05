@@ -140,6 +140,57 @@ Personalize the [bracket] in the first line or don't send it._
 > genuinely shape what I build next. And if it's not for you, that's useful
 > data too.
 
+## 4. Re-engagement follow-up (drafted 2026-10-05, send by Thu 2026-10-09)
+
+_The §3 nudge was never sent, and "4–5 days later" became ~10 weeks. These
+admit the gap instead of pretending it's a normal follow-up. They also
+change the ask: "try it for 10 minutes" got 0 of 10 replies, so these ask
+one easy question about how the person handles this today. That's quicker
+to answer, and the answer is useful even when it's "I use X and it's fine."
+Send each one once, then log it in the Send log below. Sealed is parked
+(see `career-coach.md` Slot 1), so a reply is the only thing that brings
+it back._
+
+### Warm (#1 Mars, #2 filmmaker friend)
+
+> Hey [name], circling back on Sealed, the proposal → contract → invoice
+> thing I sent you in July. Totally fine if you never got to it. Honest
+> question though: is that side of the work actually a pain for you, or
+> do you have it handled? Even a one-word answer helps me decide whether
+> to keep going with it.
+
+### Warm (#3 sister, B2B proposals)
+
+> Hey, circling back on Sealed from July. No need to try it. Quick
+> question instead: when your startup sends a proposal to a new client,
+> what happens between "they said yes" and "they paid"? Is that smooth,
+> or is it a pile of docs and emails? Trying to figure out if this is
+> worth keeping alive.
+
+### Cold: videographer / photographer (#4 shotby_00, #5 vtapeken)
+
+> Hey [name], following up on my message from July about Sealed
+> (sealed.techtrendwire.com). Not pitching. I'm deciding whether to keep
+> building it, and I'd value one honest line from someone who actually
+> books shoots: how do you handle quote → agreement → deposit right now?
+> If it's "it's fine, I use X," that's genuinely useful too.
+
+### Cold: quote-based trades (#6 handymannewyork1, #7 djinnocente)
+
+> Hey [name], following up on my message from July about Sealed
+> (sealed.techtrendwire.com). Not pitching. I'm deciding whether to keep
+> building it, and I'd value one honest line from someone who quotes
+> jobs for a living: how do you go from quote to getting paid right now?
+> Text, paper, an app? If it's "it's fine, I use X," that helps too.
+
+### Cold: consultant / coach (#8 birthingoutbosses, #9 mrs.k_20, #10 the_best_fran)
+
+> Hey [name], following up on my message from July about Sealed
+> (sealed.techtrendwire.com). Not pitching. I'm deciding whether to keep
+> building it, and I'd value one honest line from someone who signs
+> clients: how do you get from proposal to signed agreement to paid
+> right now? If it's "it's fine, I use X," that's genuinely useful too.
+
 ---
 
 ## Why the drafts read this way
