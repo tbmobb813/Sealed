@@ -214,6 +214,15 @@ it back._
 ## Send log
 
 <!-- date — who/where — variant — response -->
+2026-10-05 — IG DM — §4 re-engagement, sent by Claude via JNix's browser at his request (July message confirmed in each thread first):
+- shotby_00 (videographer variant): only an 8/2 mass promo for music-video visuals, not a reply to Sealed
+- vtapeken / Kenneth (videographer): no prior reply
+- handymannewyork1 (trades): no prior reply
+- djinnocente (trades): July message marked Seen, no reply
+- birthingoutbosses / Brandy (consultant): no prior reply
+- mrs.k_20 / Angel (consultant): no prior reply
+- the_best_fran / Francesca (consultant): no prior reply
+- Warm #1–#3 (Mars, filmmaker friend, sister): NOT sent. Channel/account unknown; JNix to send himself by 10/9.
 
 ## Distribution post profile links (check these directly, don't re-search)
 
