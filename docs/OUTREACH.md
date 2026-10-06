@@ -222,6 +222,7 @@ it back._
 - birthingoutbosses / Brandy (consultant): no prior reply
 - mrs.k_20 / Angel (consultant): no prior reply
 - the_best_fran / Francesca (consultant): no prior reply
+2026-10-06 inbox check: 0 replies to any of the 7 follow-ups; requests folder empty. djinnocente's profile now 404s and the thread shows "Instagram User" (deactivated, renamed or blocked; can't tell). No further contact.
 - Warm #1–#3 (Mars, filmmaker friend, sister): NOT sent. Channel/account unknown; JNix to send himself by 10/9.
 
 ## Distribution post profile links (check these directly, don't re-search)

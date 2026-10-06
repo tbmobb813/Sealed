@@ -54,7 +54,7 @@ onboard NOW · `[x]` closed (onboarded or passed)
 | 4 | shotby_00 | NYC photographer/videographer | IG DM | cold | | [~] | 2026-07-29 | videographer | no real reply (8/2 mass promo msg only); re-engagement follow-up sent 2026-10-05 |
 | 5 | vtapeken (Kenneth J) | Video/photo creative | IG DM | cold | | [~] | 2026-07-29 | videographer | no reply; re-engagement follow-up sent 2026-10-05 |
 | 6 | handymannewyork1 | NYC handyman | IG DM | cold | | [~] | 2026-07-29 | quote-trades | no reply; re-engagement follow-up sent 2026-10-05 |
-| 7 | djinnocente (CS Productions) | Wedding/event DJ | IG DM | cold | | [~] | 2026-07-29 | quote-trades | July msg Seen, no reply; re-engagement follow-up sent 2026-10-05 |
+| 7 | djinnocente (CS Productions) | Wedding/event DJ | IG DM | cold | | [~] | 2026-07-29 | quote-trades | July msg Seen, no reply; follow-up sent 2026-10-05; **by 10/6 the account is unavailable (profile 404s, thread shows "Instagram User")**: deactivated, renamed, or blocked, unknown. Do not contact again. |
 | 8 | birthingoutbosses (Brandy) | Business coach | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | no reply; re-engagement follow-up sent 2026-10-05 |
 | 9 | mrs.k_20 (Angel Harper) | Social media consultant | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | no reply; re-engagement follow-up sent 2026-10-05 |
 | 10 | the_best_fran (Francesca, Girl Please Creative) | Marketing/event consultant | IG DM | cold | | [~] | 2026-07-29 | consultant/coach | no reply; re-engagement follow-up sent 2026-10-05 |
