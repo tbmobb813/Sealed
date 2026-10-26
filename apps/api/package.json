@@ -21,7 +21,7 @@
     "@nest-lab/throttler-storage-redis": "^1.2.0",
     "@nestjs/common": "^11.1.28",
     "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.28",
+    "@nestjs/core": "^12.2.0",
     "@nestjs/platform-express": "^11.1.28",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-pg": "^7.9.1",
